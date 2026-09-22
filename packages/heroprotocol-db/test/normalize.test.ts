@@ -85,6 +85,7 @@ describe('normalizeStatEvent', () => {
     const r = normalizeStatEvent('r', e, twoTeams);
     expect(r).toEqual({
       replayId: 'r',
+      seq: 0,
       gameloop: 1615,
       seconds: 100.9375,
       eventName: 'PlayerDeath',
@@ -339,6 +340,7 @@ describe('game and message events', () => {
     expect(r.commands).toHaveLength(3);
     expect(r.commands[0]).toEqual({
       replayId: 'r',
+      seq: 0,
       gameloop: 76,
       seconds: 4.75,
       playerSlot: 7,
@@ -389,6 +391,7 @@ describe('game and message events', () => {
     expect(r.chat).toEqual([
       {
         replayId: 'r',
+        seq: 0,
         gameloop: 9035,
         seconds: 564.6875,
         playerSlot: 5,
@@ -399,6 +402,7 @@ describe('game and message events', () => {
       },
       {
         replayId: 'r',
+        seq: 0,
         gameloop: 2628,
         seconds: 164.25,
         playerSlot: 5,
@@ -411,6 +415,7 @@ describe('game and message events', () => {
     expect(r.events).toEqual([
       {
         replayId: 'r',
+        seq: 0,
         gameloop: 3000,
         seconds: 187.5,
         playerSlot: 9,

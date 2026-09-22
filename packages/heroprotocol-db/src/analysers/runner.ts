@@ -24,6 +24,8 @@ export interface RunOptions {
   /** Results already persisted for this replay; fresh ones are reused, stale ones recomputed. */
   readonly existing?: readonly DerivedRecord[];
   readonly onStatus?: (status: AnalyserStatus) => void;
+  /** Called with each row as soon as it is computed, so a host can commit incrementally. */
+  readonly onComputed?: (row: DerivedRecord) => void | Promise<void>;
   readonly clock?: RunClock;
 }
 
@@ -145,7 +147,7 @@ export async function runAnalysers(options: RunOptions): Promise<RunOutcome> {
         state: 'failed',
         error,
       });
-      computed.push({
+      const row: DerivedRecord = {
         replayId: ctx.replay.id,
         analyserId: analyser.id,
         paramsHash: NO_PARAMS,
@@ -154,7 +156,9 @@ export async function runAnalysers(options: RunOptions): Promise<RunOutcome> {
         error,
         computedAt: clock.now(),
         ms: 0,
-      });
+      };
+      computed.push(row);
+      await options.onComputed?.(row);
       continue;
     }
     const deps: Record<string, unknown> = {};
@@ -165,6 +169,7 @@ export async function runAnalysers(options: RunOptions): Promise<RunOutcome> {
       ...(options.onStatus ? { onStatus: options.onStatus } : {}),
     });
     computed.push(row);
+    await options.onComputed?.(row);
     if (row.error === null) results[analyser.id] = row.result;
     else failed.add(analyser.id);
   }

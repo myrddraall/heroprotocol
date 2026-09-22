@@ -81,6 +81,7 @@ export function normalizeScores(
     });
     snapshots.push({
       replayId,
+      seq: 0,
       gameloop: e._gameloop,
       seconds: loopsToSeconds(e._gameloop),
       kind: 'ScoreSnapshot',

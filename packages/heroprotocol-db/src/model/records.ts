@@ -9,9 +9,9 @@ import type { Diagnostics, SectionName, SectionStatus } from '@myrddraall/heropr
  * humans first — seconds beside gameloops, slots and teams resolved, fixed-point
  * values divided out, unit tags resolved to types.
  *
- * Rows that belong to one replay all carry `replayId`, and every collection with
- * more than one row per replay is keyed so a whole replay can be read or deleted
- * as one range.
+ * Rows that belong to one replay all carry `replayId`, and every per-replay
+ * collection has a compound primary key that starts with it, so a whole replay is
+ * one contiguous key range: read or deleted in a single range operation.
  */
 
 /** Heroes of the Storm simulates 16 game loops per second (`m_useScaledTime` aside). */
@@ -209,8 +209,9 @@ export type StatValue = number | string;
  * once in one event is collected in `lists` instead.
  */
 export interface StatEventRecord {
-  readonly id?: number;
   readonly replayId: string;
+  /** Position within this replay's collection; `[replayId+seq]` is the primary key. */
+  readonly seq: number;
   readonly gameloop: number;
   readonly seconds: number;
   readonly eventName: string;
@@ -269,8 +270,8 @@ export type CommandTargetKind = 'none' | 'point' | 'unit' | 'data';
 
 /** A cleaned `SCmdEvent`. Ability names are not in the protocol; `abilLink` is numeric until hero-data maps it. */
 export interface CommandRecord {
-  readonly id?: number;
   readonly replayId: string;
+  readonly seq: number;
   readonly gameloop: number;
   readonly seconds: number;
   readonly playerSlot: number;
@@ -303,8 +304,8 @@ export type EventKind =
 
 /** The long tail: `kind`-discriminated events with a small, kind-specific `data` map. */
 export interface EventRecord {
-  readonly id?: number;
   readonly replayId: string;
+  readonly seq: number;
   readonly gameloop: number;
   readonly seconds: number;
   readonly kind: EventKind;
@@ -316,8 +317,8 @@ export interface EventRecord {
 export type ChatRecipient = 'all' | 'allies' | 'observers' | 'unknown';
 
 export interface ChatRecord {
-  readonly id?: number;
   readonly replayId: string;
+  readonly seq: number;
   readonly gameloop: number;
   readonly seconds: number;
   readonly playerSlot: number | null;

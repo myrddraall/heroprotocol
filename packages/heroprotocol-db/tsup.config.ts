@@ -6,6 +6,8 @@ export default defineConfig({
     'model/index': 'src/model/index.ts',
     'normalize/index': 'src/normalize/index.ts',
     'analysers/index': 'src/analysers/index.ts',
+    'db/index': 'src/db/index.ts',
+    'ingest/index': 'src/ingest/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,
@@ -14,5 +16,5 @@ export default defineConfig({
   treeshake: true,
   splitting: true,
   target: 'es2022',
-  external: ['@myrddraall/heroprotocol'],
+  external: ['@myrddraall/heroprotocol', 'dexie'],
 });

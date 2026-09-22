@@ -31,6 +31,11 @@ export interface NormalizeOptions {
 }
 
 const PICKING_ATTRIBUTE = 4010;
+
+/** Number a collection's rows in order; `[replayId+seq]` is their primary key. */
+function withSeq<T extends { readonly seq: number }>(rows: readonly T[]): T[] {
+  return rows.map((row, seq) => ({ ...row, seq }));
+}
 const PRIVACY_ATTRIBUTE = 3009;
 
 /**
@@ -60,16 +65,20 @@ export function normalizeReplay(
   const draft = normalizeTrackerEvents(id, tracker, lookup);
   const game = normalizeGameEvents(id, parsed.gameEvents ?? [], lookup, durationLoops);
   const messages = normalizeMessageEvents(id, parsed.messageEvents ?? [], lookup);
-  const statEvents = statSource.map((e) => normalizeStatEvent(id, e, lookup));
+  const statEvents = withSeq(statSource.map((e) => normalizeStatEvent(id, e, lookup)));
   const players = normalizePlayers(id, parsed, lookup, statSource, scores.results, game.leftAt);
 
-  const events = [
-    ...draft.events,
-    ...units.events,
-    ...scores.snapshots,
-    ...game.events,
-    ...messages.events,
-  ].sort((a, b) => a.gameloop - b.gameloop);
+  const events = withSeq(
+    [
+      ...draft.events,
+      ...units.events,
+      ...scores.snapshots,
+      ...game.events,
+      ...messages.events,
+    ].sort((a, b) => a.gameloop - b.gameloop),
+  );
+  const commands = withSeq(game.commands);
+  const chat = withSeq(messages.chat);
 
   const winner = players.find((p) => p.won === true && p.team !== null);
   const winningTeam: Team | null = winner ? winner.team : null;
@@ -88,9 +97,9 @@ export function normalizeReplay(
     scoreResults: scores.results.length,
     statEvents: statEvents.length,
     units: units.units.length,
-    commands: game.commands.length,
+    commands: commands.length,
     events: events.length,
-    chat: messages.chat.length,
+    chat: chat.length,
   };
 
   const replay: ReplayRecord = {
@@ -136,8 +145,8 @@ export function normalizeReplay(
     scoreResults: scores.results,
     statEvents,
     units: units.units,
-    commands: game.commands,
+    commands,
     events,
-    chat: messages.chat,
+    chat,
   };
 }

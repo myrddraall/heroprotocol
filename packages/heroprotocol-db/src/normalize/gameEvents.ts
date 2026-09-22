@@ -49,6 +49,7 @@ export function normalizeGameEvents(
     const playerSlot = slotOf(e);
     events.push({
       replayId,
+      seq: 0,
       gameloop: e._gameloop,
       seconds: loopsToSeconds(e._gameloop),
       kind,
@@ -82,6 +83,7 @@ export function normalizeGameEvents(
         }
         commands.push({
           replayId,
+          seq: 0,
           gameloop: c._gameloop,
           seconds: loopsToSeconds(c._gameloop),
           playerSlot: slot,

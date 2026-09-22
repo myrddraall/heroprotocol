@@ -4,6 +4,25 @@
   "description": "Normalized, queryable model of a Heroes of the Storm replay, and the analyser framework that runs over it",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "model": [
+        "./dist/model/index.d.ts"
+      ],
+      "normalize": [
+        "./dist/normalize/index.d.ts"
+      ],
+      "analysers": [
+        "./dist/analysers/index.d.ts"
+      ],
+      "db": [
+        "./dist/db/index.d.ts"
+      ],
+      "ingest": [
+        "./dist/ingest/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsup",
     "format": "prettier --write \"{src,test,tools}/**/*.{ts,mts}\"",
@@ -23,14 +42,20 @@
     "@types/node": "^24.0.0",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
+    "dexie": "^4.4.6",
     "eslint": "^9.18.0",
+    "fake-indexeddb": "^6.0.0",
     "prettier": "^3.4.2",
     "tsup": "^8.5.1",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "vitest": "^2.1.8"
   },
+  "peerDependencies": {
+    "dexie": "^4.4.6"
+  },
   "keywords": [
+    "dexie",
     "heroes-of-the-storm",
     "heroprotocol",
     "indexeddb",
@@ -93,6 +118,28 @@
         "default": "./dist/analysers/index.cjs"
       },
       "source": "./src/analysers/index.ts"
+    },
+    "./db": {
+      "import": {
+        "types": "./dist/db/index.d.ts",
+        "default": "./dist/db/index.js"
+      },
+      "require": {
+        "types": "./dist/db/index.d.cts",
+        "default": "./dist/db/index.cjs"
+      },
+      "source": "./src/db/index.ts"
+    },
+    "./ingest": {
+      "import": {
+        "types": "./dist/ingest/index.d.ts",
+        "default": "./dist/ingest/index.js"
+      },
+      "require": {
+        "types": "./dist/ingest/index.d.cts",
+        "default": "./dist/ingest/index.cjs"
+      },
+      "source": "./src/ingest/index.ts"
     }
   },
   "files": [
@@ -102,18 +149,5 @@
   ],
   "module": "./dist/index.js",
   "sideEffects": false,
-  "type": "module",
-  "typesVersions": {
-    "*": {
-      "model": [
-        "./dist/model/index.d.ts"
-      ],
-      "normalize": [
-        "./dist/normalize/index.d.ts"
-      ],
-      "analysers": [
-        "./dist/analysers/index.d.ts"
-      ]
-    }
-  }
+  "type": "module"
 }

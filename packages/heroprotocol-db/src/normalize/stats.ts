@@ -58,6 +58,7 @@ export function normalizeStatEvent(
 
   const record: StatEventRecord = {
     replayId,
+    seq: 0,
     gameloop: e._gameloop,
     seconds: loopsToSeconds(e._gameloop),
     eventName: e.m_eventName,

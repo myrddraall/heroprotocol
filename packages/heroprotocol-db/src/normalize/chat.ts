@@ -23,6 +23,7 @@ export function normalizeMessageEvents(
     const playerSlot = lookup.slotOfUser(e._userid?.m_userId);
     const base = {
       replayId,
+      seq: 0,
       gameloop: e._gameloop,
       seconds: loopsToSeconds(e._gameloop),
       playerSlot,
