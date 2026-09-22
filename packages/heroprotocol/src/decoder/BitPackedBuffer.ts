@@ -28,8 +28,7 @@ export class BitPackedBuffer {
   /** Where the cursor is, for error messages: `buffer(nn/bits,[byte]=xx)`. */
   public describe(): string {
     const pending = this.nextBits > 0 ? this.next.toString(16) : '0';
-    const atByte =
-      this.used < this.data.length ? this.data[this.used]!.toString(16) : '--';
+    const atByte = this.used < this.data.length ? this.data[this.used]!.toString(16) : '--';
     return `buffer(${pending}/${this.nextBits},[${this.used}]=${atByte})`;
   }
 

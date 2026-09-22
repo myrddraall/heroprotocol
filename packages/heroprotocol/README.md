@@ -40,11 +40,11 @@ const replay = await openReplay(await file.arrayBuffer(), {
   onProgress: (p) => console.log(p.section, p.current, p.total),
 });
 
-replay.build;                     // 85267
+replay.build; // 85267
 replay.header.m_elapsedGameLoops; // 13518
-replay.details?.m_title;          // 'Silver City'
+replay.details?.m_title; // 'Silver City'
 replay.details?.m_playerList.map((p) => p.m_name);
-replay.trackerEvents?.length;     // 3802
+replay.trackerEvents?.length; // 3802
 replay.diagnostics.sections.initData.status; // 'ok' | 'partial' | 'failed' | 'skipped'
 ```
 
@@ -79,8 +79,8 @@ bundled protocol — which the evidence says is right about 87 times in 88 — a
 
 ```ts
 const { diagnostics } = replay;
-diagnostics.complete;                    // every requested section is 'ok'
-diagnostics.protocol;                    // the protocol build most sections used
+diagnostics.complete; // every requested section is 'ok'
+diagnostics.protocol; // the protocol build most sections used
 diagnostics.sections.gameEvents;
 // { status: 'partial', protocol: 85027, provenance: 'exact',
 //   eventsDecoded: 91201, failedAt: { usedBits, totalBits, lastGameloop }, error: '…',
@@ -92,15 +92,15 @@ rejects only for something that is not a replay at all.
 
 ## What's in a replay
 
-| Section | Format | Notes |
-| --- | --- | --- |
-| `header` | versioned | build, elapsed game loops |
-| `details` | versioned | map, players, result, time |
-| `initData` | bit-packed | full lobby state: slots, cosmetics, game options |
-| `attributes` | its own | draft/ban settings, roles, game mode |
-| `trackerEvents` | versioned | unit born/died, stat events, score results — the analysis backbone |
-| `messageEvents` | bit-packed | chat and pings |
-| `gameEvents` | bit-packed | every command and input |
+| Section         | Format     | Notes                                                              |
+| --------------- | ---------- | ------------------------------------------------------------------ |
+| `header`        | versioned  | build, elapsed game loops                                          |
+| `details`       | versioned  | map, players, result, time                                         |
+| `initData`      | bit-packed | full lobby state: slots, cosmetics, game options                   |
+| `attributes`    | its own    | draft/ban settings, roles, game mode                               |
+| `trackerEvents` | versioned  | unit born/died, stat events, score results — the analysis backbone |
+| `messageEvents` | bit-packed | chat and pings                                                     |
+| `gameEvents`    | bit-packed | every command and input                                            |
 
 **Versioned** sections are self-describing and decode correctly even with a protocol from
 another build. **Bit-packed** sections are schema-bound: they work with an exact or

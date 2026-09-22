@@ -11,8 +11,6 @@ export default defineConfig({
   // entry chunk (51 KB instead of 2.5 MB) for CJS consumers as well as ESM.
   splitting: true,
   target: 'es2022',
-  
-  
-  
+
   external: ['@myrddraall/mpq'],
 });

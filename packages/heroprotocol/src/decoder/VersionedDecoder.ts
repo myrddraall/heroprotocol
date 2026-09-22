@@ -80,7 +80,10 @@ export class VersionedDecoder extends Decoder {
     return [length, this.buffer.readAlignedBytes((length + 7) >> 3)];
   }
 
-  protected choice(_bounds: readonly [number, number], choices: Readonly<Record<number, readonly [string, number]>>): Record<string, unknown> {
+  protected choice(
+    _bounds: readonly [number, number],
+    choices: Readonly<Record<number, readonly [string, number]>>,
+  ): Record<string, unknown> {
     this.expectSkip(3);
     const tag = this.vint();
     const field = choices[tag];

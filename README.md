@@ -2,12 +2,12 @@
 
 Heroes of the Storm replay tooling, as a pnpm workspace:
 
-| Package | What it is | Status |
-| --- | --- | --- |
+| Package                                               | What it is                                                            | Status             |
+| ----------------------------------------------------- | --------------------------------------------------------------------- | ------------------ |
 | [`@myrddraall/heroprotocol`](./packages/heroprotocol) | the parser: protocols as data, best-effort decoding, browser and Node | **Stage 1 — done** |
-| `@myrddraall/heroprotocol-db` | the normalized replay model, IndexedDB store and ingest worker | planned |
-| `@myrddraall/heroprotocol-analysis` | analysers over the model, run at ingest or lazily | planned |
-| `@myrddraall/hero-data` | injectable hero/talent metadata provider | planned |
+| `@myrddraall/heroprotocol-db`                         | the normalized replay model, IndexedDB store and ingest worker        | planned            |
+| `@myrddraall/heroprotocol-analysis`                   | analysers over the model, run at ingest or lazily                     | planned            |
+| `@myrddraall/hero-data`                               | injectable hero/talent metadata provider                              | planned            |
 
 Continues [`myrddraall/heroesbrowser-heroprotocol`](https://github.com/myrddraall/heroesbrowser-heroprotocol),
 whose history this repository carries. The predecessor package `@heroesbrowser/heroprotocol`

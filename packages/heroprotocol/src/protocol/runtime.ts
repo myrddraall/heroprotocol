@@ -61,15 +61,33 @@ export class Protocol {
   }
 
   public *gameEvents(bytes: Uint8Array, options?: EventStreamOptions): Generator<RawEvent> {
-    yield* this.eventStream(new BitPackedDecoder(bytes, this.def), this.def.gameEventIdTypeid, this.def.gameEventTypes, true, options);
+    yield* this.eventStream(
+      new BitPackedDecoder(bytes, this.def),
+      this.def.gameEventIdTypeid,
+      this.def.gameEventTypes,
+      true,
+      options,
+    );
   }
 
   public *messageEvents(bytes: Uint8Array, options?: EventStreamOptions): Generator<RawEvent> {
-    yield* this.eventStream(new BitPackedDecoder(bytes, this.def), this.def.messageEventIdTypeid, this.def.messageEventTypes, true, options);
+    yield* this.eventStream(
+      new BitPackedDecoder(bytes, this.def),
+      this.def.messageEventIdTypeid,
+      this.def.messageEventTypes,
+      true,
+      options,
+    );
   }
 
   public *trackerEvents(bytes: Uint8Array, options?: EventStreamOptions): Generator<RawEvent> {
-    yield* this.eventStream(new VersionedDecoder(bytes, this.def), this.def.trackerEventIdTypeid, this.def.trackerEventTypes, false, options);
+    yield* this.eventStream(
+      new VersionedDecoder(bytes, this.def),
+      this.def.trackerEventIdTypeid,
+      this.def.trackerEventTypes,
+      false,
+      options,
+    );
   }
 
   /**
@@ -122,7 +140,9 @@ export class Protocol {
       const delta = decoder.instance(this.def.svaruint32Typeid) as Record<string, number>;
       gameloop += delta[Object.keys(delta)[0]!]!;
 
-      const userid = decodeUserId ? (decoder.instance(this.def.replayUserIdTypeid) as { m_userId: number }) : undefined;
+      const userid = decodeUserId
+        ? (decoder.instance(this.def.replayUserIdTypeid) as { m_userId: number })
+        : undefined;
 
       const eventid = decoder.instance(eventIdTypeid) as number;
       const type = table[eventid];

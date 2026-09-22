@@ -2,7 +2,7 @@
   "name": "@myrddraall/heroprotocol-workspace",
   "version": "0.0.0-MAIN",
   "private": true,
-  "description": "Heroes of the Storm replay parsing, normalized replay database and analysers \u2014 workspace root",
+  "description": "Heroes of the Storm replay parsing, normalized replay database and analysers — workspace root",
   "scripts": {
     "build": "devutil run build",
     "check": "wireit",
@@ -33,10 +33,10 @@
   },
   "keywords": [
     "heroes-of-the-storm",
-    "stormreplay",
-    "replay",
+    "heroprotocol",
     "parser",
-    "heroprotocol"
+    "replay",
+    "stormreplay"
   ],
   "author": "Myrddraall",
   "license": "MIT",

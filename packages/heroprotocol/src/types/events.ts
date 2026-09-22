@@ -94,7 +94,10 @@ export interface SScoreResultEvent extends RawEvent {
   readonly _event: 'NNet.Replay.Tracker.SScoreResultEvent';
   readonly m_instanceList: readonly {
     readonly m_name: string;
-    readonly m_values: readonly (readonly { readonly m_value: number; readonly m_time: number }[])[];
+    readonly m_values: readonly (readonly {
+      readonly m_value: number;
+      readonly m_time: number;
+    }[])[];
   }[];
 }
 export interface SUnitRevivedEvent extends RawEvent {
@@ -121,9 +124,21 @@ export interface SHeroSwappedEvent extends RawEvent {
 }
 
 export type TrackerEvent =
-  | SUnitBornEvent | SUnitDiedEvent | SUnitOwnerChangeEvent | SUnitTypeChangeEvent | SUpgradeEvent
-  | SUnitInitEvent | SUnitDoneEvent | SUnitPositionsEvent | SPlayerSetupEvent | SStatGameEvent
-  | SScoreResultEvent | SUnitRevivedEvent | SHeroBannedEvent | SHeroPickedEvent | SHeroSwappedEvent;
+  | SUnitBornEvent
+  | SUnitDiedEvent
+  | SUnitOwnerChangeEvent
+  | SUnitTypeChangeEvent
+  | SUpgradeEvent
+  | SUnitInitEvent
+  | SUnitDoneEvent
+  | SUnitPositionsEvent
+  | SPlayerSetupEvent
+  | SStatGameEvent
+  | SScoreResultEvent
+  | SUnitRevivedEvent
+  | SHeroBannedEvent
+  | SHeroPickedEvent
+  | SHeroSwappedEvent;
 
 /** Narrow a raw event to a specific tracker event by its `_event` name. */
 export function isEvent<T extends RawEvent>(e: RawEvent, name: T['_event']): e is T {
@@ -149,7 +164,11 @@ export interface SGameUserJoinEvent extends RawEvent {
 export interface SCmdEvent extends RawEvent {
   readonly _event: 'NNet.Game.SCmdEvent';
   readonly m_cmdFlags: number;
-  readonly m_abil: { readonly m_abilLink: number; readonly m_abilCmdIndex: number; readonly m_abilCmdData: number | null } | null;
+  readonly m_abil: {
+    readonly m_abilLink: number;
+    readonly m_abilCmdIndex: number;
+    readonly m_abilCmdData: number | null;
+  } | null;
   readonly m_data: Record<string, unknown>;
   readonly m_vector?: { readonly x: number; readonly y: number; readonly z: number } | null;
   readonly m_sequence: number;

@@ -24,10 +24,23 @@ describe('convertPythonProtocol', () => {
   it('parses every typeinfo kind the format uses', () => {
     const def = convertPythonProtocol(readProtocolSource(85027), 85027);
     const kinds = new Set(def.typeinfos.map((t) => t.k));
-    for (const k of ['int', 'blob', 'bool', 'array', 'optional', 'fourcc', 'bitarray', 'null', 'choice', 'struct']) {
+    for (const k of [
+      'int',
+      'blob',
+      'bool',
+      'array',
+      'optional',
+      'fourcc',
+      'bitarray',
+      'null',
+      'choice',
+      'struct',
+    ]) {
       expect(kinds, k).toContain(k);
     }
-    const struct = def.typeinfos.find((t) => t.k === 'struct' && t.fields.some((f) => f[0] === '__parent'));
+    const struct = def.typeinfos.find(
+      (t) => t.k === 'struct' && t.fields.some((f) => f[0] === '__parent'),
+    );
     expect(struct).toBeDefined();
     const choice = def.typeinfos[def.svaruint32Typeid];
     expect(choice?.k).toBe('choice');
@@ -37,7 +50,10 @@ describe('convertPythonProtocol', () => {
     expect(() => convertPythonProtocol('not a protocol', 1)).toThrow(ProtocolConversionError);
     const src = readProtocolSource(29406).replace("('_int',[(0,7)]),  #0", "('_wat',[(0,7)]),  #0");
     expect(() => convertPythonProtocol(src, 29406)).toThrow(/unknown type kind/);
-    const dangling = readProtocolSource(29406).replace(/replay_header_typeid = \d+/, 'replay_header_typeid = 9999');
+    const dangling = readProtocolSource(29406).replace(
+      /replay_header_typeid = \d+/,
+      'replay_header_typeid = 9999',
+    );
     expect(() => convertPythonProtocol(dangling, 29406)).toThrow(/references typeid 9999/);
   });
 });
@@ -50,7 +66,8 @@ describe('bundled data', () => {
     expect(Math.max(...builds)).toBe(96477);
     expect(REPRESENTATIVES).toHaveLength(36);
     const reps = new Set(REPRESENTATIVES.map((r) => r.build));
-    for (const rep of Object.values(BUILD_INDEX)) expect(reps.has(rep), `representative ${rep}`).toBe(true);
+    for (const rep of Object.values(BUILD_INDEX))
+      expect(reps.has(rep), `representative ${rep}`).toBe(true);
     for (const rep of reps) expect(BUNDLED[rep], `loader for ${rep}`).toBeTypeOf('function');
   });
 

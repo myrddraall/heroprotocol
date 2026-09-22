@@ -64,7 +64,8 @@ export interface FetchSourceOptions {
   readonly treeUrl?: string;
 }
 
-const RAW_BASE = 'https://raw.githubusercontent.com/Blizzard/heroprotocol/master/heroprotocol/versions';
+const RAW_BASE =
+  'https://raw.githubusercontent.com/Blizzard/heroprotocol/master/heroprotocol/versions';
 const TREE_URL = 'https://api.github.com/repos/Blizzard/heroprotocol/git/trees/master?recursive=1';
 
 /**
@@ -93,7 +94,10 @@ export function fetchSource(options: FetchSourceOptions = {}): ProtocolSource {
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), timeoutMs);
       try {
-        const res = await doFetch(url, { signal: ctl.signal, headers: { accept: 'application/vnd.github+json, text/plain' } });
+        const res = await doFetch(url, {
+          signal: ctl.signal,
+          headers: { accept: 'application/vnd.github+json, text/plain' },
+        });
         if (res.ok || (res.status >= 400 && res.status < 500)) return res;
         lastError = new Error(`HTTP ${res.status}`);
       } catch (e) {
@@ -129,7 +133,11 @@ export function fetchSource(options: FetchSourceOptions = {}): ProtocolSource {
       if (p === undefined) {
         p = (async () => {
           const res = await get(`${rawBase}/protocol${build}.py`);
-          if (res.status === 404) throw new ProtocolNotFoundError(build, 'Blizzard has not published a protocol for this build');
+          if (res.status === 404)
+            throw new ProtocolNotFoundError(
+              build,
+              'Blizzard has not published a protocol for this build',
+            );
           if (!res.ok) throw new Error(`protocol${build}.py: HTTP ${res.status}`);
           return convertPythonProtocol(await res.text(), build);
         })();
@@ -147,7 +155,8 @@ export function fetchSource(options: FetchSourceOptions = {}): ProtocolSource {
 
 function requireGlobalFetch(): FetchLike {
   const f = (globalThis as { fetch?: FetchLike }).fetch;
-  if (f === undefined) throw new Error('fetchSource: no fetch implementation available; pass one in options');
+  if (f === undefined)
+    throw new Error('fetchSource: no fetch implementation available; pass one in options');
   return f;
 }
 

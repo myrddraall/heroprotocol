@@ -25,10 +25,19 @@ export function convertPythonProtocol(source: string, build: number): ProtocolDe
     for (const raw of lines) {
       const line = stripComment(raw);
       const colon = line.indexOf(':');
-      if (colon < 0) throw new ProtocolConversionError(`${name}: expected "id: (typeid, 'name')", got ${JSON.stringify(line)}`);
+      if (colon < 0)
+        throw new ProtocolConversionError(
+          `${name}: expected "id: (typeid, 'name')", got ${JSON.stringify(line)}`,
+        );
       const id = Number(line.slice(0, colon).trim());
       const value = parseLiteral(line.slice(colon + 1));
-      if (!Number.isInteger(id) || !Array.isArray(value) || value.length !== 2 || typeof value[0] !== 'number' || typeof value[1] !== 'string') {
+      if (
+        !Number.isInteger(id) ||
+        !Array.isArray(value) ||
+        value.length !== 2 ||
+        typeof value[0] !== 'number' ||
+        typeof value[1] !== 'string'
+      ) {
         throw new ProtocolConversionError(`${name}: malformed entry ${JSON.stringify(line)}`);
       }
       table[id] = [value[0], value[1]];
@@ -98,7 +107,8 @@ function parseLiteral(text: string): Literal {
   };
   const expect = (ch: string): void => {
     ws();
-    if (text[i] !== ch) throw new ProtocolConversionError(`expected "${ch}" at ${i} in ${JSON.stringify(text)}`);
+    if (text[i] !== ch)
+      throw new ProtocolConversionError(`expected "${ch}" at ${i} in ${JSON.stringify(text)}`);
     i++;
   };
   const value = (): Literal => {
@@ -141,7 +151,8 @@ function parseLiteral(text: string): Literal {
       i++;
       let s = '';
       while (i < text.length && text[i] !== c) s += text[i++];
-      if (text[i] !== c) throw new ProtocolConversionError(`unterminated string in ${JSON.stringify(text)}`);
+      if (text[i] !== c)
+        throw new ProtocolConversionError(`unterminated string in ${JSON.stringify(text)}`);
       i++;
       return s;
     }
@@ -150,13 +161,15 @@ function parseLiteral(text: string): Literal {
       return null;
     }
     const m = /^-?\d+/.exec(text.slice(i));
-    if (m === null) throw new ProtocolConversionError(`unexpected "${c}" at ${i} in ${JSON.stringify(text)}`);
+    if (m === null)
+      throw new ProtocolConversionError(`unexpected "${c}" at ${i} in ${JSON.stringify(text)}`);
     i += m[0].length;
     return Number(m[0]);
   };
   const result = value();
   ws();
-  if (i !== text.length) throw new ProtocolConversionError(`trailing text in ${JSON.stringify(text)}`);
+  if (i !== text.length)
+    throw new ProtocolConversionError(`trailing text in ${JSON.stringify(text)}`);
   return result;
 }
 
@@ -170,8 +183,15 @@ function bounds(v: Literal, where: string): IntBounds {
 /** `('_kind', [args])` → TypeInfo */
 function toTypeInfo(lit: Literal, index: number): TypeInfo {
   const where = `typeinfo #${index}`;
-  if (!Array.isArray(lit) || lit.length !== 2 || typeof lit[0] !== 'string' || !Array.isArray(lit[1])) {
-    throw new ProtocolConversionError(`${where}: expected ('_kind', [args]), got ${JSON.stringify(lit)}`);
+  if (
+    !Array.isArray(lit) ||
+    lit.length !== 2 ||
+    typeof lit[0] !== 'string' ||
+    !Array.isArray(lit[1])
+  ) {
+    throw new ProtocolConversionError(
+      `${where}: expected ('_kind', [args]), got ${JSON.stringify(lit)}`,
+    );
   }
   const [kind, args] = lit;
   switch (kind) {
@@ -192,10 +212,12 @@ function toTypeInfo(lit: Literal, index: number): TypeInfo {
     case '_real64':
       return { k: 'real64' };
     case '_array':
-      if (typeof args[1] !== 'number') throw new ProtocolConversionError(`${where}: array needs a typeid`);
+      if (typeof args[1] !== 'number')
+        throw new ProtocolConversionError(`${where}: array needs a typeid`);
       return { k: 'array', bounds: bounds(args[0]!, where), typeid: args[1] };
     case '_optional':
-      if (typeof args[0] !== 'number') throw new ProtocolConversionError(`${where}: optional needs a typeid`);
+      if (typeof args[0] !== 'number')
+        throw new ProtocolConversionError(`${where}: optional needs a typeid`);
       return { k: 'optional', typeid: args[0] };
     case '_choice': {
       const dict = args[1];
@@ -213,10 +235,18 @@ function toTypeInfo(lit: Literal, index: number): TypeInfo {
     }
     case '_struct': {
       const list = args[0];
-      if (!Array.isArray(list)) throw new ProtocolConversionError(`${where}: struct needs a field list`);
+      if (!Array.isArray(list))
+        throw new ProtocolConversionError(`${where}: struct needs a field list`);
       const fields = list.map((f): readonly [string, number, number] => {
-        if (!Array.isArray(f) || typeof f[0] !== 'string' || typeof f[1] !== 'number' || typeof f[2] !== 'number') {
-          throw new ProtocolConversionError(`${where}: malformed struct field ${JSON.stringify(f)}`);
+        if (
+          !Array.isArray(f) ||
+          typeof f[0] !== 'string' ||
+          typeof f[1] !== 'number' ||
+          typeof f[2] !== 'number'
+        ) {
+          throw new ProtocolConversionError(
+            `${where}: malformed struct field ${JSON.stringify(f)}`,
+          );
         }
         return [f[0], f[1], f[2]];
       });
@@ -232,18 +262,30 @@ function validate(def: ProtocolDefinition): void {
   const n = def.typeinfos.length;
   const check = (id: number, where: string): void => {
     if (!Number.isInteger(id) || id < 0 || id >= n) {
-      throw new ProtocolConversionError(`${where} references typeid ${id}, but there are ${n} types`);
+      throw new ProtocolConversionError(
+        `${where} references typeid ${id}, but there are ${n} types`,
+      );
     }
   };
   def.typeinfos.forEach((t, i) => {
     if (t.k === 'array' || t.k === 'optional') check(t.typeid, `typeinfo #${i}`);
-    if (t.k === 'choice') for (const [, id] of Object.values(t.choices)) check(id, `typeinfo #${i}`);
+    if (t.k === 'choice')
+      for (const [, id] of Object.values(t.choices)) check(id, `typeinfo #${i}`);
     if (t.k === 'struct') for (const [, id] of t.fields) check(id, `typeinfo #${i}`);
   });
   for (const name of ['gameEventTypes', 'messageEventTypes', 'trackerEventTypes'] as const) {
     for (const [id, [typeid]] of Object.entries(def[name])) check(typeid, `${name}[${id}]`);
   }
-  for (const name of ['gameEventIdTypeid', 'messageEventIdTypeid', 'trackerEventIdTypeid', 'svaruint32Typeid', 'replayUserIdTypeid', 'headerTypeid', 'detailsTypeid', 'initDataTypeid'] as const) {
+  for (const name of [
+    'gameEventIdTypeid',
+    'messageEventIdTypeid',
+    'trackerEventIdTypeid',
+    'svaruint32Typeid',
+    'replayUserIdTypeid',
+    'headerTypeid',
+    'detailsTypeid',
+    'initDataTypeid',
+  ] as const) {
     check(def[name], name);
   }
 }

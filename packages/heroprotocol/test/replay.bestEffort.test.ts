@@ -33,7 +33,10 @@ describe.skipIf(OLD === undefined)('best-effort parsing', () => {
     // Reproduces the experiment that justified nearest-protocol fallback: the
     // versioned sections and the (unchanged) game/message schemas survive a
     // ten-year protocol gap; only the bit-packed lobby struct drifted.
-    const r = await openReplay(readReplay(OLD!), { source: newestOnlySource(), dropGameEvents: NOISY_GAME_EVENTS });
+    const r = await openReplay(readReplay(OLD!), {
+      source: newestOnlySource(),
+      dropGameEvents: NOISY_GAME_EVENTS,
+    });
     expect(r.build).toBe(66488);
     expect(r.protocol).toBe(85027);
     expect(r.diagnostics.provenance).toBe('nearest');
@@ -54,11 +57,15 @@ describe.skipIf(OLD === undefined)('best-effort parsing', () => {
 
   it('drops noisy game events without changing what remains', async () => {
     const all = await openReplay(readReplay(OLD!), { sections: ['gameEvents'] });
-    const kept = await openReplay(readReplay(OLD!), { sections: ['gameEvents'], dropGameEvents: NOISY_GAME_EVENTS });
+    const kept = await openReplay(readReplay(OLD!), {
+      sections: ['gameEvents'],
+      dropGameEvents: NOISY_GAME_EVENTS,
+    });
     expect(all.gameEvents!.length).toBe(249114);
     expect(kept.gameEvents!.length).toBeLessThan(all.gameEvents!.length / 4);
     expect(kept.gameEvents!.every((e) => !NOISY_GAME_EVENTS.has(e._event))).toBe(true);
-    const cmds = (n: readonly { _event: string }[]) => n.filter((e) => e._event === 'NNet.Game.SCmdEvent').length;
+    const cmds = (n: readonly { _event: string }[]) =>
+      n.filter((e) => e._event === 'NNet.Game.SCmdEvent').length;
     expect(cmds(kept.gameEvents!)).toBe(cmds(all.gameEvents!));
   });
 
@@ -85,7 +92,10 @@ describe.skipIf(OLD === undefined)('best-effort parsing', () => {
 
   it('reports progress per section', async () => {
     const seen = new Set<string>();
-    await openReplay(readReplay(OLD!), { sections: ['trackerEvents', 'details'], onProgress: (p) => seen.add(p.section) });
+    await openReplay(readReplay(OLD!), {
+      sections: ['trackerEvents', 'details'],
+      onProgress: (p) => seen.add(p.section),
+    });
     expect(seen).toContain('trackerEvents');
     expect(seen).toContain('details');
   });

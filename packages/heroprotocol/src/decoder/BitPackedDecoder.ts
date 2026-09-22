@@ -45,7 +45,10 @@ export class BitPackedDecoder extends Decoder {
     return [length, this.buffer.readBits(length)];
   }
 
-  protected choice(bounds: readonly [number, number], choices: Readonly<Record<number, readonly [string, number]>>): Record<string, unknown> {
+  protected choice(
+    bounds: readonly [number, number],
+    choices: Readonly<Record<number, readonly [string, number]>>,
+  ): Record<string, unknown> {
     const tag = this.int(bounds);
     const field = choices[tag];
     if (field === undefined) throw new CorruptedError(`choice tag ${tag} at ${this.describe()}`);

@@ -16,7 +16,11 @@ export type TypeInfo =
   | { readonly k: 'fourcc' }
   | { readonly k: 'bitarray'; readonly bounds: IntBounds }
   | { readonly k: 'null' }
-  | { readonly k: 'choice'; readonly bounds: IntBounds; readonly choices: Readonly<Record<number, ChoiceField>> }
+  | {
+      readonly k: 'choice';
+      readonly bounds: IntBounds;
+      readonly choices: Readonly<Record<number, ChoiceField>>;
+    }
   | { readonly k: 'struct'; readonly fields: readonly StructField[] }
   | { readonly k: 'real32' }
   | { readonly k: 'real64' };
