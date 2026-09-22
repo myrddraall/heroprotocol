@@ -25,7 +25,7 @@ pnpm typecheck
 pnpm lint
 pnpm build
 pnpm check                                          # pinned dependency versions agree
-pnpm --filter @myrddraall/heroprotocol fixtures:fetch   # three public replays for the e2e tests
+pnpm run fetch.fixtures       # three public replays for the e2e tests (gitignored)
 pnpm run generate.protocols   # refresh bundled protocols from Blizzard (formatted, ready to commit)
 ```
 

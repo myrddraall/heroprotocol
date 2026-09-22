@@ -8,6 +8,7 @@
     "check": "wireit",
     "clean": "wireit",
     "fix": "wireit",
+    "fetch.fixtures": "pnpm --filter @myrddraall/heroprotocol fixtures:fetch",
     "format": "wireit",
     "generate.protocols": "pnpm --filter @myrddraall/heroprotocol protocols:generate",
     "gitflow": "gitflow",
