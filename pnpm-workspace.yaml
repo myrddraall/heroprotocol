@@ -12,6 +12,9 @@ minimumReleaseAgeExclude:
   - '@cpdevtools/ts-dev-utilities'
   - '@cpdevtools/ts-dev-utilities-cli'
   - '@oclif/core'
+  # This workspace's own siblings (mpq today) release through git-flow and are
+  # consumed the same day; the release-age policy would block every bump.
+  - '@myrddraall/*'
 
 # pnpm blocks dependency install scripts by default and fails the install until
 # each one is answered explicitly. esbuild (pulled in by tsup) is answered
