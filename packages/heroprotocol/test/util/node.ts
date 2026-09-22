@@ -55,7 +55,10 @@ export function numericSum(value: unknown): number {
   if (typeof value === 'number') return Number.isInteger(value) ? value : 0;
   if (Array.isArray(value)) return value.reduce<number>((a, v) => a + numericSum(v), 0);
   if (value !== null && typeof value === 'object') {
-    return Object.values(value as Record<string, unknown>).reduce<number>((a, v) => a + numericSum(v), 0);
+    return Object.values(value as Record<string, unknown>).reduce<number>(
+      (a, v) => a + numericSum(v),
+      0,
+    );
   }
   return 0;
 }

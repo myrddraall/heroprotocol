@@ -12,7 +12,11 @@ export abstract class Decoder {
   protected readonly buffer: BitPackedBuffer;
   protected readonly typeinfos: readonly TypeInfo[];
 
-  protected constructor(data: Uint8Array, protocol: ProtocolDefinition, endian: 'big' | 'little' = 'big') {
+  protected constructor(
+    data: Uint8Array,
+    protocol: ProtocolDefinition,
+    endian: 'big' | 'little' = 'big',
+  ) {
     this.buffer = new BitPackedBuffer(data, endian);
     this.typeinfos = protocol.typeinfos;
   }
@@ -40,7 +44,9 @@ export abstract class Decoder {
   public instance(typeid: number): unknown {
     const info = this.typeinfos[typeid];
     if (info === undefined) {
-      throw new CorruptedError(`typeid ${typeid} is outside the protocol's ${this.typeinfos.length} types at ${this.describe()}`);
+      throw new CorruptedError(
+        `typeid ${typeid} is outside the protocol's ${this.typeinfos.length} types at ${this.describe()}`,
+      );
     }
     switch (info.k) {
       case 'int':
@@ -77,7 +83,10 @@ export abstract class Decoder {
   protected abstract optional(typeid: number): unknown;
   protected abstract fourcc(): Uint8Array;
   protected abstract bitarray(bounds: readonly [number, number]): readonly [number, unknown];
-  protected abstract choice(bounds: readonly [number, number], choices: Readonly<Record<number, readonly [string, number]>>): Record<string, unknown>;
+  protected abstract choice(
+    bounds: readonly [number, number],
+    choices: Readonly<Record<number, readonly [string, number]>>,
+  ): Record<string, unknown>;
   protected abstract struct(fields: readonly (readonly [string, number, number])[]): unknown;
   protected abstract real32(): number;
   protected abstract real64(): number;
@@ -86,7 +95,12 @@ export abstract class Decoder {
    * Blizzard's `__parent` pseudo-field: the parent struct's fields are flattened
    * into this one. Shared by both decoders.
    */
-  protected mergeParent(result: Record<string, unknown>, name: string, value: unknown, fieldCount: number): Record<string, unknown> {
+  protected mergeParent(
+    result: Record<string, unknown>,
+    name: string,
+    value: unknown,
+    fieldCount: number,
+  ): Record<string, unknown> {
     if (name === '__parent') {
       if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         return Object.assign(result, value as Record<string, unknown>);

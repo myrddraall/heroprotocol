@@ -25,7 +25,9 @@ describe.skipIf(replays.length === 0)('real replays vs the Python oracle', () =>
     });
 
     it('header, details, initData and attributes match byte for byte', async () => {
-      const r = await openReplay(readReplay(file), { sections: ['header', 'details', 'initData', 'attributes'] });
+      const r = await openReplay(readReplay(file), {
+        sections: ['header', 'details', 'initData', 'attributes'],
+      });
       expect(r.header).toEqual(golden.header);
       expect(r.details).toEqual(golden.details);
       expect(r.initData).toEqual(golden.initData);
@@ -36,18 +38,21 @@ describe.skipIf(replays.length === 0)('real replays vs the Python oracle', () =>
       ['trackerEvents', 'tracker'],
       ['messageEvents', 'message'],
       ['gameEvents', 'game'],
-    ] as const)('%s match the oracle in count, kinds, checksum and boundary events', async (section, key) => {
-      const r = await openReplay(readReplay(file), { sections: [section] });
-      const events = r[section]!;
-      const g = golden[key];
-      expect(events).toHaveLength(g.count);
-      const kinds: Record<string, number> = {};
-      for (const e of events) kinds[e._event] = (kinds[e._event] ?? 0) + 1;
-      expect(kinds).toEqual(g.countsByKind);
-      expect(numericSum(events)).toBe(g.numericSum);
-      expect(events.at(-1)?._gameloop).toBe(g.lastGameloop);
-      expect(events.slice(0, 5)).toEqual(g.first);
-      expect(events.slice(-3)).toEqual(g.last);
-    });
+    ] as const)(
+      '%s match the oracle in count, kinds, checksum and boundary events',
+      async (section, key) => {
+        const r = await openReplay(readReplay(file), { sections: [section] });
+        const events = r[section]!;
+        const g = golden[key];
+        expect(events).toHaveLength(g.count);
+        const kinds: Record<string, number> = {};
+        for (const e of events) kinds[e._event] = (kinds[e._event] ?? 0) + 1;
+        expect(kinds).toEqual(g.countsByKind);
+        expect(numericSum(events)).toBe(g.numericSum);
+        expect(events.at(-1)?._gameloop).toBe(g.lastGameloop);
+        expect(events.slice(0, 5)).toEqual(g.first);
+        expect(events.slice(-3)).toEqual(g.last);
+      },
+    );
   });
 });

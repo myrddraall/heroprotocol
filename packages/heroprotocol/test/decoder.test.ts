@@ -50,7 +50,7 @@ describe('BitPackedBuffer', () => {
     for (let i = 0; i < 4; i++) n[i] = narrow.readBits(8);
     expect(Array.from(w)).not.toEqual(Array.from(n));
     // value = [5 bits: 11111][0x53][0x54][0x55][3 bits: 101] as one 32-bit number
-    const expected = ((0b11111 * 2 ** 27) + (0x53 << 19) + (0x54 << 11) + (0x55 << 3) + 0b101) >>> 0;
+    const expected = (0b11111 * 2 ** 27 + (0x53 << 19) + (0x54 << 11) + (0x55 << 3) + 0b101) >>> 0;
     const got = ((w[0]! << 24) | (w[1]! << 16) | (w[2]! << 8) | w[3]!) >>> 0;
     expect(got).toBe(expected);
     expect(wide.usedBits).toBe(35);
@@ -71,12 +71,26 @@ describe('VersionedDecoder', () => {
     build: 1,
     typeinfos: [
       { k: 'int', bounds: [0, 0] },
-      { k: 'struct', fields: [['m_a', 0, 0], ['m_b', 2, 1]] },
+      {
+        k: 'struct',
+        fields: [
+          ['m_a', 0, 0],
+          ['m_b', 2, 1],
+        ],
+      },
       { k: 'blob', bounds: [0, 0] },
     ],
-    gameEventTypes: {}, messageEventTypes: {}, trackerEventTypes: {},
-    gameEventIdTypeid: 0, messageEventIdTypeid: 0, trackerEventIdTypeid: 0,
-    svaruint32Typeid: 0, replayUserIdTypeid: 0, headerTypeid: 1, detailsTypeid: 1, initDataTypeid: 1,
+    gameEventTypes: {},
+    messageEventTypes: {},
+    trackerEventTypes: {},
+    gameEventIdTypeid: 0,
+    messageEventIdTypeid: 0,
+    trackerEventIdTypeid: 0,
+    svaruint32Typeid: 0,
+    replayUserIdTypeid: 0,
+    headerTypeid: 1,
+    detailsTypeid: 1,
+    initDataTypeid: 1,
   };
 
   it('decodes signed variable-length integers', () => {
@@ -90,10 +104,21 @@ describe('VersionedDecoder', () => {
   it('skips struct fields the protocol does not know (forward compatibility)', () => {
     // struct tag 5, 3 fields: tag 0 vint 10; tag 7 (unknown) blob "zz"; tag 1 blob "hi"
     const bytes = Uint8Array.from([
-      5, 0x06,           // struct, 3 fields (vint 3 -> 0x06)
-      0x00, 9, 0x14,     // tag 0 (vint 0), vint 10 -> 0x14
-      0x0e, 2, 0x04, 0x7a, 0x7a, // tag 7 (vint 7 -> 0x0e), blob len 2 ("zz")
-      0x02, 2, 0x04, 0x68, 0x69, // tag 1 (vint 1 -> 0x02), blob len 2 ("hi")
+      5,
+      0x06, // struct, 3 fields (vint 3 -> 0x06)
+      0x00,
+      9,
+      0x14, // tag 0 (vint 0), vint 10 -> 0x14
+      0x0e,
+      2,
+      0x04,
+      0x7a,
+      0x7a, // tag 7 (vint 7 -> 0x0e), blob len 2 ("zz")
+      0x02,
+      2,
+      0x04,
+      0x68,
+      0x69, // tag 1 (vint 1 -> 0x02), blob len 2 ("hi")
     ]);
     const d = new VersionedDecoder(bytes, def);
     const v = d.instance(1) as { m_a: number; m_b: Uint8Array };

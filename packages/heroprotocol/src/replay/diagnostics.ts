@@ -49,7 +49,11 @@ export interface SectionDiagnostic {
   /** Event streams only. */
   readonly eventsDecoded?: number;
   /** Event streams that stopped early: where. */
-  readonly failedAt?: { readonly usedBits: number; readonly totalBits: number; readonly lastGameloop: number };
+  readonly failedAt?: {
+    readonly usedBits: number;
+    readonly totalBits: number;
+    readonly lastGameloop: number;
+  };
   readonly error?: string;
 }
 

@@ -2,12 +2,12 @@
 
 Heroes of the Storm replay tooling, as a pnpm workspace:
 
-| Package | What it is | Status |
-| --- | --- | --- |
+| Package                                               | What it is                                                            | Status             |
+| ----------------------------------------------------- | --------------------------------------------------------------------- | ------------------ |
 | [`@myrddraall/heroprotocol`](./packages/heroprotocol) | the parser: protocols as data, best-effort decoding, browser and Node | **Stage 1 — done** |
-| `@myrddraall/heroprotocol-db` | the normalized replay model, IndexedDB store and ingest worker | planned |
-| `@myrddraall/heroprotocol-analysis` | analysers over the model, run at ingest or lazily | planned |
-| `@myrddraall/hero-data` | injectable hero/talent metadata provider | planned |
+| `@myrddraall/heroprotocol-db`                         | the normalized replay model, IndexedDB store and ingest worker        | planned            |
+| `@myrddraall/heroprotocol-analysis`                   | analysers over the model, run at ingest or lazily                     | planned            |
+| `@myrddraall/hero-data`                               | injectable hero/talent metadata provider                              | planned            |
 
 Continues [`myrddraall/heroesbrowser-heroprotocol`](https://github.com/myrddraall/heroesbrowser-heroprotocol),
 whose history this repository carries. The predecessor package `@heroesbrowser/heroprotocol`
@@ -25,8 +25,8 @@ pnpm typecheck
 pnpm lint
 pnpm build
 pnpm check                                          # pinned dependency versions agree
-pnpm --filter @myrddraall/heroprotocol fixtures:fetch   # three public replays for the e2e tests
-pnpm --filter @myrddraall/heroprotocol protocols:generate  # refresh bundled protocols from Blizzard
+pnpm run fetch.fixtures       # three public replays for the e2e tests (gitignored)
+pnpm run generate.protocols   # refresh bundled protocols from Blizzard (formatted, ready to commit)
 ```
 
 The end-to-end tests compare against Blizzard's own Python decoders (committed goldens in

@@ -4,8 +4,8 @@
 # listed here must exist on the registry (at least as a pre-release) before the
 # overlay has anything to repoint.
 packages:
-  "@myrddraall/mpq": ../mpq/packages/mpq
-  "@cpdevtools/git-flow": ../git-flow/packages/git-flow
-  "@cpdevtools/git-flow-cli": ../git-flow/packages/git-flow-cli
-  "@cpdevtools/ts-dev-utilities": ../ts-dev-utilities/packages/ts-dev-utilities
-  "@cpdevtools/ts-dev-utilities-cli": ../ts-dev-utilities/packages/cli
+  '@myrddraall/mpq': ../mpq/packages/mpq
+  '@cpdevtools/git-flow': ../git-flow/packages/git-flow
+  '@cpdevtools/git-flow-cli': ../git-flow/packages/git-flow-cli
+  '@cpdevtools/ts-dev-utilities': ../ts-dev-utilities/packages/ts-dev-utilities
+  '@cpdevtools/ts-dev-utilities-cli': ../ts-dev-utilities/packages/cli

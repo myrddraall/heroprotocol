@@ -2,3707 +2,1453 @@
 import type { ProtocolDefinition } from '../definition.js';
 
 const protocol: ProtocolDefinition = {
- "build": 49582,
- "typeinfos": [
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    7
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    4
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    5
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    6
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    14
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    22
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    32
-   ]
-  },
-  {
-   "k": "choice",
-   "bounds": [
-    0,
-    2
-   ],
-   "choices": {
-    "0": [
-     "m_uint6",
-     3
-    ],
-    "1": [
-     "m_uint14",
-     4
-    ],
-    "2": [
-     "m_uint22",
-     5
-    ],
-    "3": [
-     "m_uint32",
-     6
-    ]
-   }
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_userId",
-     2,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    8
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    8
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_flags",
-     10,
-     0
-    ],
-    [
-     "m_major",
-     10,
-     1
-    ],
-    [
-     "m_minor",
-     10,
-     2
-    ],
-    [
-     "m_revision",
-     10,
-     3
-    ],
-    [
-     "m_build",
-     6,
-     4
-    ],
-    [
-     "m_baseBuild",
-     6,
-     5
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    3
-   ]
-  },
-  {
-   "k": "bool"
-  },
-  {
-   "k": "array",
-   "bounds": [
-    16,
-    0
-   ],
-   "typeid": 10
-  },
-  {
-   "k": "optional",
-   "typeid": 14
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    16,
-    0
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_dataDeprecated",
-     15,
-     0
-    ],
-    [
-     "m_data",
-     16,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_signature",
-     9,
-     0
-    ],
-    [
-     "m_version",
-     11,
-     1
-    ],
-    [
-     "m_type",
-     12,
-     2
-    ],
-    [
-     "m_elapsedGameLoops",
-     6,
-     3
-    ],
-    [
-     "m_useScaledTime",
-     13,
-     4
-    ],
-    [
-     "m_ngdpRootKey",
-     17,
-     5
-    ],
-    [
-     "m_dataBuildNum",
-     6,
-     6
-    ],
-    [
-     "m_replayCompatibilityHash",
-     17,
-     7
-    ]
-   ]
-  },
-  {
-   "k": "fourcc"
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    7
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    64
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_region",
-     10,
-     0
-    ],
-    [
-     "m_programId",
-     19,
-     1
-    ],
-    [
-     "m_realm",
-     6,
-     2
-    ],
-    [
-     "m_name",
-     20,
-     3
-    ],
-    [
-     "m_id",
-     21,
-     4
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_a",
-     10,
-     0
-    ],
-    [
-     "m_r",
-     10,
-     1
-    ],
-    [
-     "m_g",
-     10,
-     2
-    ],
-    [
-     "m_b",
-     10,
-     3
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    2
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 10
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_name",
-     9,
-     0
-    ],
-    [
-     "m_toon",
-     22,
-     1
-    ],
-    [
-     "m_race",
-     9,
-     2
-    ],
-    [
-     "m_color",
-     23,
-     3
-    ],
-    [
-     "m_control",
-     10,
-     4
-    ],
-    [
-     "m_teamId",
-     1,
-     5
-    ],
-    [
-     "m_handicap",
-     0,
-     6
-    ],
-    [
-     "m_observe",
-     24,
-     7
-    ],
-    [
-     "m_result",
-     24,
-     8
-    ],
-    [
-     "m_workingSetSlotId",
-     25,
-     9
-    ],
-    [
-     "m_hero",
-     9,
-     10
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 26
-  },
-  {
-   "k": "optional",
-   "typeid": 27
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    10
-   ]
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    11
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_file",
-     30,
-     0
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 13
-  },
-  {
-   "k": "int",
-   "bounds": [
-    -9223372036854776000,
-    64
-   ]
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    12
-   ]
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    40,
-    0
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    6
-   ],
-   "typeid": 35
-  },
-  {
-   "k": "optional",
-   "typeid": 36
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    6
-   ],
-   "typeid": 30
-  },
-  {
-   "k": "optional",
-   "typeid": 38
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_playerList",
-     28,
-     0
-    ],
-    [
-     "m_title",
-     29,
-     1
-    ],
-    [
-     "m_difficulty",
-     9,
-     2
-    ],
-    [
-     "m_thumbnail",
-     31,
-     3
-    ],
-    [
-     "m_isBlizzardMap",
-     13,
-     4
-    ],
-    [
-     "m_restartAsTransitionMap",
-     32,
-     16
-    ],
-    [
-     "m_timeUTC",
-     33,
-     5
-    ],
-    [
-     "m_timeLocalOffset",
-     33,
-     6
-    ],
-    [
-     "m_description",
-     34,
-     7
-    ],
-    [
-     "m_imageFilePath",
-     30,
-     8
-    ],
-    [
-     "m_campaignIndex",
-     10,
-     15
-    ],
-    [
-     "m_mapFileName",
-     30,
-     9
-    ],
-    [
-     "m_cacheHandles",
-     37,
-     10
-    ],
-    [
-     "m_miniSave",
-     13,
-     11
-    ],
-    [
-     "m_gameSpeed",
-     12,
-     12
-    ],
-    [
-     "m_defaultDifficulty",
-     3,
-     13
-    ],
-    [
-     "m_modPaths",
-     39,
-     14
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 9
-  },
-  {
-   "k": "optional",
-   "typeid": 35
-  },
-  {
-   "k": "optional",
-   "typeid": 6
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_race",
-     25,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_team",
-     25,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    9
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_name",
-     9,
-     -18
-    ],
-    [
-     "m_clanTag",
-     41,
-     -17
-    ],
-    [
-     "m_clanLogo",
-     42,
-     -16
-    ],
-    [
-     "m_highestLeague",
-     25,
-     -15
-    ],
-    [
-     "m_combinedRaceLevels",
-     43,
-     -14
-    ],
-    [
-     "m_randomSeed",
-     6,
-     -13
-    ],
-    [
-     "m_racePreference",
-     44,
-     -12
-    ],
-    [
-     "m_teamPreference",
-     45,
-     -11
-    ],
-    [
-     "m_testMap",
-     13,
-     -10
-    ],
-    [
-     "m_testAuto",
-     13,
-     -9
-    ],
-    [
-     "m_examine",
-     13,
-     -8
-    ],
-    [
-     "m_customInterface",
-     13,
-     -7
-    ],
-    [
-     "m_testType",
-     6,
-     -6
-    ],
-    [
-     "m_observe",
-     24,
-     -5
-    ],
-    [
-     "m_hero",
-     46,
-     -4
-    ],
-    [
-     "m_skin",
-     46,
-     -3
-    ],
-    [
-     "m_mount",
-     46,
-     -2
-    ],
-    [
-     "m_toonHandle",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 47
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_lockTeams",
-     13,
-     -16
-    ],
-    [
-     "m_teamsTogether",
-     13,
-     -15
-    ],
-    [
-     "m_advancedSharedControl",
-     13,
-     -14
-    ],
-    [
-     "m_randomRaces",
-     13,
-     -13
-    ],
-    [
-     "m_battleNet",
-     13,
-     -12
-    ],
-    [
-     "m_amm",
-     13,
-     -11
-    ],
-    [
-     "m_competitive",
-     13,
-     -10
-    ],
-    [
-     "m_practice",
-     13,
-     -9
-    ],
-    [
-     "m_cooperative",
-     13,
-     -8
-    ],
-    [
-     "m_noVictoryOrDefeat",
-     13,
-     -7
-    ],
-    [
-     "m_heroDuplicatesAllowed",
-     13,
-     -6
-    ],
-    [
-     "m_fog",
-     24,
-     -5
-    ],
-    [
-     "m_observers",
-     24,
-     -4
-    ],
-    [
-     "m_userDifficulty",
-     24,
-     -3
-    ],
-    [
-     "m_clientDebugFlags",
-     21,
-     -2
-    ],
-    [
-     "m_ammId",
-     43,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    1,
-    4
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    1,
-    8
-   ]
-  },
-  {
-   "k": "bitarray",
-   "bounds": [
-    0,
-    6
-   ]
-  },
-  {
-   "k": "bitarray",
-   "bounds": [
-    0,
-    8
-   ]
-  },
-  {
-   "k": "bitarray",
-   "bounds": [
-    0,
-    2
-   ]
-  },
-  {
-   "k": "bitarray",
-   "bounds": [
-    0,
-    7
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_allowedColors",
-     52,
-     -6
-    ],
-    [
-     "m_allowedRaces",
-     53,
-     -5
-    ],
-    [
-     "m_allowedDifficulty",
-     52,
-     -4
-    ],
-    [
-     "m_allowedControls",
-     53,
-     -3
-    ],
-    [
-     "m_allowedObserveTypes",
-     54,
-     -2
-    ],
-    [
-     "m_allowedAIBuilds",
-     55,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 56
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_randomValue",
-     6,
-     -26
-    ],
-    [
-     "m_gameCacheName",
-     29,
-     -25
-    ],
-    [
-     "m_gameOptions",
-     49,
-     -24
-    ],
-    [
-     "m_gameSpeed",
-     12,
-     -23
-    ],
-    [
-     "m_gameType",
-     12,
-     -22
-    ],
-    [
-     "m_maxUsers",
-     2,
-     -21
-    ],
-    [
-     "m_maxObservers",
-     2,
-     -20
-    ],
-    [
-     "m_maxPlayers",
-     2,
-     -19
-    ],
-    [
-     "m_maxTeams",
-     50,
-     -18
-    ],
-    [
-     "m_maxColors",
-     3,
-     -17
-    ],
-    [
-     "m_maxRaces",
-     51,
-     -16
-    ],
-    [
-     "m_maxControls",
-     10,
-     -15
-    ],
-    [
-     "m_mapSizeX",
-     10,
-     -14
-    ],
-    [
-     "m_mapSizeY",
-     10,
-     -13
-    ],
-    [
-     "m_mapFileSyncChecksum",
-     6,
-     -12
-    ],
-    [
-     "m_mapFileName",
-     30,
-     -11
-    ],
-    [
-     "m_mapAuthorName",
-     9,
-     -10
-    ],
-    [
-     "m_modFileSyncChecksum",
-     6,
-     -9
-    ],
-    [
-     "m_slotDescriptions",
-     57,
-     -8
-    ],
-    [
-     "m_defaultDifficulty",
-     3,
-     -7
-    ],
-    [
-     "m_defaultAIBuild",
-     0,
-     -6
-    ],
-    [
-     "m_cacheHandles",
-     36,
-     -5
-    ],
-    [
-     "m_hasExtensionMod",
-     13,
-     -4
-    ],
-    [
-     "m_isBlizzardMap",
-     13,
-     -3
-    ],
-    [
-     "m_isPremadeFFA",
-     13,
-     -2
-    ],
-    [
-     "m_isCoopMode",
-     13,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 1
-  },
-  {
-   "k": "optional",
-   "typeid": 2
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_color",
-     60,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    4
-   ],
-   "typeid": 46
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    17
-   ],
-   "typeid": 6
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_control",
-     10,
-     -19
-    ],
-    [
-     "m_userId",
-     59,
-     -18
-    ],
-    [
-     "m_teamId",
-     1,
-     -17
-    ],
-    [
-     "m_colorPref",
-     61,
-     -16
-    ],
-    [
-     "m_racePref",
-     44,
-     -15
-    ],
-    [
-     "m_difficulty",
-     3,
-     -14
-    ],
-    [
-     "m_aiBuild",
-     0,
-     -13
-    ],
-    [
-     "m_handicap",
-     0,
-     -12
-    ],
-    [
-     "m_observe",
-     24,
-     -11
-    ],
-    [
-     "m_logoIndex",
-     6,
-     -10
-    ],
-    [
-     "m_hero",
-     46,
-     -9
-    ],
-    [
-     "m_skin",
-     46,
-     -8
-    ],
-    [
-     "m_mount",
-     46,
-     -7
-    ],
-    [
-     "m_artifacts",
-     62,
-     -6
-    ],
-    [
-     "m_workingSetSlotId",
-     25,
-     -5
-    ],
-    [
-     "m_rewards",
-     63,
-     -4
-    ],
-    [
-     "m_toonHandle",
-     20,
-     -3
-    ],
-    [
-     "m_tandemLeaderUserId",
-     59,
-     -2
-    ],
-    [
-     "m_hasSilencePenalty",
-     13,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 64
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_phase",
-     12,
-     -11
-    ],
-    [
-     "m_maxUsers",
-     2,
-     -10
-    ],
-    [
-     "m_maxObservers",
-     2,
-     -9
-    ],
-    [
-     "m_slots",
-     65,
-     -8
-    ],
-    [
-     "m_randomSeed",
-     6,
-     -7
-    ],
-    [
-     "m_hostUserId",
-     59,
-     -6
-    ],
-    [
-     "m_isSinglePlayer",
-     13,
-     -5
-    ],
-    [
-     "m_pickedMapTag",
-     10,
-     -4
-    ],
-    [
-     "m_gameDuration",
-     6,
-     -3
-    ],
-    [
-     "m_defaultDifficulty",
-     3,
-     -2
-    ],
-    [
-     "m_defaultAIBuild",
-     0,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_userInitialData",
-     48,
-     -3
-    ],
-    [
-     "m_gameDescription",
-     58,
-     -2
-    ],
-    [
-     "m_lobbyState",
-     66,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_syncLobbyState",
-     67,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_name",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "blob",
-   "bounds": [
-    0,
-    6
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_name",
-     70,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_name",
-     70,
-     -3
-    ],
-    [
-     "m_type",
-     6,
-     -2
-    ],
-    [
-     "m_data",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_type",
-     6,
-     -3
-    ],
-    [
-     "m_name",
-     70,
-     -2
-    ],
-    [
-     "m_data",
-     34,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 10
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_signature",
-     74,
-     -2
-    ],
-    [
-     "m_toonHandle",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_gameFullyDownloaded",
-     13,
-     -14
-    ],
-    [
-     "m_developmentCheatsEnabled",
-     13,
-     -13
-    ],
-    [
-     "m_testCheatsEnabled",
-     13,
-     -12
-    ],
-    [
-     "m_multiplayerCheatsEnabled",
-     13,
-     -11
-    ],
-    [
-     "m_syncChecksummingEnabled",
-     13,
-     -10
-    ],
-    [
-     "m_isMapToMapTransition",
-     13,
-     -9
-    ],
-    [
-     "m_debugPauseEnabled",
-     13,
-     -8
-    ],
-    [
-     "m_useGalaxyAsserts",
-     13,
-     -7
-    ],
-    [
-     "m_platformMac",
-     13,
-     -6
-    ],
-    [
-     "m_cameraFollow",
-     13,
-     -5
-    ],
-    [
-     "m_baseBuildNum",
-     6,
-     -4
-    ],
-    [
-     "m_buildNum",
-     6,
-     -3
-    ],
-    [
-     "m_versionFlags",
-     6,
-     -2
-    ],
-    [
-     "m_hotkeyProfile",
-     46,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": []
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    16
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "x",
-     78,
-     -2
-    ],
-    [
-     "y",
-     78,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_which",
-     12,
-     -2
-    ],
-    [
-     "m_target",
-     79,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_fileName",
-     30,
-     -5
-    ],
-    [
-     "m_automatic",
-     13,
-     -4
-    ],
-    [
-     "m_overwrite",
-     13,
-     -3
-    ],
-    [
-     "m_name",
-     9,
-     -2
-    ],
-    [
-     "m_description",
-     29,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    1,
-    32
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_sequence",
-     82,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "null"
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    20
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    -2147483648,
-    32
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "x",
-     85,
-     -3
-    ],
-    [
-     "y",
-     85,
-     -2
-    ],
-    [
-     "z",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_targetUnitFlags",
-     78,
-     -7
-    ],
-    [
-     "m_timer",
-     10,
-     -6
-    ],
-    [
-     "m_tag",
-     6,
-     -5
-    ],
-    [
-     "m_snapshotUnitLink",
-     78,
-     -4
-    ],
-    [
-     "m_snapshotControlPlayerId",
-     59,
-     -3
-    ],
-    [
-     "m_snapshotUpkeepPlayerId",
-     59,
-     -2
-    ],
-    [
-     "m_snapshotPoint",
-     87,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "choice",
-   "bounds": [
-    0,
-    2
-   ],
-   "choices": {
-    "0": [
-     "None",
-     84
-    ],
-    "1": [
-     "TargetPoint",
-     87
-    ],
-    "2": [
-     "TargetUnit",
-     88
-    ]
-   }
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_target",
-     89,
-     -4
-    ],
-    [
-     "m_time",
-     86,
-     -3
-    ],
-    [
-     "m_verb",
-     29,
-     -2
-    ],
-    [
-     "m_arguments",
-     29,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_data",
-     90,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    25
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_abilLink",
-     78,
-     -3
-    ],
-    [
-     "m_abilCmdIndex",
-     2,
-     -2
-    ],
-    [
-     "m_abilCmdData",
-     25,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 93
-  },
-  {
-   "k": "choice",
-   "bounds": [
-    0,
-    2
-   ],
-   "choices": {
-    "0": [
-     "None",
-     84
-    ],
-    "1": [
-     "TargetPoint",
-     87
-    ],
-    "2": [
-     "TargetUnit",
-     88
-    ],
-    "3": [
-     "Data",
-     6
-    ]
-   }
-  },
-  {
-   "k": "optional",
-   "typeid": 87
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_cmdFlags",
-     92,
-     -7
-    ],
-    [
-     "m_abil",
-     94,
-     -6
-    ],
-    [
-     "m_data",
-     95,
-     -5
-    ],
-    [
-     "m_vector",
-     96,
-     -4
-    ],
-    [
-     "m_sequence",
-     82,
-     -3
-    ],
-    [
-     "m_otherUnit",
-     43,
-     -2
-    ],
-    [
-     "m_unitGroup",
-     43,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    9
-   ]
-  },
-  {
-   "k": "bitarray",
-   "bounds": [
-    0,
-    9
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    9
-   ],
-   "typeid": 98
-  },
-  {
-   "k": "choice",
-   "bounds": [
-    0,
-    2
-   ],
-   "choices": {
-    "0": [
-     "None",
-     84
-    ],
-    "1": [
-     "Mask",
-     99
-    ],
-    "2": [
-     "OneIndices",
-     100
-    ],
-    "3": [
-     "ZeroIndices",
-     100
-    ]
-   }
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitLink",
-     78,
-     -4
-    ],
-    [
-     "m_subgroupPriority",
-     10,
-     -3
-    ],
-    [
-     "m_intraSubgroupPriority",
-     10,
-     -2
-    ],
-    [
-     "m_count",
-     98,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    9
-   ],
-   "typeid": 102
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    9
-   ],
-   "typeid": 6
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_subgroupIndex",
-     98,
-     -4
-    ],
-    [
-     "m_removeMask",
-     101,
-     -3
-    ],
-    [
-     "m_addSubgroups",
-     103,
-     -2
-    ],
-    [
-     "m_addUnitTags",
-     104,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_controlGroupId",
-     1,
-     -2
-    ],
-    [
-     "m_delta",
-     105,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_controlGroupIndex",
-     1,
-     -3
-    ],
-    [
-     "m_controlGroupUpdate",
-     12,
-     -2
-    ],
-    [
-     "m_mask",
-     101,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_count",
-     98,
-     -6
-    ],
-    [
-     "m_subgroupCount",
-     98,
-     -5
-    ],
-    [
-     "m_activeSubgroupIndex",
-     98,
-     -4
-    ],
-    [
-     "m_unitTagsChecksum",
-     6,
-     -3
-    ],
-    [
-     "m_subgroupIndicesChecksum",
-     6,
-     -2
-    ],
-    [
-     "m_subgroupsChecksum",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_controlGroupId",
-     1,
-     -2
-    ],
-    [
-     "m_selectionSyncData",
-     108,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_chatMessage",
-     29,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_speed",
-     12,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    -128,
-    8
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_delta",
-     112,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "x",
-     86,
-     -2
-    ],
-    [
-     "y",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_point",
-     114,
-     -4
-    ],
-    [
-     "m_unit",
-     6,
-     -3
-    ],
-    [
-     "m_pingedMinimap",
-     13,
-     -2
-    ],
-    [
-     "m_option",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_verb",
-     29,
-     -2
-    ],
-    [
-     "m_arguments",
-     29,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_alliance",
-     6,
-     -2
-    ],
-    [
-     "m_control",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTag",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTag",
-     6,
-     -2
-    ],
-    [
-     "m_flags",
-     10,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_conversationId",
-     86,
-     -2
-    ],
-    [
-     "m_replyId",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 20
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_gameUserId",
-     1,
-     -6
-    ],
-    [
-     "m_observe",
-     24,
-     -5
-    ],
-    [
-     "m_name",
-     9,
-     -4
-    ],
-    [
-     "m_toonHandle",
-     121,
-     -3
-    ],
-    [
-     "m_clanTag",
-     41,
-     -2
-    ],
-    [
-     "m_clanLogo",
-     42,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 122
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    1
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_userInfos",
-     123,
-     -2
-    ],
-    [
-     "m_method",
-     124,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "choice",
-   "bounds": [
-    0,
-    3
-   ],
-   "choices": {
-    "0": [
-     "None",
-     84
-    ],
-    "1": [
-     "Checked",
-     13
-    ],
-    "2": [
-     "ValueChanged",
-     6
-    ],
-    "3": [
-     "SelectionChanged",
-     86
-    ],
-    "4": [
-     "TextChanged",
-     30
-    ],
-    "5": [
-     "MouseButton",
-     6
-    ]
-   }
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_controlId",
-     86,
-     -3
-    ],
-    [
-     "m_eventType",
-     86,
-     -2
-    ],
-    [
-     "m_eventData",
-     126,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_soundHash",
-     6,
-     -2
-    ],
-    [
-     "m_length",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    7
-   ],
-   "typeid": 6
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_soundHash",
-     129,
-     -2
-    ],
-    [
-     "m_length",
-     129,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_syncInfo",
-     130,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_queryId",
-     78,
-     -3
-    ],
-    [
-     "m_lengthMs",
-     6,
-     -2
-    ],
-    [
-     "m_finishGameLoop",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_queryId",
-     78,
-     -2
-    ],
-    [
-     "m_lengthMs",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_animWaitQueryId",
-     78,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_sound",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_transmissionId",
-     86,
-     -2
-    ],
-    [
-     "m_thread",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_transmissionId",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 79
-  },
-  {
-   "k": "optional",
-   "typeid": 78
-  },
-  {
-   "k": "optional",
-   "typeid": 112
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_target",
-     138,
-     -6
-    ],
-    [
-     "m_distance",
-     139,
-     -5
-    ],
-    [
-     "m_pitch",
-     139,
-     -4
-    ],
-    [
-     "m_yaw",
-     139,
-     -3
-    ],
-    [
-     "m_reason",
-     140,
-     -2
-    ],
-    [
-     "m_follow",
-     13,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_skipType",
-     124,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    11
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "x",
-     143,
-     -2
-    ],
-    [
-     "y",
-     143,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_button",
-     6,
-     -5
-    ],
-    [
-     "m_down",
-     13,
-     -4
-    ],
-    [
-     "m_posUI",
-     144,
-     -3
-    ],
-    [
-     "m_posWorld",
-     87,
-     -2
-    ],
-    [
-     "m_flags",
-     112,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_posUI",
-     144,
-     -3
-    ],
-    [
-     "m_posWorld",
-     87,
-     -2
-    ],
-    [
-     "m_flags",
-     112,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_achievementLink",
-     78,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_hotkey",
-     6,
-     -2
-    ],
-    [
-     "m_down",
-     13,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_abilLink",
-     78,
-     -3
-    ],
-    [
-     "m_abilCmdIndex",
-     2,
-     -2
-    ],
-    [
-     "m_state",
-     112,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_soundtrack",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_key",
-     112,
-     -2
-    ],
-    [
-     "m_flags",
-     112,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_error",
-     86,
-     -2
-    ],
-    [
-     "m_abil",
-     94,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    0,
-    19
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_decrementMs",
-     153,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_portraitId",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_functionName",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_result",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_gameMenuItemIndex",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "int",
-   "bounds": [
-    -32768,
-    16
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_wheelSpin",
-     159,
-     -2
-    ],
-    [
-     "m_flags",
-     112,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_button",
-     78,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_cutsceneId",
-     86,
-     -2
-    ],
-    [
-     "m_bookmarkName",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_cutsceneId",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_cutsceneId",
-     86,
-     -3
-    ],
-    [
-     "m_conversationLine",
-     20,
-     -2
-    ],
-    [
-     "m_altConversationLine",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_cutsceneId",
-     86,
-     -2
-    ],
-    [
-     "m_conversationLine",
-     20,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_leaveReason",
-     1,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_observe",
-     24,
-     -7
-    ],
-    [
-     "m_name",
-     9,
-     -6
-    ],
-    [
-     "m_toonHandle",
-     121,
-     -5
-    ],
-    [
-     "m_clanTag",
-     41,
-     -4
-    ],
-    [
-     "m_clanLogo",
-     42,
-     -3
-    ],
-    [
-     "m_hijack",
-     13,
-     -2
-    ],
-    [
-     "m_hijackCloneGameUserId",
-     59,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "optional",
-   "typeid": 82
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_state",
-     24,
-     -2
-    ],
-    [
-     "m_sequence",
-     168,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_sequence",
-     168,
-     -2
-    ],
-    [
-     "m_target",
-     87,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_sequence",
-     168,
-     -2
-    ],
-    [
-     "m_target",
-     88,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_catalog",
-     10,
-     -4
-    ],
-    [
-     "m_entry",
-     78,
-     -3
-    ],
-    [
-     "m_field",
-     9,
-     -2
-    ],
-    [
-     "m_value",
-     9,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_index",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_shown",
-     13,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_recipient",
-     12,
-     -2
-    ],
-    [
-     "m_string",
-     30,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_recipient",
-     12,
-     -2
-    ],
-    [
-     "m_point",
-     114,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_progress",
-     86,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_status",
-     24,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_abilLink",
-     78,
-     -3
-    ],
-    [
-     "m_abilCmdIndex",
-     2,
-     -2
-    ],
-    [
-     "m_buttonLink",
-     78,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_behaviorLink",
-     78,
-     -2
-    ],
-    [
-     "m_buttonLink",
-     78,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "choice",
-   "bounds": [
-    0,
-    2
-   ],
-   "choices": {
-    "0": [
-     "None",
-     84
-    ],
-    "1": [
-     "Ability",
-     179
-    ],
-    "2": [
-     "Behavior",
-     180
-    ],
-    "3": [
-     "Vitals",
-     159
-    ]
-   }
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_announcement",
-     181,
-     -4
-    ],
-    [
-     "m_announceLink",
-     78,
-     -3
-    ],
-    [
-     "m_otherUnitTag",
-     6,
-     -2
-    ],
-    [
-     "m_unitTag",
-     6,
-     -1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTagIndex",
-     6,
-     0
-    ],
-    [
-     "m_unitTagRecycle",
-     6,
-     1
-    ],
-    [
-     "m_unitTypeName",
-     29,
-     2
-    ],
-    [
-     "m_controlPlayerId",
-     1,
-     3
-    ],
-    [
-     "m_upkeepPlayerId",
-     1,
-     4
-    ],
-    [
-     "m_x",
-     10,
-     5
-    ],
-    [
-     "m_y",
-     10,
-     6
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTagIndex",
-     6,
-     0
-    ],
-    [
-     "m_unitTagRecycle",
-     6,
-     1
-    ],
-    [
-     "m_x",
-     10,
-     2
-    ],
-    [
-     "m_y",
-     10,
-     3
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTagIndex",
-     6,
-     0
-    ],
-    [
-     "m_unitTagRecycle",
-     6,
-     1
-    ],
-    [
-     "m_killerPlayerId",
-     59,
-     2
-    ],
-    [
-     "m_x",
-     10,
-     3
-    ],
-    [
-     "m_y",
-     10,
-     4
-    ],
-    [
-     "m_killerUnitTagIndex",
-     43,
-     5
-    ],
-    [
-     "m_killerUnitTagRecycle",
-     43,
-     6
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTagIndex",
-     6,
-     0
-    ],
-    [
-     "m_unitTagRecycle",
-     6,
-     1
-    ],
-    [
-     "m_controlPlayerId",
-     1,
-     2
-    ],
-    [
-     "m_upkeepPlayerId",
-     1,
-     3
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTagIndex",
-     6,
-     0
-    ],
-    [
-     "m_unitTagRecycle",
-     6,
-     1
-    ],
-    [
-     "m_unitTypeName",
-     29,
-     2
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_playerId",
-     1,
-     0
-    ],
-    [
-     "m_upgradeTypeName",
-     29,
-     1
-    ],
-    [
-     "m_count",
-     86,
-     2
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_unitTagIndex",
-     6,
-     0
-    ],
-    [
-     "m_unitTagRecycle",
-     6,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    10
-   ],
-   "typeid": 86
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_firstUnitIndex",
-     6,
-     0
-    ],
-    [
-     "m_items",
-     190,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_playerId",
-     1,
-     0
-    ],
-    [
-     "m_type",
-     6,
-     1
-    ],
-    [
-     "m_userId",
-     43,
-     2
-    ],
-    [
-     "m_slotId",
-     43,
-     3
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_key",
-     29,
-     0
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "__parent",
-     193,
-     0
-    ],
-    [
-     "m_value",
-     29,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    6
-   ],
-   "typeid": 194
-  },
-  {
-   "k": "optional",
-   "typeid": 195
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "__parent",
-     193,
-     0
-    ],
-    [
-     "m_value",
-     86,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    6
-   ],
-   "typeid": 197
-  },
-  {
-   "k": "optional",
-   "typeid": 198
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_eventName",
-     29,
-     0
-    ],
-    [
-     "m_stringData",
-     196,
-     1
-    ],
-    [
-     "m_intData",
-     199,
-     2
-    ],
-    [
-     "m_fixedData",
-     199,
-     3
-    ]
-   ]
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_value",
-     6,
-     0
-    ],
-    [
-     "m_time",
-     6,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    6
-   ],
-   "typeid": 201
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    5
-   ],
-   "typeid": 202
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_name",
-     29,
-     0
-    ],
-    [
-     "m_values",
-     203,
-     1
-    ]
-   ]
-  },
-  {
-   "k": "array",
-   "bounds": [
-    0,
-    21
-   ],
-   "typeid": 204
-  },
-  {
-   "k": "struct",
-   "fields": [
-    [
-     "m_instanceList",
-     205,
-     0
-    ]
-   ]
-  }
- ],
- "gameEventTypes": {
-  "5": [
-   77,
-   "NNet.Game.SUserFinishedLoadingSyncEvent"
-  ],
-  "7": [
-   76,
-   "NNet.Game.SUserOptionsEvent"
-  ],
-  "9": [
-   69,
-   "NNet.Game.SBankFileEvent"
-  ],
-  "10": [
-   71,
-   "NNet.Game.SBankSectionEvent"
-  ],
-  "11": [
-   72,
-   "NNet.Game.SBankKeyEvent"
-  ],
-  "12": [
-   73,
-   "NNet.Game.SBankValueEvent"
-  ],
-  "13": [
-   75,
-   "NNet.Game.SBankSignatureEvent"
-  ],
-  "14": [
-   80,
-   "NNet.Game.SCameraSaveEvent"
-  ],
-  "21": [
-   81,
-   "NNet.Game.SSaveGameEvent"
-  ],
-  "22": [
-   77,
-   "NNet.Game.SSaveGameDoneEvent"
-  ],
-  "23": [
-   77,
-   "NNet.Game.SLoadGameDoneEvent"
-  ],
-  "25": [
-   83,
-   "NNet.Game.SCommandManagerResetEvent"
-  ],
-  "26": [
-   91,
-   "NNet.Game.SGameCheatEvent"
-  ],
-  "27": [
-   97,
-   "NNet.Game.SCmdEvent"
-  ],
-  "28": [
-   106,
-   "NNet.Game.SSelectionDeltaEvent"
-  ],
-  "29": [
-   107,
-   "NNet.Game.SControlGroupUpdateEvent"
-  ],
-  "30": [
-   109,
-   "NNet.Game.SSelectionSyncCheckEvent"
-  ],
-  "32": [
-   110,
-   "NNet.Game.STriggerChatMessageEvent"
-  ],
-  "34": [
-   111,
-   "NNet.Game.SSetAbsoluteGameSpeedEvent"
-  ],
-  "35": [
-   113,
-   "NNet.Game.SAddAbsoluteGameSpeedEvent"
-  ],
-  "36": [
-   115,
-   "NNet.Game.STriggerPingEvent"
-  ],
-  "37": [
-   116,
-   "NNet.Game.SBroadcastCheatEvent"
-  ],
-  "38": [
-   117,
-   "NNet.Game.SAllianceEvent"
-  ],
-  "39": [
-   118,
-   "NNet.Game.SUnitClickEvent"
-  ],
-  "40": [
-   119,
-   "NNet.Game.SUnitHighlightEvent"
-  ],
-  "41": [
-   120,
-   "NNet.Game.STriggerReplySelectedEvent"
-  ],
-  "43": [
-   125,
-   "NNet.Game.SHijackReplayGameEvent"
-  ],
-  "44": [
-   77,
-   "NNet.Game.STriggerSkippedEvent"
-  ],
-  "45": [
-   128,
-   "NNet.Game.STriggerSoundLengthQueryEvent"
-  ],
-  "46": [
-   135,
-   "NNet.Game.STriggerSoundOffsetEvent"
-  ],
-  "47": [
-   136,
-   "NNet.Game.STriggerTransmissionOffsetEvent"
-  ],
-  "48": [
-   137,
-   "NNet.Game.STriggerTransmissionCompleteEvent"
-  ],
-  "49": [
-   141,
-   "NNet.Game.SCameraUpdateEvent"
-  ],
-  "50": [
-   77,
-   "NNet.Game.STriggerAbortMissionEvent"
-  ],
-  "55": [
-   127,
-   "NNet.Game.STriggerDialogControlEvent"
-  ],
-  "56": [
-   131,
-   "NNet.Game.STriggerSoundLengthSyncEvent"
-  ],
-  "57": [
-   142,
-   "NNet.Game.STriggerConversationSkippedEvent"
-  ],
-  "58": [
-   145,
-   "NNet.Game.STriggerMouseClickedEvent"
-  ],
-  "59": [
-   146,
-   "NNet.Game.STriggerMouseMovedEvent"
-  ],
-  "60": [
-   147,
-   "NNet.Game.SAchievementAwardedEvent"
-  ],
-  "61": [
-   148,
-   "NNet.Game.STriggerHotkeyPressedEvent"
-  ],
-  "62": [
-   149,
-   "NNet.Game.STriggerTargetModeUpdateEvent"
-  ],
-  "64": [
-   150,
-   "NNet.Game.STriggerSoundtrackDoneEvent"
-  ],
-  "66": [
-   151,
-   "NNet.Game.STriggerKeyPressedEvent"
-  ],
-  "67": [
-   156,
-   "NNet.Game.STriggerMovieFunctionEvent"
-  ],
-  "76": [
-   152,
-   "NNet.Game.STriggerCommandErrorEvent"
-  ],
-  "86": [
-   77,
-   "NNet.Game.STriggerMovieStartedEvent"
-  ],
-  "87": [
-   77,
-   "NNet.Game.STriggerMovieFinishedEvent"
-  ],
-  "88": [
-   154,
-   "NNet.Game.SDecrementGameTimeRemainingEvent"
-  ],
-  "89": [
-   155,
-   "NNet.Game.STriggerPortraitLoadedEvent"
-  ],
-  "90": [
-   157,
-   "NNet.Game.STriggerCustomDialogDismissedEvent"
-  ],
-  "91": [
-   158,
-   "NNet.Game.STriggerGameMenuItemSelectedEvent"
-  ],
-  "92": [
-   160,
-   "NNet.Game.STriggerMouseWheelEvent"
-  ],
-  "95": [
-   161,
-   "NNet.Game.STriggerButtonPressedEvent"
-  ],
-  "96": [
-   77,
-   "NNet.Game.STriggerGameCreditsFinishedEvent"
-  ],
-  "97": [
-   162,
-   "NNet.Game.STriggerCutsceneBookmarkFiredEvent"
-  ],
-  "98": [
-   163,
-   "NNet.Game.STriggerCutsceneEndSceneFiredEvent"
-  ],
-  "99": [
-   164,
-   "NNet.Game.STriggerCutsceneConversationLineEvent"
-  ],
-  "100": [
-   165,
-   "NNet.Game.STriggerCutsceneConversationLineMissingEvent"
-  ],
-  "101": [
-   166,
-   "NNet.Game.SGameUserLeaveEvent"
-  ],
-  "102": [
-   167,
-   "NNet.Game.SGameUserJoinEvent"
-  ],
-  "103": [
-   169,
-   "NNet.Game.SCommandManagerStateEvent"
-  ],
-  "104": [
-   170,
-   "NNet.Game.SCmdUpdateTargetPointEvent"
-  ],
-  "105": [
-   171,
-   "NNet.Game.SCmdUpdateTargetUnitEvent"
-  ],
-  "106": [
-   132,
-   "NNet.Game.STriggerAnimLengthQueryByNameEvent"
-  ],
-  "107": [
-   133,
-   "NNet.Game.STriggerAnimLengthQueryByPropsEvent"
-  ],
-  "108": [
-   134,
-   "NNet.Game.STriggerAnimOffsetEvent"
-  ],
-  "109": [
-   172,
-   "NNet.Game.SCatalogModifyEvent"
-  ],
-  "110": [
-   173,
-   "NNet.Game.SHeroTalentTreeSelectedEvent"
-  ],
-  "111": [
-   77,
-   "NNet.Game.STriggerProfilerLoggingFinishedEvent"
-  ],
-  "112": [
-   174,
-   "NNet.Game.SHeroTalentTreeSelectionPanelToggledEvent"
-  ]
- },
- "messageEventTypes": {
-  "0": [
-   175,
-   "NNet.Game.SChatMessage"
-  ],
-  "1": [
-   176,
-   "NNet.Game.SPingMessage"
-  ],
-  "2": [
-   177,
-   "NNet.Game.SLoadingProgressMessage"
-  ],
-  "3": [
-   77,
-   "NNet.Game.SServerPingMessage"
-  ],
-  "4": [
-   178,
-   "NNet.Game.SReconnectNotifyMessage"
-  ],
-  "5": [
-   182,
-   "NNet.Game.SPlayerAnnounceMessage"
-  ]
- },
- "trackerEventTypes": {
-  "1": [
-   183,
-   "NNet.Replay.Tracker.SUnitBornEvent"
-  ],
-  "2": [
-   185,
-   "NNet.Replay.Tracker.SUnitDiedEvent"
-  ],
-  "3": [
-   186,
-   "NNet.Replay.Tracker.SUnitOwnerChangeEvent"
-  ],
-  "4": [
-   187,
-   "NNet.Replay.Tracker.SUnitTypeChangeEvent"
-  ],
-  "5": [
-   188,
-   "NNet.Replay.Tracker.SUpgradeEvent"
-  ],
-  "6": [
-   183,
-   "NNet.Replay.Tracker.SUnitInitEvent"
-  ],
-  "7": [
-   189,
-   "NNet.Replay.Tracker.SUnitDoneEvent"
-  ],
-  "8": [
-   191,
-   "NNet.Replay.Tracker.SUnitPositionsEvent"
-  ],
-  "9": [
-   192,
-   "NNet.Replay.Tracker.SPlayerSetupEvent"
-  ],
-  "10": [
-   200,
-   "NNet.Replay.Tracker.SStatGameEvent"
-  ],
-  "11": [
-   206,
-   "NNet.Replay.Tracker.SScoreResultEvent"
-  ],
-  "12": [
-   184,
-   "NNet.Replay.Tracker.SUnitRevivedEvent"
-  ]
- },
- "gameEventIdTypeid": 0,
- "messageEventIdTypeid": 1,
- "trackerEventIdTypeid": 2,
- "svaruint32Typeid": 7,
- "replayUserIdTypeid": 8,
- "headerTypeid": 18,
- "detailsTypeid": 40,
- "initDataTypeid": 68
+  build: 49582,
+  typeinfos: [
+    {
+      k: 'int',
+      bounds: [0, 7],
+    },
+    {
+      k: 'int',
+      bounds: [0, 4],
+    },
+    {
+      k: 'int',
+      bounds: [0, 5],
+    },
+    {
+      k: 'int',
+      bounds: [0, 6],
+    },
+    {
+      k: 'int',
+      bounds: [0, 14],
+    },
+    {
+      k: 'int',
+      bounds: [0, 22],
+    },
+    {
+      k: 'int',
+      bounds: [0, 32],
+    },
+    {
+      k: 'choice',
+      bounds: [0, 2],
+      choices: {
+        '0': ['m_uint6', 3],
+        '1': ['m_uint14', 4],
+        '2': ['m_uint22', 5],
+        '3': ['m_uint32', 6],
+      },
+    },
+    {
+      k: 'struct',
+      fields: [['m_userId', 2, -1]],
+    },
+    {
+      k: 'blob',
+      bounds: [0, 8],
+    },
+    {
+      k: 'int',
+      bounds: [0, 8],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_flags', 10, 0],
+        ['m_major', 10, 1],
+        ['m_minor', 10, 2],
+        ['m_revision', 10, 3],
+        ['m_build', 6, 4],
+        ['m_baseBuild', 6, 5],
+      ],
+    },
+    {
+      k: 'int',
+      bounds: [0, 3],
+    },
+    {
+      k: 'bool',
+    },
+    {
+      k: 'array',
+      bounds: [16, 0],
+      typeid: 10,
+    },
+    {
+      k: 'optional',
+      typeid: 14,
+    },
+    {
+      k: 'blob',
+      bounds: [16, 0],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_dataDeprecated', 15, 0],
+        ['m_data', 16, 1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_signature', 9, 0],
+        ['m_version', 11, 1],
+        ['m_type', 12, 2],
+        ['m_elapsedGameLoops', 6, 3],
+        ['m_useScaledTime', 13, 4],
+        ['m_ngdpRootKey', 17, 5],
+        ['m_dataBuildNum', 6, 6],
+        ['m_replayCompatibilityHash', 17, 7],
+      ],
+    },
+    {
+      k: 'fourcc',
+    },
+    {
+      k: 'blob',
+      bounds: [0, 7],
+    },
+    {
+      k: 'int',
+      bounds: [0, 64],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_region', 10, 0],
+        ['m_programId', 19, 1],
+        ['m_realm', 6, 2],
+        ['m_name', 20, 3],
+        ['m_id', 21, 4],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_a', 10, 0],
+        ['m_r', 10, 1],
+        ['m_g', 10, 2],
+        ['m_b', 10, 3],
+      ],
+    },
+    {
+      k: 'int',
+      bounds: [0, 2],
+    },
+    {
+      k: 'optional',
+      typeid: 10,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_name', 9, 0],
+        ['m_toon', 22, 1],
+        ['m_race', 9, 2],
+        ['m_color', 23, 3],
+        ['m_control', 10, 4],
+        ['m_teamId', 1, 5],
+        ['m_handicap', 0, 6],
+        ['m_observe', 24, 7],
+        ['m_result', 24, 8],
+        ['m_workingSetSlotId', 25, 9],
+        ['m_hero', 9, 10],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 26,
+    },
+    {
+      k: 'optional',
+      typeid: 27,
+    },
+    {
+      k: 'blob',
+      bounds: [0, 10],
+    },
+    {
+      k: 'blob',
+      bounds: [0, 11],
+    },
+    {
+      k: 'struct',
+      fields: [['m_file', 30, 0]],
+    },
+    {
+      k: 'optional',
+      typeid: 13,
+    },
+    {
+      k: 'int',
+      bounds: [-9223372036854776000, 64],
+    },
+    {
+      k: 'blob',
+      bounds: [0, 12],
+    },
+    {
+      k: 'blob',
+      bounds: [40, 0],
+    },
+    {
+      k: 'array',
+      bounds: [0, 6],
+      typeid: 35,
+    },
+    {
+      k: 'optional',
+      typeid: 36,
+    },
+    {
+      k: 'array',
+      bounds: [0, 6],
+      typeid: 30,
+    },
+    {
+      k: 'optional',
+      typeid: 38,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_playerList', 28, 0],
+        ['m_title', 29, 1],
+        ['m_difficulty', 9, 2],
+        ['m_thumbnail', 31, 3],
+        ['m_isBlizzardMap', 13, 4],
+        ['m_restartAsTransitionMap', 32, 16],
+        ['m_timeUTC', 33, 5],
+        ['m_timeLocalOffset', 33, 6],
+        ['m_description', 34, 7],
+        ['m_imageFilePath', 30, 8],
+        ['m_campaignIndex', 10, 15],
+        ['m_mapFileName', 30, 9],
+        ['m_cacheHandles', 37, 10],
+        ['m_miniSave', 13, 11],
+        ['m_gameSpeed', 12, 12],
+        ['m_defaultDifficulty', 3, 13],
+        ['m_modPaths', 39, 14],
+      ],
+    },
+    {
+      k: 'optional',
+      typeid: 9,
+    },
+    {
+      k: 'optional',
+      typeid: 35,
+    },
+    {
+      k: 'optional',
+      typeid: 6,
+    },
+    {
+      k: 'struct',
+      fields: [['m_race', 25, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_team', 25, -1]],
+    },
+    {
+      k: 'blob',
+      bounds: [0, 9],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_name', 9, -18],
+        ['m_clanTag', 41, -17],
+        ['m_clanLogo', 42, -16],
+        ['m_highestLeague', 25, -15],
+        ['m_combinedRaceLevels', 43, -14],
+        ['m_randomSeed', 6, -13],
+        ['m_racePreference', 44, -12],
+        ['m_teamPreference', 45, -11],
+        ['m_testMap', 13, -10],
+        ['m_testAuto', 13, -9],
+        ['m_examine', 13, -8],
+        ['m_customInterface', 13, -7],
+        ['m_testType', 6, -6],
+        ['m_observe', 24, -5],
+        ['m_hero', 46, -4],
+        ['m_skin', 46, -3],
+        ['m_mount', 46, -2],
+        ['m_toonHandle', 20, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 47,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_lockTeams', 13, -16],
+        ['m_teamsTogether', 13, -15],
+        ['m_advancedSharedControl', 13, -14],
+        ['m_randomRaces', 13, -13],
+        ['m_battleNet', 13, -12],
+        ['m_amm', 13, -11],
+        ['m_competitive', 13, -10],
+        ['m_practice', 13, -9],
+        ['m_cooperative', 13, -8],
+        ['m_noVictoryOrDefeat', 13, -7],
+        ['m_heroDuplicatesAllowed', 13, -6],
+        ['m_fog', 24, -5],
+        ['m_observers', 24, -4],
+        ['m_userDifficulty', 24, -3],
+        ['m_clientDebugFlags', 21, -2],
+        ['m_ammId', 43, -1],
+      ],
+    },
+    {
+      k: 'int',
+      bounds: [1, 4],
+    },
+    {
+      k: 'int',
+      bounds: [1, 8],
+    },
+    {
+      k: 'bitarray',
+      bounds: [0, 6],
+    },
+    {
+      k: 'bitarray',
+      bounds: [0, 8],
+    },
+    {
+      k: 'bitarray',
+      bounds: [0, 2],
+    },
+    {
+      k: 'bitarray',
+      bounds: [0, 7],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_allowedColors', 52, -6],
+        ['m_allowedRaces', 53, -5],
+        ['m_allowedDifficulty', 52, -4],
+        ['m_allowedControls', 53, -3],
+        ['m_allowedObserveTypes', 54, -2],
+        ['m_allowedAIBuilds', 55, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 56,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_randomValue', 6, -26],
+        ['m_gameCacheName', 29, -25],
+        ['m_gameOptions', 49, -24],
+        ['m_gameSpeed', 12, -23],
+        ['m_gameType', 12, -22],
+        ['m_maxUsers', 2, -21],
+        ['m_maxObservers', 2, -20],
+        ['m_maxPlayers', 2, -19],
+        ['m_maxTeams', 50, -18],
+        ['m_maxColors', 3, -17],
+        ['m_maxRaces', 51, -16],
+        ['m_maxControls', 10, -15],
+        ['m_mapSizeX', 10, -14],
+        ['m_mapSizeY', 10, -13],
+        ['m_mapFileSyncChecksum', 6, -12],
+        ['m_mapFileName', 30, -11],
+        ['m_mapAuthorName', 9, -10],
+        ['m_modFileSyncChecksum', 6, -9],
+        ['m_slotDescriptions', 57, -8],
+        ['m_defaultDifficulty', 3, -7],
+        ['m_defaultAIBuild', 0, -6],
+        ['m_cacheHandles', 36, -5],
+        ['m_hasExtensionMod', 13, -4],
+        ['m_isBlizzardMap', 13, -3],
+        ['m_isPremadeFFA', 13, -2],
+        ['m_isCoopMode', 13, -1],
+      ],
+    },
+    {
+      k: 'optional',
+      typeid: 1,
+    },
+    {
+      k: 'optional',
+      typeid: 2,
+    },
+    {
+      k: 'struct',
+      fields: [['m_color', 60, -1]],
+    },
+    {
+      k: 'array',
+      bounds: [0, 4],
+      typeid: 46,
+    },
+    {
+      k: 'array',
+      bounds: [0, 17],
+      typeid: 6,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_control', 10, -19],
+        ['m_userId', 59, -18],
+        ['m_teamId', 1, -17],
+        ['m_colorPref', 61, -16],
+        ['m_racePref', 44, -15],
+        ['m_difficulty', 3, -14],
+        ['m_aiBuild', 0, -13],
+        ['m_handicap', 0, -12],
+        ['m_observe', 24, -11],
+        ['m_logoIndex', 6, -10],
+        ['m_hero', 46, -9],
+        ['m_skin', 46, -8],
+        ['m_mount', 46, -7],
+        ['m_artifacts', 62, -6],
+        ['m_workingSetSlotId', 25, -5],
+        ['m_rewards', 63, -4],
+        ['m_toonHandle', 20, -3],
+        ['m_tandemLeaderUserId', 59, -2],
+        ['m_hasSilencePenalty', 13, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 64,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_phase', 12, -11],
+        ['m_maxUsers', 2, -10],
+        ['m_maxObservers', 2, -9],
+        ['m_slots', 65, -8],
+        ['m_randomSeed', 6, -7],
+        ['m_hostUserId', 59, -6],
+        ['m_isSinglePlayer', 13, -5],
+        ['m_pickedMapTag', 10, -4],
+        ['m_gameDuration', 6, -3],
+        ['m_defaultDifficulty', 3, -2],
+        ['m_defaultAIBuild', 0, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_userInitialData', 48, -3],
+        ['m_gameDescription', 58, -2],
+        ['m_lobbyState', 66, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_syncLobbyState', 67, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_name', 20, -1]],
+    },
+    {
+      k: 'blob',
+      bounds: [0, 6],
+    },
+    {
+      k: 'struct',
+      fields: [['m_name', 70, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_name', 70, -3],
+        ['m_type', 6, -2],
+        ['m_data', 20, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_type', 6, -3],
+        ['m_name', 70, -2],
+        ['m_data', 34, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 10,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_signature', 74, -2],
+        ['m_toonHandle', 20, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_gameFullyDownloaded', 13, -14],
+        ['m_developmentCheatsEnabled', 13, -13],
+        ['m_testCheatsEnabled', 13, -12],
+        ['m_multiplayerCheatsEnabled', 13, -11],
+        ['m_syncChecksummingEnabled', 13, -10],
+        ['m_isMapToMapTransition', 13, -9],
+        ['m_debugPauseEnabled', 13, -8],
+        ['m_useGalaxyAsserts', 13, -7],
+        ['m_platformMac', 13, -6],
+        ['m_cameraFollow', 13, -5],
+        ['m_baseBuildNum', 6, -4],
+        ['m_buildNum', 6, -3],
+        ['m_versionFlags', 6, -2],
+        ['m_hotkeyProfile', 46, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [],
+    },
+    {
+      k: 'int',
+      bounds: [0, 16],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['x', 78, -2],
+        ['y', 78, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_which', 12, -2],
+        ['m_target', 79, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_fileName', 30, -5],
+        ['m_automatic', 13, -4],
+        ['m_overwrite', 13, -3],
+        ['m_name', 9, -2],
+        ['m_description', 29, -1],
+      ],
+    },
+    {
+      k: 'int',
+      bounds: [1, 32],
+    },
+    {
+      k: 'struct',
+      fields: [['m_sequence', 82, -1]],
+    },
+    {
+      k: 'null',
+    },
+    {
+      k: 'int',
+      bounds: [0, 20],
+    },
+    {
+      k: 'int',
+      bounds: [-2147483648, 32],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['x', 85, -3],
+        ['y', 85, -2],
+        ['z', 86, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_targetUnitFlags', 78, -7],
+        ['m_timer', 10, -6],
+        ['m_tag', 6, -5],
+        ['m_snapshotUnitLink', 78, -4],
+        ['m_snapshotControlPlayerId', 59, -3],
+        ['m_snapshotUpkeepPlayerId', 59, -2],
+        ['m_snapshotPoint', 87, -1],
+      ],
+    },
+    {
+      k: 'choice',
+      bounds: [0, 2],
+      choices: {
+        '0': ['None', 84],
+        '1': ['TargetPoint', 87],
+        '2': ['TargetUnit', 88],
+      },
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_target', 89, -4],
+        ['m_time', 86, -3],
+        ['m_verb', 29, -2],
+        ['m_arguments', 29, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_data', 90, -1]],
+    },
+    {
+      k: 'int',
+      bounds: [0, 25],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_abilLink', 78, -3],
+        ['m_abilCmdIndex', 2, -2],
+        ['m_abilCmdData', 25, -1],
+      ],
+    },
+    {
+      k: 'optional',
+      typeid: 93,
+    },
+    {
+      k: 'choice',
+      bounds: [0, 2],
+      choices: {
+        '0': ['None', 84],
+        '1': ['TargetPoint', 87],
+        '2': ['TargetUnit', 88],
+        '3': ['Data', 6],
+      },
+    },
+    {
+      k: 'optional',
+      typeid: 87,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_cmdFlags', 92, -7],
+        ['m_abil', 94, -6],
+        ['m_data', 95, -5],
+        ['m_vector', 96, -4],
+        ['m_sequence', 82, -3],
+        ['m_otherUnit', 43, -2],
+        ['m_unitGroup', 43, -1],
+      ],
+    },
+    {
+      k: 'int',
+      bounds: [0, 9],
+    },
+    {
+      k: 'bitarray',
+      bounds: [0, 9],
+    },
+    {
+      k: 'array',
+      bounds: [0, 9],
+      typeid: 98,
+    },
+    {
+      k: 'choice',
+      bounds: [0, 2],
+      choices: {
+        '0': ['None', 84],
+        '1': ['Mask', 99],
+        '2': ['OneIndices', 100],
+        '3': ['ZeroIndices', 100],
+      },
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitLink', 78, -4],
+        ['m_subgroupPriority', 10, -3],
+        ['m_intraSubgroupPriority', 10, -2],
+        ['m_count', 98, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 9],
+      typeid: 102,
+    },
+    {
+      k: 'array',
+      bounds: [0, 9],
+      typeid: 6,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_subgroupIndex', 98, -4],
+        ['m_removeMask', 101, -3],
+        ['m_addSubgroups', 103, -2],
+        ['m_addUnitTags', 104, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_controlGroupId', 1, -2],
+        ['m_delta', 105, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_controlGroupIndex', 1, -3],
+        ['m_controlGroupUpdate', 12, -2],
+        ['m_mask', 101, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_count', 98, -6],
+        ['m_subgroupCount', 98, -5],
+        ['m_activeSubgroupIndex', 98, -4],
+        ['m_unitTagsChecksum', 6, -3],
+        ['m_subgroupIndicesChecksum', 6, -2],
+        ['m_subgroupsChecksum', 6, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_controlGroupId', 1, -2],
+        ['m_selectionSyncData', 108, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_chatMessage', 29, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_speed', 12, -1]],
+    },
+    {
+      k: 'int',
+      bounds: [-128, 8],
+    },
+    {
+      k: 'struct',
+      fields: [['m_delta', 112, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['x', 86, -2],
+        ['y', 86, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_point', 114, -4],
+        ['m_unit', 6, -3],
+        ['m_pingedMinimap', 13, -2],
+        ['m_option', 86, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_verb', 29, -2],
+        ['m_arguments', 29, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_alliance', 6, -2],
+        ['m_control', 6, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_unitTag', 6, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTag', 6, -2],
+        ['m_flags', 10, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_conversationId', 86, -2],
+        ['m_replyId', 86, -1],
+      ],
+    },
+    {
+      k: 'optional',
+      typeid: 20,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_gameUserId', 1, -6],
+        ['m_observe', 24, -5],
+        ['m_name', 9, -4],
+        ['m_toonHandle', 121, -3],
+        ['m_clanTag', 41, -2],
+        ['m_clanLogo', 42, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 122,
+    },
+    {
+      k: 'int',
+      bounds: [0, 1],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_userInfos', 123, -2],
+        ['m_method', 124, -1],
+      ],
+    },
+    {
+      k: 'choice',
+      bounds: [0, 3],
+      choices: {
+        '0': ['None', 84],
+        '1': ['Checked', 13],
+        '2': ['ValueChanged', 6],
+        '3': ['SelectionChanged', 86],
+        '4': ['TextChanged', 30],
+        '5': ['MouseButton', 6],
+      },
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_controlId', 86, -3],
+        ['m_eventType', 86, -2],
+        ['m_eventData', 126, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_soundHash', 6, -2],
+        ['m_length', 6, -1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 7],
+      typeid: 6,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_soundHash', 129, -2],
+        ['m_length', 129, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_syncInfo', 130, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_queryId', 78, -3],
+        ['m_lengthMs', 6, -2],
+        ['m_finishGameLoop', 6, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_queryId', 78, -2],
+        ['m_lengthMs', 6, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_animWaitQueryId', 78, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_sound', 6, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_transmissionId', 86, -2],
+        ['m_thread', 6, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_transmissionId', 86, -1]],
+    },
+    {
+      k: 'optional',
+      typeid: 79,
+    },
+    {
+      k: 'optional',
+      typeid: 78,
+    },
+    {
+      k: 'optional',
+      typeid: 112,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_target', 138, -6],
+        ['m_distance', 139, -5],
+        ['m_pitch', 139, -4],
+        ['m_yaw', 139, -3],
+        ['m_reason', 140, -2],
+        ['m_follow', 13, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_skipType', 124, -1]],
+    },
+    {
+      k: 'int',
+      bounds: [0, 11],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['x', 143, -2],
+        ['y', 143, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_button', 6, -5],
+        ['m_down', 13, -4],
+        ['m_posUI', 144, -3],
+        ['m_posWorld', 87, -2],
+        ['m_flags', 112, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_posUI', 144, -3],
+        ['m_posWorld', 87, -2],
+        ['m_flags', 112, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_achievementLink', 78, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_hotkey', 6, -2],
+        ['m_down', 13, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_abilLink', 78, -3],
+        ['m_abilCmdIndex', 2, -2],
+        ['m_state', 112, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_soundtrack', 6, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_key', 112, -2],
+        ['m_flags', 112, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_error', 86, -2],
+        ['m_abil', 94, -1],
+      ],
+    },
+    {
+      k: 'int',
+      bounds: [0, 19],
+    },
+    {
+      k: 'struct',
+      fields: [['m_decrementMs', 153, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_portraitId', 86, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_functionName', 20, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_result', 86, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_gameMenuItemIndex', 86, -1]],
+    },
+    {
+      k: 'int',
+      bounds: [-32768, 16],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_wheelSpin', 159, -2],
+        ['m_flags', 112, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_button', 78, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_cutsceneId', 86, -2],
+        ['m_bookmarkName', 20, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_cutsceneId', 86, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_cutsceneId', 86, -3],
+        ['m_conversationLine', 20, -2],
+        ['m_altConversationLine', 20, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_cutsceneId', 86, -2],
+        ['m_conversationLine', 20, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_leaveReason', 1, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_observe', 24, -7],
+        ['m_name', 9, -6],
+        ['m_toonHandle', 121, -5],
+        ['m_clanTag', 41, -4],
+        ['m_clanLogo', 42, -3],
+        ['m_hijack', 13, -2],
+        ['m_hijackCloneGameUserId', 59, -1],
+      ],
+    },
+    {
+      k: 'optional',
+      typeid: 82,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_state', 24, -2],
+        ['m_sequence', 168, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_sequence', 168, -2],
+        ['m_target', 87, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_sequence', 168, -2],
+        ['m_target', 88, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_catalog', 10, -4],
+        ['m_entry', 78, -3],
+        ['m_field', 9, -2],
+        ['m_value', 9, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_index', 6, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_shown', 13, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_recipient', 12, -2],
+        ['m_string', 30, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_recipient', 12, -2],
+        ['m_point', 114, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_progress', 86, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [['m_status', 24, -1]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_abilLink', 78, -3],
+        ['m_abilCmdIndex', 2, -2],
+        ['m_buttonLink', 78, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_behaviorLink', 78, -2],
+        ['m_buttonLink', 78, -1],
+      ],
+    },
+    {
+      k: 'choice',
+      bounds: [0, 2],
+      choices: {
+        '0': ['None', 84],
+        '1': ['Ability', 179],
+        '2': ['Behavior', 180],
+        '3': ['Vitals', 159],
+      },
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_announcement', 181, -4],
+        ['m_announceLink', 78, -3],
+        ['m_otherUnitTag', 6, -2],
+        ['m_unitTag', 6, -1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTagIndex', 6, 0],
+        ['m_unitTagRecycle', 6, 1],
+        ['m_unitTypeName', 29, 2],
+        ['m_controlPlayerId', 1, 3],
+        ['m_upkeepPlayerId', 1, 4],
+        ['m_x', 10, 5],
+        ['m_y', 10, 6],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTagIndex', 6, 0],
+        ['m_unitTagRecycle', 6, 1],
+        ['m_x', 10, 2],
+        ['m_y', 10, 3],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTagIndex', 6, 0],
+        ['m_unitTagRecycle', 6, 1],
+        ['m_killerPlayerId', 59, 2],
+        ['m_x', 10, 3],
+        ['m_y', 10, 4],
+        ['m_killerUnitTagIndex', 43, 5],
+        ['m_killerUnitTagRecycle', 43, 6],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTagIndex', 6, 0],
+        ['m_unitTagRecycle', 6, 1],
+        ['m_controlPlayerId', 1, 2],
+        ['m_upkeepPlayerId', 1, 3],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTagIndex', 6, 0],
+        ['m_unitTagRecycle', 6, 1],
+        ['m_unitTypeName', 29, 2],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_playerId', 1, 0],
+        ['m_upgradeTypeName', 29, 1],
+        ['m_count', 86, 2],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_unitTagIndex', 6, 0],
+        ['m_unitTagRecycle', 6, 1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 10],
+      typeid: 86,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_firstUnitIndex', 6, 0],
+        ['m_items', 190, 1],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_playerId', 1, 0],
+        ['m_type', 6, 1],
+        ['m_userId', 43, 2],
+        ['m_slotId', 43, 3],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [['m_key', 29, 0]],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['__parent', 193, 0],
+        ['m_value', 29, 1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 6],
+      typeid: 194,
+    },
+    {
+      k: 'optional',
+      typeid: 195,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['__parent', 193, 0],
+        ['m_value', 86, 1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 6],
+      typeid: 197,
+    },
+    {
+      k: 'optional',
+      typeid: 198,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_eventName', 29, 0],
+        ['m_stringData', 196, 1],
+        ['m_intData', 199, 2],
+        ['m_fixedData', 199, 3],
+      ],
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_value', 6, 0],
+        ['m_time', 6, 1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 6],
+      typeid: 201,
+    },
+    {
+      k: 'array',
+      bounds: [0, 5],
+      typeid: 202,
+    },
+    {
+      k: 'struct',
+      fields: [
+        ['m_name', 29, 0],
+        ['m_values', 203, 1],
+      ],
+    },
+    {
+      k: 'array',
+      bounds: [0, 21],
+      typeid: 204,
+    },
+    {
+      k: 'struct',
+      fields: [['m_instanceList', 205, 0]],
+    },
+  ],
+  gameEventTypes: {
+    '5': [77, 'NNet.Game.SUserFinishedLoadingSyncEvent'],
+    '7': [76, 'NNet.Game.SUserOptionsEvent'],
+    '9': [69, 'NNet.Game.SBankFileEvent'],
+    '10': [71, 'NNet.Game.SBankSectionEvent'],
+    '11': [72, 'NNet.Game.SBankKeyEvent'],
+    '12': [73, 'NNet.Game.SBankValueEvent'],
+    '13': [75, 'NNet.Game.SBankSignatureEvent'],
+    '14': [80, 'NNet.Game.SCameraSaveEvent'],
+    '21': [81, 'NNet.Game.SSaveGameEvent'],
+    '22': [77, 'NNet.Game.SSaveGameDoneEvent'],
+    '23': [77, 'NNet.Game.SLoadGameDoneEvent'],
+    '25': [83, 'NNet.Game.SCommandManagerResetEvent'],
+    '26': [91, 'NNet.Game.SGameCheatEvent'],
+    '27': [97, 'NNet.Game.SCmdEvent'],
+    '28': [106, 'NNet.Game.SSelectionDeltaEvent'],
+    '29': [107, 'NNet.Game.SControlGroupUpdateEvent'],
+    '30': [109, 'NNet.Game.SSelectionSyncCheckEvent'],
+    '32': [110, 'NNet.Game.STriggerChatMessageEvent'],
+    '34': [111, 'NNet.Game.SSetAbsoluteGameSpeedEvent'],
+    '35': [113, 'NNet.Game.SAddAbsoluteGameSpeedEvent'],
+    '36': [115, 'NNet.Game.STriggerPingEvent'],
+    '37': [116, 'NNet.Game.SBroadcastCheatEvent'],
+    '38': [117, 'NNet.Game.SAllianceEvent'],
+    '39': [118, 'NNet.Game.SUnitClickEvent'],
+    '40': [119, 'NNet.Game.SUnitHighlightEvent'],
+    '41': [120, 'NNet.Game.STriggerReplySelectedEvent'],
+    '43': [125, 'NNet.Game.SHijackReplayGameEvent'],
+    '44': [77, 'NNet.Game.STriggerSkippedEvent'],
+    '45': [128, 'NNet.Game.STriggerSoundLengthQueryEvent'],
+    '46': [135, 'NNet.Game.STriggerSoundOffsetEvent'],
+    '47': [136, 'NNet.Game.STriggerTransmissionOffsetEvent'],
+    '48': [137, 'NNet.Game.STriggerTransmissionCompleteEvent'],
+    '49': [141, 'NNet.Game.SCameraUpdateEvent'],
+    '50': [77, 'NNet.Game.STriggerAbortMissionEvent'],
+    '55': [127, 'NNet.Game.STriggerDialogControlEvent'],
+    '56': [131, 'NNet.Game.STriggerSoundLengthSyncEvent'],
+    '57': [142, 'NNet.Game.STriggerConversationSkippedEvent'],
+    '58': [145, 'NNet.Game.STriggerMouseClickedEvent'],
+    '59': [146, 'NNet.Game.STriggerMouseMovedEvent'],
+    '60': [147, 'NNet.Game.SAchievementAwardedEvent'],
+    '61': [148, 'NNet.Game.STriggerHotkeyPressedEvent'],
+    '62': [149, 'NNet.Game.STriggerTargetModeUpdateEvent'],
+    '64': [150, 'NNet.Game.STriggerSoundtrackDoneEvent'],
+    '66': [151, 'NNet.Game.STriggerKeyPressedEvent'],
+    '67': [156, 'NNet.Game.STriggerMovieFunctionEvent'],
+    '76': [152, 'NNet.Game.STriggerCommandErrorEvent'],
+    '86': [77, 'NNet.Game.STriggerMovieStartedEvent'],
+    '87': [77, 'NNet.Game.STriggerMovieFinishedEvent'],
+    '88': [154, 'NNet.Game.SDecrementGameTimeRemainingEvent'],
+    '89': [155, 'NNet.Game.STriggerPortraitLoadedEvent'],
+    '90': [157, 'NNet.Game.STriggerCustomDialogDismissedEvent'],
+    '91': [158, 'NNet.Game.STriggerGameMenuItemSelectedEvent'],
+    '92': [160, 'NNet.Game.STriggerMouseWheelEvent'],
+    '95': [161, 'NNet.Game.STriggerButtonPressedEvent'],
+    '96': [77, 'NNet.Game.STriggerGameCreditsFinishedEvent'],
+    '97': [162, 'NNet.Game.STriggerCutsceneBookmarkFiredEvent'],
+    '98': [163, 'NNet.Game.STriggerCutsceneEndSceneFiredEvent'],
+    '99': [164, 'NNet.Game.STriggerCutsceneConversationLineEvent'],
+    '100': [165, 'NNet.Game.STriggerCutsceneConversationLineMissingEvent'],
+    '101': [166, 'NNet.Game.SGameUserLeaveEvent'],
+    '102': [167, 'NNet.Game.SGameUserJoinEvent'],
+    '103': [169, 'NNet.Game.SCommandManagerStateEvent'],
+    '104': [170, 'NNet.Game.SCmdUpdateTargetPointEvent'],
+    '105': [171, 'NNet.Game.SCmdUpdateTargetUnitEvent'],
+    '106': [132, 'NNet.Game.STriggerAnimLengthQueryByNameEvent'],
+    '107': [133, 'NNet.Game.STriggerAnimLengthQueryByPropsEvent'],
+    '108': [134, 'NNet.Game.STriggerAnimOffsetEvent'],
+    '109': [172, 'NNet.Game.SCatalogModifyEvent'],
+    '110': [173, 'NNet.Game.SHeroTalentTreeSelectedEvent'],
+    '111': [77, 'NNet.Game.STriggerProfilerLoggingFinishedEvent'],
+    '112': [174, 'NNet.Game.SHeroTalentTreeSelectionPanelToggledEvent'],
+  },
+  messageEventTypes: {
+    '0': [175, 'NNet.Game.SChatMessage'],
+    '1': [176, 'NNet.Game.SPingMessage'],
+    '2': [177, 'NNet.Game.SLoadingProgressMessage'],
+    '3': [77, 'NNet.Game.SServerPingMessage'],
+    '4': [178, 'NNet.Game.SReconnectNotifyMessage'],
+    '5': [182, 'NNet.Game.SPlayerAnnounceMessage'],
+  },
+  trackerEventTypes: {
+    '1': [183, 'NNet.Replay.Tracker.SUnitBornEvent'],
+    '2': [185, 'NNet.Replay.Tracker.SUnitDiedEvent'],
+    '3': [186, 'NNet.Replay.Tracker.SUnitOwnerChangeEvent'],
+    '4': [187, 'NNet.Replay.Tracker.SUnitTypeChangeEvent'],
+    '5': [188, 'NNet.Replay.Tracker.SUpgradeEvent'],
+    '6': [183, 'NNet.Replay.Tracker.SUnitInitEvent'],
+    '7': [189, 'NNet.Replay.Tracker.SUnitDoneEvent'],
+    '8': [191, 'NNet.Replay.Tracker.SUnitPositionsEvent'],
+    '9': [192, 'NNet.Replay.Tracker.SPlayerSetupEvent'],
+    '10': [200, 'NNet.Replay.Tracker.SStatGameEvent'],
+    '11': [206, 'NNet.Replay.Tracker.SScoreResultEvent'],
+    '12': [184, 'NNet.Replay.Tracker.SUnitRevivedEvent'],
+  },
+  gameEventIdTypeid: 0,
+  messageEventIdTypeid: 1,
+  trackerEventIdTypeid: 2,
+  svaruint32Typeid: 7,
+  replayUserIdTypeid: 8,
+  headerTypeid: 18,
+  detailsTypeid: 40,
+  initDataTypeid: 68,
 };
 
 export default protocol;
