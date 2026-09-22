@@ -4,19 +4,6 @@
   "description": "Normalized, queryable model of a Heroes of the Storm replay, and the analyser framework that runs over it",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "model": [
-        "./dist/model/index.d.ts"
-      ],
-      "normalize": [
-        "./dist/normalize/index.d.ts"
-      ],
-      "analysers": [
-        "./dist/analysers/index.d.ts"
-      ]
-    }
-  },
   "scripts": {
     "build": "tsup",
     "format": "prettier --write \"{src,test,tools}/**/*.{ts,mts}\"",
@@ -115,5 +102,18 @@
   ],
   "module": "./dist/index.js",
   "sideEffects": false,
-  "type": "module"
+  "type": "module",
+  "typesVersions": {
+    "*": {
+      "model": [
+        "./dist/model/index.d.ts"
+      ],
+      "normalize": [
+        "./dist/normalize/index.d.ts"
+      ],
+      "analysers": [
+        "./dist/analysers/index.d.ts"
+      ]
+    }
+  }
 }
