@@ -26,7 +26,7 @@ pnpm lint
 pnpm build
 pnpm check                                          # pinned dependency versions agree
 pnpm --filter @myrddraall/heroprotocol fixtures:fetch   # three public replays for the e2e tests
-pnpm --filter @myrddraall/heroprotocol protocols:generate  # refresh bundled protocols from Blizzard
+pnpm run generate.protocols   # refresh bundled protocols from Blizzard (formatted, ready to commit)
 ```
 
 The end-to-end tests compare against Blizzard's own Python decoders (committed goldens in

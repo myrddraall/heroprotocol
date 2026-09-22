@@ -9,6 +9,7 @@
     "clean": "wireit",
     "fix": "wireit",
     "format": "wireit",
+    "generate.protocols": "pnpm --filter @myrddraall/heroprotocol protocols:generate",
     "gitflow": "gitflow",
     "lint": "devutil run lint",
     "postinstall": "devutil dev-link auto",
