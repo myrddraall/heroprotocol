@@ -11,6 +11,17 @@ import type { NormalizedReplay, ReplayRecord } from '../model/records.js';
 import { normalizeReplay } from '../normalize/normalizeReplay.js';
 import { StatusTracker, type IngestStatus } from './status.js';
 
+/** A parse or write failure: the job is marked failed and nothing is written. */
+export class IngestError extends Error {
+  constructor(
+    readonly phase: 'parse' | 'write',
+    cause: unknown,
+  ) {
+    super(`${phase} failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause });
+    this.name = 'IngestError';
+  }
+}
+
 export interface IngestOptions {
   readonly fileName: string;
   /** Analysers to run at ingest; none by default. */
@@ -115,9 +126,9 @@ async function runPipeline(
       ...(options.source ? { source: options.source } : {}),
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    await failJob(`parse failed: ${message}`);
-    throw err;
+    const error = new IngestError('parse', err);
+    await failJob(error.message);
+    throw error;
   }
   tracker.timing('parse', clock.ms() - t);
   const sectionStatuses = Object.fromEntries(
@@ -149,9 +160,9 @@ async function runPipeline(
         : {}),
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    await failJob(`write failed: ${message}`);
-    throw err;
+    const error = new IngestError('write', err);
+    await failJob(error.message);
+    throw error;
   }
   tracker.timing('write', clock.ms() - t);
 

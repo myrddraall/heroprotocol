@@ -20,6 +20,12 @@
       ],
       "ingest": [
         "./dist/ingest/index.d.ts"
+      ],
+      "worker": [
+        "./dist/worker/index.d.ts"
+      ],
+      "client": [
+        "./dist/client/index.d.ts"
       ]
     }
   },
@@ -60,7 +66,8 @@
     "heroprotocol",
     "indexeddb",
     "replay",
-    "stormreplay"
+    "stormreplay",
+    "web-worker"
   ],
   "author": "Myrddraall",
   "license": "MIT",
@@ -140,6 +147,28 @@
         "default": "./dist/ingest/index.cjs"
       },
       "source": "./src/ingest/index.ts"
+    },
+    "./worker": {
+      "import": {
+        "types": "./dist/worker/index.d.ts",
+        "default": "./dist/worker/index.js"
+      },
+      "require": {
+        "types": "./dist/worker/index.d.cts",
+        "default": "./dist/worker/index.cjs"
+      },
+      "source": "./src/worker/index.ts"
+    },
+    "./client": {
+      "import": {
+        "types": "./dist/client/index.d.ts",
+        "default": "./dist/client/index.js"
+      },
+      "require": {
+        "types": "./dist/client/index.d.cts",
+        "default": "./dist/client/index.cjs"
+      },
+      "source": "./src/client/index.ts"
     }
   },
   "files": [

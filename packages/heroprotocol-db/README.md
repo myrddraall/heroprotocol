@@ -125,6 +125,52 @@ replay; an analyser failure is only an error row in `derived`.
 dependencies resolved the same way) and the result is saved, evicting the oldest rows
 beyond `cache.maxEntries` for parameterized analysers.
 
+## Worker and client
+
+The pipeline runs off the main thread. A consumer's worker entry is a few lines
+around `createWorker`, which is how custom analysers get baked in:
+
+```ts
+// worker.ts
+import { createWorker } from '@myrddraall/heroprotocol-db/worker';
+import { myAnalyser } from './analysers';
+
+createWorker({ analysers: [myAnalyser], services: { heroData } });
+```
+
+```ts
+// main thread
+import { liveQuery } from 'dexie';
+import { createReplayDb } from '@myrddraall/heroprotocol-db/client';
+
+const client = createReplayDb({
+  worker: () => new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' }),
+});
+const job = client.ingest(bytes, { fileName, onStatus: render });
+const { replayId } = await job.ready; // written + `ready` analysers committed
+await job.complete; // `background` analysers committed
+const row = await client.analyse(replayId, 'my/lazy-analyser', { params: { slot: 3 } });
+
+liveQuery(() => client.db.replays.toArray()).subscribe(renderList); // sees the worker's writes
+```
+
+`createReplayDb` takes exactly one of `worker` (a `Worker` or a factory), `workerUrl`
+(for bundlers that hand out a URL, e.g. Vite's `?worker&url`) or `inline: true`
+(everything on the calling thread — tests, Node, no-worker environments). `client.db`
+is always a main-thread Dexie instance on the same database, so reads and `liveQuery`
+work as usual; Dexie propagates the worker's commits to it.
+
+Replay bytes are **transferred** to the worker, not copied — the `Uint8Array` you pass
+is empty afterwards. Results and status snapshots are structured-cloneable plain
+objects. The protocol is in [`src/worker/protocol.ts`](./src/worker/protocol.ts);
+it is tested end-to-end over a Node `MessageChannel` and in Chromium by the
+[Vite smoke app](../../examples/vite-smoke).
+
+**Vite** needs one setting, `worker: { format: 'es' }`: Vite bundles workers as IIFE by
+default, but the parser lazy-loads its protocol definitions with dynamic `import()`,
+which makes the worker graph code-split and therefore ES-module only. Nothing else —
+no asset or alias configuration.
+
 ## Scripts
 
 ```bash

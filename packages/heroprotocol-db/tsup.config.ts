@@ -8,6 +8,8 @@ export default defineConfig({
     'analysers/index': 'src/analysers/index.ts',
     'db/index': 'src/db/index.ts',
     'ingest/index': 'src/ingest/index.ts',
+    'worker/index': 'src/worker/index.ts',
+    'client/index': 'src/client/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

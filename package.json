@@ -18,6 +18,7 @@
     "prepare": "husky || true",
     "reset": "wireit",
     "test": "devutil run test",
+    "test.smoke": "pnpm --filter @myrddraall/heroprotocol-db build && pnpm --filter @myrddraall/heroprotocol-vite-smoke e2e",
     "typecheck": "devutil run typecheck"
   },
   "devDependencies": {

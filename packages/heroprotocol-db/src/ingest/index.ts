@@ -1,4 +1,4 @@
-export { ingestInline } from './pipeline.js';
+export { ingestInline, IngestError } from './pipeline.js';
 export type { IngestOptions, IngestResult, IngestHandle } from './pipeline.js';
 export { analyse, ReplayNotFoundError } from './lazy.js';
 export type { AnalyseOptions } from './lazy.js';

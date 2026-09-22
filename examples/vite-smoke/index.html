@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>heroprotocol-db smoke</title>
+    <style>
+      body { font: 14px/1.4 system-ui, sans-serif; margin: 2rem; max-width: 60rem; }
+      pre { background: #f4f4f4; padding: 0.5rem; overflow: auto; }
+      td, th { padding: 0 0.6rem; text-align: left; }
+    </style>
+  </head>
+  <body>
+    <h1>heroprotocol-db smoke</h1>
+    <p>
+      Worker mode: <code id="mode"></code> · analysers: <code id="analysers">…</code>
+    </p>
+    <input id="file" type="file" accept=".StormReplay,.StormR" />
+    <h2>Status stream</h2>
+    <pre id="status">idle</pre>
+    <h2>Replays (liveQuery on the main thread)</h2>
+    <table><thead><tr><th>map</th><th>mode</th><th>status</th><th>rows</th></tr></thead><tbody id="replays"></tbody></table>
+    <h2>Derived (liveQuery)</h2>
+    <pre id="derived">none</pre>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
