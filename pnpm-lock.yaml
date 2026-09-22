@@ -79,6 +79,40 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@24.13.6)(supports-color@8.1.1)
 
+  packages/heroprotocol-db:
+    dependencies:
+      '@myrddraall/heroprotocol':
+        specifier: workspace:*
+        version: link:../heroprotocol
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.6
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.20.0
+        version: 8.70.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5)(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.20.0
+        version: 8.70.0(eslint@9.39.5)(typescript@5.9.3)
+      eslint:
+        specifier: ^9.18.0
+        version: 9.39.5
+      prettier:
+        specifier: ^3.4.2
+        version: 3.9.8
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.28)(supports-color@8.1.1)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@24.13.6)(supports-color@8.1.1)
+
 packages:
 
   '@actions/core@1.11.1':

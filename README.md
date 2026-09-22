@@ -5,7 +5,7 @@ Heroes of the Storm replay tooling, as a pnpm workspace:
 | Package                                               | What it is                                                            | Status             |
 | ----------------------------------------------------- | --------------------------------------------------------------------- | ------------------ |
 | [`@myrddraall/heroprotocol`](./packages/heroprotocol) | the parser: protocols as data, best-effort decoding, browser and Node | **Stage 1 — done** |
-| `@myrddraall/heroprotocol-db`                         | the normalized replay model, IndexedDB store and ingest worker        | planned            |
+| [`@myrddraall/heroprotocol-db`](./packages/heroprotocol-db) | the normalized replay model, analyser framework, IndexedDB store and ingest worker | **Stage 2 — model, normalizer, analyser runner** |
 | `@myrddraall/heroprotocol-analysis`                   | analysers over the model, run at ingest or lazily                     | planned            |
 | `@myrddraall/hero-data`                               | injectable hero/talent metadata provider                              | planned            |
 
@@ -27,6 +27,7 @@ pnpm build
 pnpm check                                          # pinned dependency versions agree
 pnpm run fetch.fixtures       # three public replays for the e2e tests (gitignored)
 pnpm run generate.protocols   # refresh bundled protocols from Blizzard (formatted, ready to commit)
+pnpm run generate.goldens     # regenerate heroprotocol-db's normalized goldens from the fixture replays
 ```
 
 The end-to-end tests compare against Blizzard's own Python decoders (committed goldens in

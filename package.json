@@ -10,6 +10,7 @@
     "fix": "wireit",
     "fetch.fixtures": "pnpm --filter @myrddraall/heroprotocol fixtures:fetch",
     "format": "wireit",
+    "generate.goldens": "pnpm --filter @myrddraall/heroprotocol-db goldens:generate",
     "generate.protocols": "pnpm --filter @myrddraall/heroprotocol protocols:generate",
     "gitflow": "gitflow",
     "lint": "devutil run lint",
