@@ -1,24 +1,20 @@
 {
-  "name": "@myrddraall/heroprotocol",
+  "name": "@myrddraall/hero-data",
   "version": "0.0.0-MAIN",
-  "description": "Parse Heroes of the Storm .StormReplay files \u2014 protocols as data, best-effort decoding, browser and Node",
+  "description": "Hero, talent, ability and award names for Heroes of the Storm replays — an injectable provider with an implementation over HeroesToolChest/heroes-data",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
-    "fixtures:fetch": "node tools/fetch-fixtures.mjs",
-    "format": "prettier --write \"{src,test}/**/*.ts\"",
+    "builds:generate": "tsx tools/generate-builds.mts",
+    "format": "prettier --write \"{src,test,tools}/**/*.{ts,mts}\"",
     "github.actions.build": "pnpm build",
     "github.actions.pack": "gitflow pack",
     "github.actions.test": "pnpm test",
     "lint": "eslint src test",
-    "protocols:generate": "tsx tools/generate-protocols.mts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@myrddraall/mpq": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
@@ -32,19 +28,18 @@
     "vitest": "^2.1.8"
   },
   "keywords": [
-    "blizzard",
     "heroes-of-the-storm",
+    "heroes-data",
     "heroprotocol",
-    "parser",
     "replay",
-    "stormreplay"
+    "talents"
   ],
   "author": "Myrddraall",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/myrddraall/heroprotocol.git",
-    "directory": "packages/heroprotocol"
+    "directory": "packages/hero-data"
   },
   "bugs": "https://github.com/myrddraall/heroprotocol/issues",
   "homepage": "https://github.com/myrddraall/heroprotocol#readme",

@@ -45,6 +45,58 @@ importers:
         specifier: ^0.14.13
         version: 0.14.13
 
+  examples/vite-smoke:
+    dependencies:
+      '@myrddraall/heroprotocol-analysis':
+        specifier: workspace:*
+        version: link:../../packages/heroprotocol-analysis
+      '@myrddraall/heroprotocol-db':
+        specifier: workspace:*
+        version: link:../../packages/heroprotocol-db
+      dexie:
+        specifier: ^4.4.6
+        version: 4.4.6
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.50.1
+        version: 1.50.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.1.0
+        version: 7.3.6(@types/node@24.13.6)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/hero-data:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.6
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.20.0
+        version: 8.70.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5)(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.20.0
+        version: 8.70.0(eslint@9.39.5)(typescript@5.9.3)
+      eslint:
+        specifier: ^9.18.0
+        version: 9.39.5
+      prettier:
+        specifier: ^3.4.2
+        version: 3.9.8
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.28)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@24.13.6)
+
   packages/heroprotocol:
     dependencies:
       '@myrddraall/mpq':
@@ -68,7 +120,7 @@ importers:
         version: 3.9.8
       tsup:
         specifier: ^8.5.1
-        version: 8.5.1(postcss@8.5.28)(supports-color@8.1.1)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+        version: 8.5.1(postcss@8.5.28)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
@@ -77,7 +129,90 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@24.13.6)(supports-color@8.1.1)
+        version: 2.1.9(@types/node@24.13.6)
+
+  packages/heroprotocol-analysis:
+    dependencies:
+      '@myrddraall/heroprotocol-db':
+        specifier: workspace:*
+        version: link:../heroprotocol-db
+    devDependencies:
+      '@myrddraall/heroprotocol':
+        specifier: workspace:*
+        version: link:../heroprotocol
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.6
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.20.0
+        version: 8.70.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5)(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.20.0
+        version: 8.70.0(eslint@9.39.5)(typescript@5.9.3)
+      dexie:
+        specifier: ^4.4.6
+        version: 4.4.6
+      eslint:
+        specifier: ^9.18.0
+        version: 9.39.5
+      fake-indexeddb:
+        specifier: ^6.0.0
+        version: 6.2.5
+      prettier:
+        specifier: ^3.4.2
+        version: 3.9.8
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.28)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@24.13.6)
+
+  packages/heroprotocol-db:
+    dependencies:
+      '@myrddraall/heroprotocol':
+        specifier: workspace:*
+        version: link:../heroprotocol
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.6
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.20.0
+        version: 8.70.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5)(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.20.0
+        version: 8.70.0(eslint@9.39.5)(typescript@5.9.3)
+      dexie:
+        specifier: ^4.4.6
+        version: 4.4.6
+      eslint:
+        specifier: ^9.18.0
+        version: 9.39.5
+      fake-indexeddb:
+        specifier: ^6.0.0
+        version: 6.2.5
+      prettier:
+        specifier: ^3.4.2
+        version: 3.9.8
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.28)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@24.13.6)
 
 packages:
 
@@ -730,6 +865,11 @@ packages:
   '@octokit/types@13.10.0':
     resolution: {integrity: sha512-ifLaO34EbbPj0Xgro4G5lP5asESjwHracYJvVaPIyXMuiuXLlhic3S47cBdTb+jfODkTE5YtGCLt3Ay3+J97sA==}
 
+  '@playwright/test@1.50.1':
+    resolution: {integrity: sha512-Jii3aBg+CEDpgnuDxEp/h7BimHcUTDlpEtce89xEumlJ5ef2hqepZ+PWp1DDpYC/VO9fmWVI1IlEaoI5fK9FXQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@rollup/rollup-android-arm-eabi@4.63.4':
     resolution: {integrity: sha512-I+BSHzTAhKN2n7ZwGZsegGcZjDpLqFOMAtJz/u6uFGe0pUFbq56dEHjqJV/ZUdRJtNXNxA+hREUatZBvMR3Oiw==}
     cpu: [arm]
@@ -1178,6 +1318,9 @@ packages:
   deprecation@2.3.1:
     resolution: {integrity: sha512-xmHIy4F3scKVwMsQ4WnVaS8bHOx0DmVwRywosKhaILI0ywMDWPtBSku2HNxRvF7jtwDRsoEwYQSfbxj8b7RlJQ==}
 
+  dexie@4.4.6:
+    resolution: {integrity: sha512-hJP/BO6mjB+tX6hToIO1kmxYLNmun90wYbfcoAoLpKEyDYal/k33dg0TAfoUe2TDsbbLoVIzljJ3BN2UbR5EOg==}
+
   effect@3.22.2:
     resolution: {integrity: sha512-fm1CQXCs7GTMwpadZxwU5rnAb2bN6mbQpknq/pXBGCzSKkosNYb9k0wsoL0TfB10rSa5xOEZJjo77u/KLXSANg==}
 
@@ -1284,6 +1427,10 @@ packages:
     resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
     engines: {node: '>=12.0.0'}
 
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
+
   fast-check@3.23.2:
     resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
     engines: {node: '>=8.0.0'}
@@ -1340,6 +1487,11 @@ packages:
 
   flatted@3.4.4:
     resolution: {integrity: sha512-5+ybhBZANEJxaH3X5evAFatUxLfEHSr7n6kYJ+1Qd0mUqr4eu9gIf6GDbWHf8RJijHrjjO8G+la14SlL2SeS1Q==}
+
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -1667,6 +1819,16 @@ packages:
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
+
+  playwright-core@1.50.1:
+    resolution: {integrity: sha512-ra9fsNWayuYumt+NiM069M6OkcRb1FZSK8bgi66AtpFoWkg2+y0bJSNmkFrWhMbEBbVKC/EruAHH3g0zmtwGmQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.50.1:
+    resolution: {integrity: sha512-G8rwsOQJ63XG6BbKj2w5rHeavFjy5zynBA9zsJMMtBoe/Uf757oG12NXz6e6OirF7RCrTVAKFXbLmn1RbL7Qaw==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   postcss-load-config@6.0.1:
     resolution: {integrity: sha512-oPtTM4oerL+UXmx+93ytZVN82RrlY/wPUV8IeDxFrzIjXOLF1pN+EmKPLbubvKHT2HC20xXsCAH2Z+CKV6Oz/g==}
@@ -2006,6 +2168,46 @@ packages:
       sugarss:
         optional: true
       terser:
+        optional: true
+
+  vite@7.3.6:
+    resolution: {integrity: sha512-4XP60spRGjSZFf1qYH+dJIkK2znL3zQfl9KkOV9MkkRR/3Dls0dxaBsQPTloEc5BLXWPL9vsOxopxyKoMmDueg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^20.19.0 || >=22.12.0
+      jiti: '>=1.21.0'
+      less: ^4.0.0
+      lightningcss: ^1.21.0
+      sass: ^1.70.0
+      sass-embedded: ^1.70.0
+      stylus: '>=0.54.8'
+      sugarss: ^5.0.0
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
         optional: true
 
   vitest@2.1.9:
@@ -2577,6 +2779,10 @@ snapshots:
     dependencies:
       '@octokit/openapi-types': 24.2.0
 
+  '@playwright/test@1.50.1':
+    dependencies:
+      playwright: 1.50.1
+
   '@rollup/rollup-android-arm-eabi@4.63.4':
     optional: true
 
@@ -3020,6 +3226,8 @@ snapshots:
 
   deprecation@2.3.1: {}
 
+  dexie@4.4.6: {}
+
   effect@3.22.2:
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -3247,6 +3455,8 @@ snapshots:
 
   expect-type@1.4.0: {}
 
+  fake-indexeddb@6.2.5: {}
+
   fast-check@3.23.2:
     dependencies:
       pure-rand: 6.1.0
@@ -3304,6 +3514,9 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.4.4: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -3585,6 +3798,14 @@ snapshots:
       mlly: 1.8.2
       pathe: 2.0.3
 
+  playwright-core@1.50.1: {}
+
+  playwright@1.50.1:
+    dependencies:
+      playwright-core: 1.50.1
+    optionalDependencies:
+      fsevents: 2.3.2
+
   postcss-load-config@6.0.1(postcss@8.5.28)(tsx@4.23.15)(yaml@2.9.1):
     dependencies:
       lilconfig: 3.1.3
@@ -3815,7 +4036,7 @@ snapshots:
 
   ts-toolbelt@9.6.0: {}
 
-  tsup@8.5.1(postcss@8.5.28)(supports-color@8.1.1)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1):
+  tsup@8.5.1(postcss@8.5.28)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.7)
       cac: 6.7.14
@@ -3877,7 +4098,7 @@ snapshots:
 
   validate-npm-package-name@6.0.2: {}
 
-  vite-node@2.1.9(@types/node@24.13.6)(supports-color@8.1.1):
+  vite-node@2.1.9(@types/node@24.13.6):
     dependencies:
       cac: 6.7.14
       debug: 4.4.3(supports-color@8.1.1)
@@ -3904,7 +4125,21 @@ snapshots:
       '@types/node': 24.13.6
       fsevents: 2.3.3
 
-  vitest@2.1.9(@types/node@24.13.6)(supports-color@8.1.1):
+  vite@7.3.6(@types/node@24.13.6)(tsx@4.23.15)(yaml@2.9.1):
+    dependencies:
+      esbuild: 0.28.2
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
+      postcss: 8.5.28
+      rollup: 4.63.4
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 24.13.6
+      fsevents: 2.3.3
+      tsx: 4.23.15
+      yaml: 2.9.1
+
+  vitest@2.1.9(@types/node@24.13.6):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@24.13.6))
@@ -3924,7 +4159,7 @@ snapshots:
       tinypool: 1.1.1
       tinyrainbow: 1.2.0
       vite: 5.4.21(@types/node@24.13.6)
-      vite-node: 2.1.9(@types/node@24.13.6)(supports-color@8.1.1)
+      vite-node: 2.1.9(@types/node@24.13.6)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.13.6

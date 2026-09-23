@@ -1,0 +1,24 @@
+{
+  "name": "@myrddraall/heroprotocol-vite-smoke",
+  "version": "0.0.0-MAIN",
+  "private": true,
+  "description": "Smoke test: ingest a replay through a createWorker-built web worker in a plain Vite app",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@myrddraall/heroprotocol-analysis": "workspace:*",
+    "@myrddraall/heroprotocol-db": "workspace:*",
+    "dexie": "^4.4.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.0"
+  }
+}

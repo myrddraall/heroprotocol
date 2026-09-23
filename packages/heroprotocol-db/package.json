@@ -1,0 +1,184 @@
+{
+  "name": "@myrddraall/heroprotocol-db",
+  "version": "0.0.0-MAIN",
+  "description": "Normalized, queryable model of a Heroes of the Storm replay, and the analyser framework that runs over it",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "model": [
+        "./dist/model/index.d.ts"
+      ],
+      "normalize": [
+        "./dist/normalize/index.d.ts"
+      ],
+      "analysers": [
+        "./dist/analysers/index.d.ts"
+      ],
+      "db": [
+        "./dist/db/index.d.ts"
+      ],
+      "ingest": [
+        "./dist/ingest/index.d.ts"
+      ],
+      "worker": [
+        "./dist/worker/index.d.ts"
+      ],
+      "client": [
+        "./dist/client/index.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "format": "prettier --write \"{src,test,tools}/**/*.{ts,mts}\"",
+    "github.actions.build": "pnpm build",
+    "github.actions.pack": "gitflow pack",
+    "github.actions.test": "pnpm test",
+    "goldens:generate": "tsx tools/generate-goldens.mts",
+    "lint": "eslint src test",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@myrddraall/heroprotocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "dexie": "^4.4.6",
+    "eslint": "^9.18.0",
+    "fake-indexeddb": "^6.0.0",
+    "prettier": "^3.4.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "dexie": "^4.4.6"
+  },
+  "keywords": [
+    "dexie",
+    "heroes-of-the-storm",
+    "heroprotocol",
+    "indexeddb",
+    "replay",
+    "stormreplay",
+    "web-worker"
+  ],
+  "author": "Myrddraall",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myrddraall/heroprotocol.git",
+    "directory": "packages/heroprotocol-db"
+  },
+  "bugs": "https://github.com/myrddraall/heroprotocol/issues",
+  "homepage": "https://github.com/myrddraall/heroprotocol#readme",
+  "engines": {
+    "node": ">=24"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./model": {
+      "source": "./src/model/index.ts",
+      "import": {
+        "types": "./dist/model/index.d.ts",
+        "default": "./dist/model/index.js"
+      },
+      "require": {
+        "types": "./dist/model/index.d.cts",
+        "default": "./dist/model/index.cjs"
+      }
+    },
+    "./normalize": {
+      "source": "./src/normalize/index.ts",
+      "import": {
+        "types": "./dist/normalize/index.d.ts",
+        "default": "./dist/normalize/index.js"
+      },
+      "require": {
+        "types": "./dist/normalize/index.d.cts",
+        "default": "./dist/normalize/index.cjs"
+      }
+    },
+    "./analysers": {
+      "source": "./src/analysers/index.ts",
+      "import": {
+        "types": "./dist/analysers/index.d.ts",
+        "default": "./dist/analysers/index.js"
+      },
+      "require": {
+        "types": "./dist/analysers/index.d.cts",
+        "default": "./dist/analysers/index.cjs"
+      }
+    },
+    "./db": {
+      "source": "./src/db/index.ts",
+      "import": {
+        "types": "./dist/db/index.d.ts",
+        "default": "./dist/db/index.js"
+      },
+      "require": {
+        "types": "./dist/db/index.d.cts",
+        "default": "./dist/db/index.cjs"
+      }
+    },
+    "./ingest": {
+      "source": "./src/ingest/index.ts",
+      "import": {
+        "types": "./dist/ingest/index.d.ts",
+        "default": "./dist/ingest/index.js"
+      },
+      "require": {
+        "types": "./dist/ingest/index.d.cts",
+        "default": "./dist/ingest/index.cjs"
+      }
+    },
+    "./worker": {
+      "source": "./src/worker/index.ts",
+      "import": {
+        "types": "./dist/worker/index.d.ts",
+        "default": "./dist/worker/index.js"
+      },
+      "require": {
+        "types": "./dist/worker/index.d.cts",
+        "default": "./dist/worker/index.cjs"
+      }
+    },
+    "./client": {
+      "source": "./src/client/index.ts",
+      "import": {
+        "types": "./dist/client/index.d.ts",
+        "default": "./dist/client/index.js"
+      },
+      "require": {
+        "types": "./dist/client/index.d.cts",
+        "default": "./dist/client/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "module": "./dist/index.js",
+  "sideEffects": [
+    "./dist/**/chunk-*.js"
+  ],
+  "type": "module"
+}

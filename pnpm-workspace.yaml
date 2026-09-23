@@ -1,5 +1,6 @@
 packages:
   - 'packages/*'
+  - 'examples/*'
 
 # The git-flow toolchain ships on a prerelease cadence, so its packages are
 # regularly younger than the default release-age cutoff. Exclude them by name:
