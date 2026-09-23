@@ -11,6 +11,7 @@
     "fix": "wireit",
     "format": "wireit",
     "generate.goldens": "pnpm --filter @myrddraall/heroprotocol-db goldens:generate",
+    "generate.hero-data-builds": "pnpm --filter @myrddraall/hero-data builds:generate",
     "generate.analysis-goldens": "pnpm --filter @myrddraall/heroprotocol-analysis goldens:generate",
     "generate.protocols": "pnpm --filter @myrddraall/heroprotocol protocols:generate",
     "gitflow": "gitflow",

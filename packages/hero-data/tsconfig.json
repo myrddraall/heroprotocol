@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "noEmit": true,
+    // Environment-agnostic like the parser: the model and normalizer run in a worker,
+    // on the main thread and in Node alike. Tests use node: modules.
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "moduleResolution": "bundler",
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "verbatimModuleSyntax": true,
+    "isolatedDeclarations": true
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  // Restated on purpose: an inherited `exclude` resolves against the ROOT config, whose
+  // `packages` entry would exclude this whole project (TS18003).
+  "exclude": ["node_modules", "dist"]
+}
