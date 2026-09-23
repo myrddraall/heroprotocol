@@ -2,12 +2,12 @@
 
 Heroes of the Storm replay tooling, as a pnpm workspace:
 
-| Package                                                     | What it is                                                                         | Status                                                                          |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [`@myrddraall/heroprotocol`](./packages/heroprotocol)       | the parser: protocols as data, best-effort decoding, browser and Node              | **Stage 1 — done**                                                              |
-| [`@myrddraall/heroprotocol-db`](./packages/heroprotocol-db) | the normalized replay model, analyser framework, IndexedDB store and ingest worker | **Stage 4 — model, normalizer, analysers, Dexie store, ingest worker + client** |
-| `@myrddraall/heroprotocol-analysis`                         | analysers over the model, run at ingest or lazily                                  | planned                                                                         |
-| `@myrddraall/hero-data`                                     | injectable hero/talent metadata provider                                           | planned                                                                         |
+| Package                                                                 | What it is                                                                               | Status             |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------ |
+| [`@myrddraall/heroprotocol`](./packages/heroprotocol)                   | the parser: protocols as data, best-effort decoding, browser and Node                    | **Stage 1 — done** |
+| [`@myrddraall/heroprotocol-db`](./packages/heroprotocol-db)             | the normalized replay model, analyser framework, IndexedDB store, ingest worker + client | **done**           |
+| [`@myrddraall/heroprotocol-analysis`](./packages/heroprotocol-analysis) | the twelve built-in analysers and the batteries-included ingest worker                   | **Stage 5 — done** |
+| `@myrddraall/hero-data`                                                 | injectable hero/talent metadata provider                                                 | planned            |
 
 Continues [`myrddraall/heroesbrowser-heroprotocol`](https://github.com/myrddraall/heroesbrowser-heroprotocol),
 whose history this repository carries. The predecessor package `@heroesbrowser/heroprotocol`
@@ -28,6 +28,7 @@ pnpm check                                          # pinned dependency versions
 pnpm run fetch.fixtures       # three public replays for the e2e tests (gitignored)
 pnpm run generate.protocols   # refresh bundled protocols from Blizzard (formatted, ready to commit)
 pnpm run generate.goldens     # regenerate heroprotocol-db's normalized goldens from the fixture replays
+pnpm run generate.analysis-goldens  # regenerate heroprotocol-analysis's result goldens
 pnpm run test.smoke           # ingest a fixture replay through the worker in Chromium (examples/vite-smoke; needs a browser)
 ```
 

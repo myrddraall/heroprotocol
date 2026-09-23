@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@myrddraall/heroprotocol-analysis": "workspace:*",
     "@myrddraall/heroprotocol-db": "workspace:*",
     "dexie": "^4.4.6"
   },

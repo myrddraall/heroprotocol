@@ -83,6 +83,7 @@
   },
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
@@ -90,10 +91,10 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
-      },
-      "source": "./src/index.ts"
+      }
     },
     "./model": {
+      "source": "./src/model/index.ts",
       "import": {
         "types": "./dist/model/index.d.ts",
         "default": "./dist/model/index.js"
@@ -101,10 +102,10 @@
       "require": {
         "types": "./dist/model/index.d.cts",
         "default": "./dist/model/index.cjs"
-      },
-      "source": "./src/model/index.ts"
+      }
     },
     "./normalize": {
+      "source": "./src/normalize/index.ts",
       "import": {
         "types": "./dist/normalize/index.d.ts",
         "default": "./dist/normalize/index.js"
@@ -112,10 +113,10 @@
       "require": {
         "types": "./dist/normalize/index.d.cts",
         "default": "./dist/normalize/index.cjs"
-      },
-      "source": "./src/normalize/index.ts"
+      }
     },
     "./analysers": {
+      "source": "./src/analysers/index.ts",
       "import": {
         "types": "./dist/analysers/index.d.ts",
         "default": "./dist/analysers/index.js"
@@ -123,10 +124,10 @@
       "require": {
         "types": "./dist/analysers/index.d.cts",
         "default": "./dist/analysers/index.cjs"
-      },
-      "source": "./src/analysers/index.ts"
+      }
     },
     "./db": {
+      "source": "./src/db/index.ts",
       "import": {
         "types": "./dist/db/index.d.ts",
         "default": "./dist/db/index.js"
@@ -134,10 +135,10 @@
       "require": {
         "types": "./dist/db/index.d.cts",
         "default": "./dist/db/index.cjs"
-      },
-      "source": "./src/db/index.ts"
+      }
     },
     "./ingest": {
+      "source": "./src/ingest/index.ts",
       "import": {
         "types": "./dist/ingest/index.d.ts",
         "default": "./dist/ingest/index.js"
@@ -145,10 +146,10 @@
       "require": {
         "types": "./dist/ingest/index.d.cts",
         "default": "./dist/ingest/index.cjs"
-      },
-      "source": "./src/ingest/index.ts"
+      }
     },
     "./worker": {
+      "source": "./src/worker/index.ts",
       "import": {
         "types": "./dist/worker/index.d.ts",
         "default": "./dist/worker/index.js"
@@ -156,10 +157,10 @@
       "require": {
         "types": "./dist/worker/index.d.cts",
         "default": "./dist/worker/index.cjs"
-      },
-      "source": "./src/worker/index.ts"
+      }
     },
     "./client": {
+      "source": "./src/client/index.ts",
       "import": {
         "types": "./dist/client/index.d.ts",
         "default": "./dist/client/index.js"
@@ -167,8 +168,7 @@
       "require": {
         "types": "./dist/client/index.d.cts",
         "default": "./dist/client/index.cjs"
-      },
-      "source": "./src/client/index.ts"
+      }
     }
   },
   "files": [
@@ -177,6 +177,8 @@
     "!src/**/*.test.ts"
   ],
   "module": "./dist/index.js",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/**/chunk-*.js"
+  ],
   "type": "module"
 }

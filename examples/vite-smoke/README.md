@@ -3,9 +3,10 @@
 A plain Vite app that ingests a replay through a `createWorker`-built web worker,
 renders the `IngestStatus` stream, observes `liveQuery` on the main thread, bakes in
 custom analysers (one `ready`, one `background`, one parameterized `lazy`) and reads
-their `derived` rows. A Playwright test drives it in Chromium in two modes:
-`?mode=worker` (the standard `new Worker(new URL('./worker.ts', import.meta.url))`
-pattern) and `?mode=url` (`createReplayDb({ workerUrl })` from Vite's `?worker&url`).
+their `derived` rows. A Playwright test drives it in Chromium in three modes: `?mode=worker` (the standard
+`new Worker(new URL('./worker.ts', import.meta.url))` pattern), `?mode=url`
+(`createReplayDb({ workerUrl })` from Vite's `?worker&url`) and `?mode=prebuilt` (the
+batteries-included worker from `@myrddraall/heroprotocol-analysis/worker`).
 
 ```bash
 pnpm run fetch.fixtures        # the replay it ingests (never committed)

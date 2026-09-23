@@ -3,18 +3,23 @@ import { createReplayDb } from '@myrddraall/heroprotocol-db/client';
 import type { IngestStatus } from '@myrddraall/heroprotocol-db/ingest';
 // Vite's `?worker&url` gives the URL of the bundled worker — the `workerUrl` path.
 import workerUrl from './worker?worker&url';
+// The batteries-included worker from the analysis package, as a URL Vite bundles.
+import prebuiltUrl from '@myrddraall/heroprotocol-analysis/worker?worker&url';
 
-const mode = new URLSearchParams(location.search).get('mode') === 'url' ? 'url' : 'worker';
+const requested = new URLSearchParams(location.search).get('mode');
+const mode = requested === 'url' || requested === 'prebuilt' ? requested : 'worker';
 document.querySelector('#mode')!.textContent = mode;
 
 const client =
-  mode === 'url'
-    ? createReplayDb({ dbName: 'smoke', workerUrl })
-    : // the standard Vite worker pattern, no asset config needed
-      createReplayDb({
-        dbName: 'smoke',
-        worker: () => new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' }),
-      });
+  mode === 'prebuilt'
+    ? createReplayDb({ dbName: 'smoke', workerUrl: prebuiltUrl })
+    : mode === 'url'
+      ? createReplayDb({ dbName: 'smoke', workerUrl })
+      : // the standard Vite worker pattern, no asset config needed
+        createReplayDb({
+          dbName: 'smoke',
+          worker: () => new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' }),
+        });
 
 const $ = (sel: string): HTMLElement => document.querySelector(sel)!;
 client.ready.then(
@@ -50,7 +55,7 @@ liveQuery(() => client.db.derived.toArray()).subscribe((rows) => {
     rows
       .map(
         (r) =>
-          `${r.analyserId} ${r.paramsHash} v${r.analyserVersion} → ${JSON.stringify(r.result)}`,
+          `${r.analyserId} ${r.paramsHash} v${r.analyserVersion} → ${JSON.stringify(r.result).slice(0, 120)}`,
       )
       .join('\n') || 'none';
 });
@@ -71,12 +76,10 @@ $('#file').addEventListener('change', async (ev) => {
   });
   const { replayId } = await job.complete;
   // the lazy flow: first call computes in the worker, second is served from `derived`
-  const near = await client.analyse(replayId, 'smoke/deaths-near', {
-    params: { x: 128, y: 96, radius: 40 },
-  });
-  const again = await client.analyse(replayId, 'smoke/deaths-near', {
-    params: { x: 128, y: 96, radius: 40 },
-  });
+  const lazyId = mode === 'prebuilt' ? '@myrddraall/death-heatmap' : 'smoke/deaths-near';
+  const params = mode === 'prebuilt' ? { team: 0 } : { x: 128, y: 96, radius: 40 };
+  const near = await client.analyse(replayId, lazyId, { params });
+  const again = await client.analyse(replayId, lazyId, { params });
   (window as unknown as { smokeResult: unknown }).smokeResult = {
     replayId,
     near: near.result,
