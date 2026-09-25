@@ -22,9 +22,6 @@ const client =
         });
 
 const $ = (sel: string): HTMLElement => document.querySelector(sel)!;
-client.ready.then(
-  (a) => ($('#analysers').textContent = a.map((x) => `${x.id}:${x.mode}`).join(', ')),
-);
 
 const phases: string[] = [];
 const render = (s: IngestStatus): void => {
@@ -42,22 +39,27 @@ const render = (s: IngestStatus): void => {
   ].join('\n');
 };
 
-liveQuery(() => client.db.replays.toArray()).subscribe((rows) => {
-  $('#replays').innerHTML = rows
-    .map(
-      (r) =>
-        `<tr data-replay="${r.id}" data-status="${r.status}"><td>${r.map}</td><td>${r.mode}</td><td>${r.status}</td><td>${Object.values(r.rowCounts).reduce((a, b) => a + b, 0)}</td></tr>`,
-    )
-    .join('');
-});
-liveQuery(() => client.db.derived.toArray()).subscribe((rows) => {
-  $('#derived').textContent =
-    rows
+// The main-thread db opens with the worker's schema once `ready` resolves.
+void client.ready.then((info) => {
+  $('#analysers').textContent = info.analysers.map((x) => `${x.id}:${x.mode}`).join(', ');
+  liveQuery(() => client.db.replays.toArray()).subscribe((rows) => {
+    $('#replays').innerHTML = rows
       .map(
         (r) =>
-          `${r.analyserId} ${r.paramsHash} v${r.analyserVersion} → ${JSON.stringify(r.result).slice(0, 120)}`,
+          `<tr data-replay="${r.id}" data-status="${r.status}"><td>${r.map}</td><td>${r.mode}</td><td>${r.status}</td><td>${Object.values(r.rowCounts).reduce((a, b) => a + b, 0)}</td></tr>`,
       )
-      .join('\n') || 'none';
+      .join('');
+  });
+  // analyser runs are bookkeeping; the results live in the analysers' own tables
+  liveQuery(() => client.db.analyserRuns.toArray()).subscribe((rows) => {
+    $('#derived').textContent =
+      rows
+        .map(
+          (r) =>
+            `${r.analyserId} ${r.paramsHash} v${r.analyserVersion}${r.error ? ` ERROR ${r.error}` : ''}`,
+        )
+        .join('\n') || 'none';
+  });
 });
 
 window.addEventListener(
@@ -75,15 +77,18 @@ $('#file').addEventListener('change', async (ev) => {
     onStatus: render,
   });
   const { replayId } = await job.complete;
-  // the lazy flow: first call computes in the worker, second is served from `derived`
+  // the lazy flow: first call computes in the worker, second is served from its table
   const lazyId = mode === 'prebuilt' ? '@myrddraall/death-heatmap' : 'smoke/deaths-near';
   const params = mode === 'prebuilt' ? { team: 0 } : { x: 128, y: 96, radius: 40 };
   const near = await client.analyse(replayId, lazyId, { params });
   const again = await client.analyse(replayId, lazyId, { params });
+  // the analyser's own table, read through the main-thread db
+  const table = mode === 'prebuilt' ? 'deathHeatmaps' : 'deathsNear';
+  const rows = await client.db.table(table).where('replayId').equals(replayId).toArray();
   (window as unknown as { smokeResult: unknown }).smokeResult = {
     replayId,
-    near: near.result,
-    cached: again.computedAt === near.computedAt,
+    near: rows[0] ?? null,
+    cached: again.run.computedAt === near.run.computedAt,
     phases,
   };
 });

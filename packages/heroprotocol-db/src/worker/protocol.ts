@@ -1,7 +1,8 @@
 import type { AnalyserMode, AnalyserStatus } from '../analysers/types.js';
 import type { IngestResult } from '../ingest/pipeline.js';
 import type { IngestStatus } from '../ingest/status.js';
-import type { DerivedRecord } from '../model/records.js';
+import type { AnalyserOutput } from '../analysers/runner.js';
+import type { AnalyserRunRecord } from '../model/records.js';
 
 /**
  * The message protocol between the main-thread client and the ingest worker.
@@ -36,7 +37,12 @@ export type WorkerRequest =
   | { readonly type: 'close' };
 
 export type WorkerResponse =
-  | { readonly type: 'ready'; readonly analysers: readonly AnalyserSummary[] }
+  | {
+      readonly type: 'ready';
+      readonly analysers: readonly AnalyserSummary[];
+      /** The analysers' tables, so the main thread opens the same schema. */
+      readonly tables: Readonly<Record<string, string>>;
+    }
   | { readonly type: 'ingest-status'; readonly ref: number; readonly status: IngestStatus }
   | { readonly type: 'ingest-ready'; readonly ref: number; readonly result: IngestResult }
   | { readonly type: 'ingest-complete'; readonly ref: number; readonly result: IngestResult }
@@ -46,8 +52,12 @@ export type WorkerResponse =
       readonly replayId: string;
       readonly status: AnalyserStatus;
     }
-  | { readonly type: 'analysed'; readonly ref: number; readonly row: DerivedRecord }
-  | { readonly type: 'reanalysed'; readonly ref: number; readonly rows: readonly DerivedRecord[] }
+  | { readonly type: 'analysed'; readonly ref: number; readonly output: AnalyserOutput }
+  | {
+      readonly type: 'reanalysed';
+      readonly ref: number;
+      readonly runs: readonly AnalyserRunRecord[];
+    }
   | { readonly type: 'failed'; readonly ref: number; readonly message: string }
   | { readonly type: 'closed' };
 

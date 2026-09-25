@@ -4,8 +4,9 @@ import { statSupportFor } from '../analysers/statSupport.js';
 import type { AnalyserContext, StatSupportTable, Where } from '../analysers/types.js';
 import type { RecordOf, ReplayCollectionName, ReplayRecord } from '../model/records.js';
 import type { HeroDb } from './HeroDb.js';
+import { replayRange } from './write.js';
 
-/** Fields that have a `[replayId+field]` index and so can be narrowed before filtering. */
+/** Core fields that have a `[replayId+field]` index and so can be narrowed before filtering. */
 const INDEXED: Readonly<Partial<Record<ReplayCollectionName, readonly string[]>>> = {
   players: ['slot', 'team'],
   scoreResults: ['slot', 'team'],
@@ -17,15 +18,15 @@ const INDEXED: Readonly<Partial<Record<ReplayCollectionName, readonly string[]>>
 };
 
 /**
- * Read one replay's rows from a collection, optionally filtered by field equality.
- * Uses a compound index for the first indexable filter field and applies the rest
- * in memory — the same semantics as the in-memory context's `read()`.
+ * Read one replay's rows from a core collection, optionally filtered by field equality.
+ * Uses a compound index for the first indexable filter field and applies the rest in
+ * memory — the same semantics as the in-memory context's `read()`.
  */
 export async function readRows<K extends ReplayCollectionName>(
   db: HeroDb,
   collection: K,
   replayId: string,
-  where?: Where<K>,
+  where?: Where<RecordOf<K>>,
 ): Promise<RecordOf<K>[]> {
   const table = db.table(collection) as Table<RecordOf<K>, unknown>;
   const indexed = where
@@ -41,8 +42,20 @@ export async function readRows<K extends ReplayCollectionName>(
   return where ? rows.filter((r) => matches(r, where)) : rows;
 }
 
+/** Read one replay's rows from an analyser table (its primary-key range), optionally filtered. */
+export async function readTableRows<T extends object = Record<string, unknown>>(
+  db: HeroDb,
+  table: string,
+  replayId: string,
+  where?: Where<T>,
+): Promise<T[]> {
+  if (!db.tables.some((t) => t.name === table))
+    throw new Error(`table '${table}' is not in the database`);
+  const rows = (await replayRange(db.table(table) as Table<T, unknown>, replayId).toArray()) as T[];
+  return where ? rows.filter((r) => matches(r, where)) : rows;
+}
+
 export interface DbContextOptions {
-  readonly results?: Readonly<Record<string, unknown>>;
   readonly services?: Readonly<Record<string, unknown>>;
   readonly statSupport?: StatSupportTable;
   readonly onProgress?: (current: number, total: number) => void;
@@ -62,10 +75,10 @@ export async function createDbContext(
     });
   return {
     replay,
-    results: options.results ?? {},
     services: options.services ?? {},
     statSupport,
     read: (collection, where) => readRows(db, collection, replay.id, where),
+    readTable: (table, where) => readTableRows(db, table, replay.id, where),
     progress(current, total) {
       options.onProgress?.(current, total);
     },

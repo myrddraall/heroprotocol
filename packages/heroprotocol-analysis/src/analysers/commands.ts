@@ -2,7 +2,7 @@ import type { Analyser } from '@myrddraall/heroprotocol-db';
 import type { PlayerRef } from './shared.js';
 import { NS, participants, ref } from './shared.js';
 
-export interface PlayerCommands extends PlayerRef {
+export interface CommandStatsRow extends PlayerRef {
   readonly commands: number;
   /** Commands with an ability link — casts, attacks and hero abilities; the rest are moves. */
   readonly casts: number;
@@ -12,20 +12,35 @@ export interface PlayerCommands extends PlayerRef {
   readonly castsPerMinute: number;
   /** Commands in each minute of the game, index = minute. */
   readonly perMinute: readonly number[];
-  /** Casts by ability link (numeric until hero-data maps names), descending by count. */
-  readonly byAbility: readonly { readonly abilLink: number; readonly count: number }[];
 }
 
-/** Command volume per player: totals, APM and the per-minute curve. Lazy — it walks 20k+ rows. */
-export const commands: Analyser<readonly PlayerCommands[]> = {
+/** One row per (player, ability link): casts by ability. Links stay numeric until hero-data maps names. */
+export interface AbilityUseRow {
+  readonly slot: number;
+  readonly abilLink: number;
+  readonly count: number;
+}
+
+export type CommandsTables = {
+  readonly commandStats: CommandStatsRow[];
+  readonly abilityUses: AbilityUseRow[];
+};
+
+/** Command volume per player: totals, APM, the per-minute curve, and casts by ability. Lazy — it walks 20k+ rows. */
+export const commands: Analyser<CommandsTables> = {
   id: `${NS}commands`,
-  version: 1,
+  version: 2,
+  tables: {
+    commandStats: '[replayId+slot], replayId, heroId, apm',
+    abilityUses: '[replayId+slot+abilLink], replayId, [replayId+slot], abilLink',
+  },
   inputs: ['players', 'commands'],
   mode: 'lazy',
   async run(ctx) {
     const players = await participants(ctx);
     const minutes = Math.max(1, Math.ceil(ctx.replay.durationSeconds / 60));
-    const out: PlayerCommands[] = [];
+    const stats: CommandStatsRow[] = [];
+    const uses: AbilityUseRow[] = [];
     for (const [i, p] of players.entries()) {
       const rows = await ctx.read('commands', { playerSlot: p.slot });
       ctx.progress(i + 1, players.length);
@@ -33,15 +48,14 @@ export const commands: Analyser<readonly PlayerCommands[]> = {
       const byAbility = new Map<number, number>();
       let casts = 0;
       for (const c of rows) {
-        const m = Math.min(minutes - 1, Math.floor(c.seconds / 60));
-        perMinute[m]!++;
+        perMinute[Math.min(minutes - 1, Math.floor(c.seconds / 60))]!++;
         if (c.abilLink !== null) {
           casts++;
           byAbility.set(c.abilLink, (byAbility.get(c.abilLink) ?? 0) + 1);
         }
       }
       const gameMinutes = ctx.replay.durationSeconds / 60 || 1;
-      out.push({
+      stats.push({
         ...ref(p),
         commands: rows.length,
         casts,
@@ -49,11 +63,10 @@ export const commands: Analyser<readonly PlayerCommands[]> = {
         apm: rows.length / gameMinutes,
         castsPerMinute: casts / gameMinutes,
         perMinute,
-        byAbility: [...byAbility.entries()]
-          .map(([abilLink, count]) => ({ abilLink, count }))
-          .sort((a, b) => b.count - a.count || a.abilLink - b.abilLink),
       });
+      for (const [abilLink, count] of [...byAbility.entries()].sort((a, b) => a[0] - b[0]))
+        uses.push({ slot: p.slot, abilLink, count });
     }
-    return out;
+    return { commandStats: stats, abilityUses: uses };
   },
 };

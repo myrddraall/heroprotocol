@@ -54,14 +54,16 @@ export interface KillCounts {
   readonly total: number;
 }
 
-export interface PlayerKills extends PlayerRef {
-  readonly kills: KillCounts;
+export interface PlayerKillsRow extends PlayerRef, KillCounts {}
+
+export interface TeamKillsRow extends KillCounts {
+  readonly team: Team;
 }
 
-export interface UnitKills {
-  readonly players: readonly PlayerKills[];
-  readonly teams: readonly { readonly team: Team; readonly kills: KillCounts }[];
-}
+export type UnitKillsTables = {
+  readonly unitKills: PlayerKillsRow[];
+  readonly teamUnitKills: TeamKillsRow[];
+};
 
 function classify(u: UnitRecord): keyof Omit<KillCounts, 'total'> {
   const merc = MERC_TYPES[u.type] ?? MERC_TYPES[u.bornType ?? ''];
@@ -102,15 +104,20 @@ function empty(): Record<keyof KillCounts, number> {
 }
 
 /** Kills credited to each player and team by the tracker's `m_killerPlayerId`, split the way the 2018 viewer did. */
-export const unitKills: Analyser<UnitKills> = {
+export const unitKills: Analyser<UnitKillsTables> = {
   id: `${NS}unit-kills`,
-  version: 1,
+  version: 2,
+  tables: {
+    unitKills: '[replayId+slot], replayId, heroId, team, minions, heroes, total',
+    teamUnitKills: '[replayId+team], replayId',
+  },
   inputs: ['players', 'units'],
   mode: 'ready', // player-stats (ready) depends on it
   async run(ctx) {
     const [players, units] = await Promise.all([participants(ctx), ctx.read('units')]);
     const perSlot = new Map(players.map((p) => [p.slot, empty()]));
     const perTeam = new Map(TEAMS.map((t) => [t, empty()]));
+    const teamOf = new Map(players.map((p) => [p.slot, p.team]));
     for (const u of units) {
       if (u.diedAtLoop === null || u.killerSlot === null) continue;
       const counts = perSlot.get(u.killerSlot);
@@ -118,15 +125,15 @@ export const unitKills: Analyser<UnitKills> = {
       const bucket = classify(u);
       counts[bucket]++;
       counts.total++;
-      const team = perTeam.get(players.find((p) => p.slot === u.killerSlot)?.team as Team);
+      const team = perTeam.get(teamOf.get(u.killerSlot) as Team);
       if (team) {
         team[bucket]++;
         team.total++;
       }
     }
     return {
-      players: players.map((p) => ({ ...ref(p), kills: perSlot.get(p.slot)! })),
-      teams: TEAMS.map((team) => ({ team, kills: perTeam.get(team)! })),
+      unitKills: players.map((p) => ({ ...ref(p), ...perSlot.get(p.slot)! })),
+      teamUnitKills: TEAMS.map((team) => ({ team, ...perTeam.get(team)! })),
     };
   },
 };

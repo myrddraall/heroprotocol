@@ -64,7 +64,12 @@ export function otherTeam(team: Team): Team {
   return team === 0 ? 1 : 0;
 }
 
-/** Player identity fields that most results repeat, so consumers never join. */
+/** Number rows 0..n-1 so `[replayId+seq]` keys them in order. */
+export function withSeq<T extends object>(rows: readonly T[]): (T & { seq: number })[] {
+  return rows.map((row, seq) => ({ ...row, seq }));
+}
+
+/** Player identity fields that per-player rows repeat, so consumers never join. */
 export interface PlayerRef {
   readonly slot: number;
   readonly name: string;

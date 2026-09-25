@@ -12,17 +12,33 @@ export interface DeathHeatmapParams {
   readonly cell?: number;
 }
 
-export interface DeathHeatmap {
+export interface DeathHeatmapRow {
   readonly cell: number;
-  readonly mapSize: { readonly x: number; readonly y: number } | null;
+  readonly mapWidth: number | null;
+  readonly mapHeight: number | null;
   readonly total: number;
-  readonly cells: readonly { readonly x: number; readonly y: number; readonly count: number }[];
+  readonly params: DeathHeatmapParams;
 }
 
+export interface DeathHeatmapCellRow {
+  readonly x: number;
+  readonly y: number;
+  readonly count: number;
+}
+
+export type DeathHeatmapTables = {
+  readonly deathHeatmaps: DeathHeatmapRow[];
+  readonly deathHeatmapCells: DeathHeatmapCellRow[];
+};
+
 /** Where players died, bucketed on a grid. Parameterized and lazy; the cache keeps the last 32 filters. */
-export const deathHeatmap: Analyser<DeathHeatmap, DeathHeatmapParams | undefined> = {
+export const deathHeatmap: Analyser<DeathHeatmapTables, DeathHeatmapParams | undefined> = {
   id: `${NS}death-heatmap`,
-  version: 1,
+  version: 2,
+  tables: {
+    deathHeatmaps: '[replayId+paramsHash], replayId',
+    deathHeatmapCells: '[replayId+paramsHash+x+y], replayId, [replayId+paramsHash]',
+  },
   inputs: ['statEvents'],
   mode: 'lazy',
   cache: { maxEntries: 32 },
@@ -57,10 +73,16 @@ export const deathHeatmap: Analyser<DeathHeatmap, DeathHeatmapParams | undefined
     }
     const gs = start[0];
     return {
-      cell,
-      mapSize: gs ? { x: int(gs, 'MapSizeX') ?? 0, y: int(gs, 'MapSizeY') ?? 0 } : null,
-      total,
-      cells: [...counts.values()].sort((a, b) => a.y - b.y || a.x - b.x),
+      deathHeatmaps: [
+        {
+          cell,
+          mapWidth: gs ? int(gs, 'MapSizeX') : null,
+          mapHeight: gs ? int(gs, 'MapSizeY') : null,
+          total,
+          params: params ?? {},
+        },
+      ],
+      deathHeatmapCells: [...counts.values()].sort((a, b) => a.y - b.y || a.x - b.x),
     };
   },
 };

@@ -4,21 +4,38 @@ export type {
   AnalyserContext,
   AnalyserMode,
   AnalyserRegistration,
+  AnalyserRow,
+  AnalyserRows,
   AnalyserState,
   AnalyserStatus,
   AnalyserCacheOptions,
   RegisterOptions,
   RunClock,
+  StampedRow,
   StatSupport,
   StatSupportEntry,
   StatSupportTable,
   Where,
 } from './types.js';
 export { MODE_ORDER } from './types.js';
-export { AnalyserRegistry, AnalyserRegistrationError, createRegistry } from './registry.js';
-export { runAnalyser, runAnalysers, isFresh, systemClock } from './runner.js';
-export type { RunOptions, RunOutcome } from './runner.js';
-export { createMemoryContext, withResults, matches } from './context.js';
+export {
+  AnalyserRegistry,
+  AnalyserRegistrationError,
+  createRegistry,
+  RESERVED_TABLES,
+  primaryKeyOf,
+  keyStartsWithReplayId,
+} from './registry.js';
+export {
+  runAnalyser,
+  runAnalysers,
+  isFresh,
+  stampRows,
+  keyedByParams,
+  systemClock,
+} from './runner.js';
+export type { AnalyserOutput, RunOptions, RunOutcome } from './runner.js';
+export { createMemoryContext, withProgress, matches, TableSink } from './context.js';
 export type { ContextOptions } from './context.js';
 export { paramsHash, stableStringify, NO_PARAMS } from './paramsHash.js';
 export { statSupportFor, FIRST_SCORE_BUILD, FULL_DAMAGE_STATS_BUILD } from './statSupport.js';

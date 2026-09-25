@@ -25,26 +25,35 @@ definitions, so the graph is code-split) — point `createReplayDb({ workerUrl }
 it is not something to `import` or `require`. With Vite, `worker: { format: 'es' }` is
 the one required setting.
 
-## The analysers
+## The analysers and their tables
 
-Every analyser is a versioned pure function over `ctx.read()`; results are plain JSON
-persisted in `derived`. Ids are namespaced `@myrddraall/<name>`. A host may override
-any mode at registration (`{ analyser, options: { mode } }` in `createWorker`).
+Every analyser is a versioned pure function over `ctx.read()` that writes rows into the
+tables it declares — ordinary Dexie stores with indexes, so results are queryable across
+replays (`db.table('scoreScreenPlayers').where('awards').equals('MVP')`) instead of opaque
+JSON. Every table's primary key starts with `replayId`; ids are namespaced
+`@myrddraall/<name>`. A host may override any mode at registration
+(`{ analyser, options: { mode } }` in `createWorker`).
 
-| Analyser             | Mode         | Result                                                                                                                                     |
-| -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `description`        | `ready`      | What a replay list needs: map, mode, played-at, duration, version, winner, and the players with hero, role, level, talent count, leaver time |
-| `score-screen`       | `ready`      | The ten score-screen stats per player, awards, team levels and kills                                                                       |
-| `unit-kills`         | `ready`      | Kills credited to each player and team: minions, camp/lane mercs, bosses, structures, heroes, summons                                       |
-| `player-stats`       | `ready`      | The full table: every recorded stat, tracker-derived counts, ratios and percentages, with the build's stat-support applied (`null`, not 0)   |
-| `draft`              | `ready`      | Bans and picks in the order they actually happened, with first-pick team                                                                    |
-| `talents`            | `background` | Talent picks per player with tier, level and time (internal talent ids until hero-data maps names)                                          |
-| `xp-curve`           | `background` | Per-team XP by source over time, closed by the summed end-of-game breakdown                                                                 |
-| `timeline`           | `background` | Alive/dead spans, deaths with killers, level-ups, talents, team levels, structure deaths, camp captures, map objectives, core death, leavers |
-| `points-of-interest` | `background` | Cores, town halls, towers, moonwells, gates, walls, watch towers and jungle camps with positions; map size                                   |
-| `chat`               | `background` | Chat and pings joined with the players                                                                                                      |
-| `commands`           | `lazy`       | Per player: commands, casts, moves, APM, per-minute curve, casts by ability link                                                            |
-| `death-heatmap`      | `lazy`       | Deaths bucketed on a grid; parameterized by team / player / killer / cell size, cache bounded to 32 filters                                  |
+| Analyser             | Mode         | Tables (primary key)                                                                                                                                                                 |
+| -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `description`        | `ready`      | `description` (`replayId`): map, mode, played-at, duration, winner · `descriptionPlayers` (`[replayId+slot]`)                                                                        |
+| `score-screen`       | `ready`      | `scoreScreenPlayers` (`[replayId+slot]`): the ten score-screen stats as columns, awards, mvp · `scoreScreenTeams` (`[replayId+team]`)                                                |
+| `unit-kills`         | `ready`      | `unitKills` (`[replayId+slot]`): minions, camp/lane mercs, bosses, structures, heroes, summons · `teamUnitKills` (`[replayId+team]`)                                                 |
+| `player-stats`       | `ready`      | `playerStats` (`[replayId+slot]`): every recorded and derived stat as a column, `null` where unsupported · `playerStatsSupport` (`replayId`)                                         |
+| `draft`              | `ready`      | `draft` (`replayId`) · `draftSteps` (`[replayId+order]`): bans and picks in the order they happened                                                                                  |
+| `talents`            | `background` | `talentPicks` (`[replayId+slot+tier]`): talent id, level, time (hero-data maps names)                                                                                                |
+| `xp-curve`           | `background` | `xpPoints` (`[replayId+team+seq]`): XP by source per periodic breakdown, closed by the summed end-of-game one                                                                        |
+| `timeline`           | `background` | `timelineEvents` (`[replayId+seq]`): alive/dead spans, deaths with killers, levels, talents, structure deaths, camp captures, objectives, core death, leavers — `kind`-discriminated |
+| `points-of-interest` | `background` | `pointsOfInterest` (`[replayId+seq]`): cores, halls, towers, wells, gates, walls, watch towers, camps · `mapInfo` (`replayId`)                                                       |
+| `chat`               | `background` | `chatLines` (`[replayId+seq]`): chat and pings joined with the players                                                                                                               |
+| `commands`           | `lazy`       | `commandStats` (`[replayId+slot]`): commands, casts, moves, APM, per-minute curve · `abilityUses` (`[replayId+slot+abilLink]`)                                                       |
+| `death-heatmap`      | `lazy`       | `deathHeatmaps` (`[replayId+paramsHash]`) · `deathHeatmapCells` (`[replayId+paramsHash+x+y]`): parameterized by team / player / killer / cell; cache bounded to 32 filters           |
+
+The framework stamps `replayId` on every row (and `paramsHash` on parameterized runs, or
+`'-'` where a table is keyed by it), replaces an analyser's rows for the replay when it
+reruns, and records each run in `analyserRuns` — version, time, error — which is what
+staleness and caching are decided on. `builtinTables()` returns the merged schema; the
+prebuilt worker announces it, so the main-thread `client.db` opens with these tables.
 
 ## Parity with the 2018 analysers, and where this deliberately differs
 

@@ -1,10 +1,10 @@
 import type { ParsedReplay, ProtocolSource } from '@myrddraall/heroprotocol';
 import { NOISY_GAME_EVENTS, openReplay } from '@myrddraall/heroprotocol';
-import { createMemoryContext } from '../analysers/context.js';
+import { createMemoryContext, TableSink } from '../analysers/context.js';
 import { createRegistry, type AnalyserRegistry } from '../analysers/registry.js';
 import { runAnalysers, systemClock } from '../analysers/runner.js';
 import type { RunClock } from '../analysers/types.js';
-import { saveDerived } from '../db/derived.js';
+import { saveAnalyserOutput } from '../db/runs.js';
 import type { HeroDb } from '../db/HeroDb.js';
 import { setReplayStatus, writeReplay } from '../db/write.js';
 import type { NormalizedReplay, ReplayRecord } from '../model/records.js';
@@ -167,6 +167,11 @@ async function runPipeline(
   tracker.timing('write', clock.ms() - t);
 
   // 4. ready analysers → commit 2
+  const sink = new TableSink();
+  const ctx = createMemoryContext(normalized, {
+    tables: sink,
+    ...(options.services ? { services: options.services } : {}),
+  });
   tracker.queue(
     registry.list('ready').map((r) => r.analyser.id),
     'ready',
@@ -176,20 +181,18 @@ async function runPipeline(
     'background',
   );
   tracker.setPhase('analysing-ready');
-  const ctx = createMemoryContext(
-    normalized,
-    options.services ? { services: options.services } : {},
-  );
   t = clock.ms();
   const readyRun = await runAnalysers({
     registry,
     ctx,
     modes: ['ready'],
+    sink,
     clock,
     onStatus: (s) => tracker.analyser(s),
   });
-  await db.transaction('rw', db.derived, db.replays, async () => {
-    for (const row of readyRun.computed) await saveDerived(db, row);
+  await db.transaction('rw', db.replayTables, async () => {
+    for (const output of readyRun.computed)
+      await saveAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output);
     await setReplayStatus(db, normalized.replay.id, 'ready');
   });
   tracker.timing('ready', clock.ms() - t);
@@ -213,10 +216,12 @@ async function runPipeline(
     registry,
     ctx,
     modes: ['background'],
-    existing: readyRun.computed,
+    existing: readyRun.computed.map((o) => o.run),
+    sink,
     clock,
     onStatus: (s) => tracker.analyser(s),
-    onComputed: (row) => saveDerived(db, row, registry.get(row.analyserId)?.analyser.cache),
+    onComputed: (output) =>
+      saveAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output),
   });
   tracker.timing('background', clock.ms() - t);
   await setReplayStatus(db, normalized.replay.id, 'complete');

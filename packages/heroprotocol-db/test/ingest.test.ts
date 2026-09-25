@@ -2,21 +2,25 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createRegistry } from '../src/analysers/registry.js';
-import type { Analyser, RunClock } from '../src/analysers/types.js';
+import type { Analyser, AnalyserRows, RunClock } from '../src/analysers/types.js';
 import { HeroDb } from '../src/db/HeroDb.js';
-import { saveDerived } from '../src/db/derived.js';
+import { saveAnalyserOutput } from '../src/db/runs.js';
 import { analyse } from '../src/ingest/lazy.js';
 import { ingestInline } from '../src/ingest/pipeline.js';
 import type { IngestStatus } from '../src/ingest/status.js';
 import { LOCAL, localReplays } from './util/node.js';
 
 const replays = localReplays();
-let db: HeroDb;
+const open: HeroDb[] = [];
 let n = 0;
 afterEach(async () => {
-  await db?.delete();
+  for (const db of open.splice(0)) await db.delete();
 });
-const fresh = (): HeroDb => (db = new HeroDb(`ingest-${n++}`));
+const fresh = async (tables: Record<string, string> = {}): Promise<HeroDb> => {
+  const db = await HeroDb.open(`ingest-${n++}`, tables);
+  open.push(db);
+  return db;
+};
 
 let tick = 0;
 // monotonic: each ms() call advances 100 ms, and now() reflects it, so computedAt orders like real time
@@ -35,28 +39,34 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
   const file = replays[0]!;
   const bytes = () => new Uint8Array(readFileSync(join(LOCAL, file)));
 
-  it('walks ingesting → analysing → ready → complete, resolving ready before background work', async () => {
-    const db = fresh();
+  it('walks ingesting → analysing → ready → complete, writing analyser tables, resolving ready before background work', async () => {
     const gate = deferred<void>();
     const seen: string[] = [];
-    const readyA: Analyser<number> = {
+    const readyA: Analyser<AnalyserRows, void> = {
       id: 'ready-a',
       version: 1,
+      tables: { playerCount: 'replayId' },
       inputs: ['players'],
       mode: 'ready',
-      run: async (ctx) => (await ctx.read('players')).length,
+      run: async (ctx) => ({ playerCount: [{ n: (await ctx.read('players')).length }] }),
     };
-    const readyB: Analyser<string> = {
+    const readyB: Analyser<AnalyserRows, void> = {
       id: 'ready-b',
       version: 1,
+      tables: { playerLabel: 'replayId' },
       inputs: [],
       mode: 'ready',
       dependsOn: ['ready-a'],
-      run: (ctx) => `players=${ctx.results['ready-a']}`,
+      run: async (ctx) => ({
+        playerLabel: [
+          { label: `players=${(await ctx.readTable<{ n: number }>('playerCount'))[0]!.n}` },
+        ],
+      }),
     };
-    const bg: Analyser<number> = {
+    const bg: Analyser<AnalyserRows, void> = {
       id: 'bg',
       version: 1,
+      tables: { commandCount: 'replayId' },
       inputs: ['commands'],
       mode: 'background',
       dependsOn: ['ready-a'],
@@ -65,51 +75,61 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
         await gate.promise;
         ctx.progress(1, 2);
         ctx.progress(2, 2);
-        return (await ctx.read('commands')).length;
+        return { commandCount: [{ n: (await ctx.read('commands')).length }] };
       },
     };
-    const bgFail: Analyser<number> = {
+    const bgFail: Analyser<AnalyserRows, void> = {
       id: 'bg-fail',
       version: 1,
+      tables: { never: 'replayId' },
       inputs: [],
       mode: 'background',
       run: () => {
         throw new Error('nope');
       },
     };
+    const registry = createRegistry([readyA, readyB, bg, bgFail]);
+    const db = await fresh(registry.tables());
     const statuses: IngestStatus[] = [];
     const handle = ingestInline(db, bytes(), {
       fileName: file,
-      registry: createRegistry([readyA, readyB, bg, bgFail]),
+      registry,
       onStatus: (s) => statuses.push(s),
       clock,
       minTickMs: 0,
     });
 
     const ready = await handle.ready;
-    // at `ready`: replay written with status ready, ready analysers committed, background not run
     expect(ready.replay.status).toBe('ready');
     expect((await db.replays.get(ready.replayId))?.status).toBe('ready');
-    expect((await db.derived.get([ready.replayId, 'ready-a', '-']))?.result).toBe(10);
-    expect((await db.derived.get([ready.replayId, 'ready-b', '-']))?.result).toBe('players=10');
-    expect(await db.derived.get([ready.replayId, 'bg', '-'])).toBeUndefined();
+    expect(await db.table('playerCount').get(ready.replayId)).toEqual({
+      replayId: ready.replayId,
+      n: 10,
+    });
+    expect(await db.table('playerLabel').get(ready.replayId)).toEqual({
+      replayId: ready.replayId,
+      label: 'players=10',
+    });
+    expect((await db.analyserRuns.get([ready.replayId, 'ready-a', '-']))?.error).toBeNull();
+    expect(await db.analyserRuns.get([ready.replayId, 'bg', '-'])).toBeUndefined();
     expect((await db.ingestJobs.get(ready.jobId))?.status).toBe('ready');
     await new Promise((r) => setTimeout(r, 10));
-    expect(seen).toEqual(['bg-start']); // background started but is gated
+    expect(seen).toEqual(['bg-start']);
 
     gate.resolve();
     const done = await handle.complete;
     expect(done.replay.status).toBe('complete');
     expect((await db.replays.get(done.replayId))?.status).toBe('complete');
-    expect((await db.derived.get([done.replayId, 'bg', '-']))?.result).toBe(
-      await db.commands.where('replayId').equals(done.replayId).count(),
-    );
-    expect((await db.derived.get([done.replayId, 'bg-fail', '-']))?.error).toBe('nope');
+    expect((await db.table('commandCount').get(done.replayId)) as { n: number }).toEqual({
+      replayId: done.replayId,
+      n: await db.commands.where('replayId').equals(done.replayId).count(),
+    });
+    expect((await db.analyserRuns.get([done.replayId, 'bg-fail', '-']))?.error).toBe('nope');
+    expect(await db.table('never').count()).toBe(0);
     const job = await db.ingestJobs.get(done.jobId);
     expect(job).toMatchObject({ status: 'complete', replayId: done.replayId, fileName: file });
     expect(job?.finishedAt).not.toBeNull();
 
-    // the status stream covers every phase, every section and every analyser transition
     const phases = [...new Set(statuses.map((s) => s.phase))];
     expect(phases).toEqual([
       'parsing',
@@ -145,14 +165,13 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
       'ready',
       'write',
     ]);
-    // status snapshots at ready time already listed the background analysers as queued
     const atReady = statuses.find((s) => s.phase === 'analysing-ready')!;
     expect(atReady.analysers['bg']?.state).toBe('queued');
     expect(last.replayId).toBe(done.replayId);
   });
 
   it('re-ingesting the same replay replaces it and keeps one replay row', async () => {
-    const db = fresh();
+    const db = await fresh();
     const a = await ingestInline(db, bytes(), { fileName: file, clock }).complete;
     const b = await ingestInline(db, bytes(), { fileName: file, keepFile: true, clock }).complete;
     expect(b.replayId).toBe(a.replayId);
@@ -163,15 +182,15 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
   });
 
   it('fails the job on unparseable input and writes nothing', async () => {
-    const db = fresh();
+    const db = await fresh();
     const statuses: IngestStatus[] = [];
     const handle = ingestInline(db, new Uint8Array([1, 2, 3, 4]), {
       fileName: 'junk',
       onStatus: (s) => statuses.push(s),
       clock,
     });
-    await expect(handle.complete).rejects.toThrow();
-    await expect(handle.ready).rejects.toThrow();
+    await expect(handle.complete).rejects.toThrow(/parse failed/);
+    await expect(handle.ready).rejects.toThrow(/parse failed/);
     expect(await db.replays.count()).toBe(0);
     const job = (await db.ingestJobs.toArray())[0]!;
     expect(job.status).toBe('failed');
@@ -185,78 +204,83 @@ describe.skipIf(replays.length === 0)('lazy analyse', () => {
   const file = replays[0]!;
 
   it('computes from the store on first request, serves the cache after, recomputes on version bump, and bounds parameterized caches', async () => {
-    const db = fresh();
-    const { replayId } = await ingestInline(db, new Uint8Array(readFileSync(join(LOCAL, file))), {
-      fileName: file,
-      clock,
-    }).complete;
     const calls: unknown[] = [];
-    const base: Analyser<number> = {
+    const base: Analyser<AnalyserRows, void> = {
       id: 'base',
       version: 1,
+      tables: { baseCount: 'replayId' },
       inputs: ['players'],
       mode: 'lazy',
       run: async (ctx) => {
         calls.push('base');
-        return (await ctx.read('players')).length;
+        return { baseCount: [{ n: (await ctx.read('players')).length }] };
       },
     };
-    const heat: Analyser<number, { slot: number }> = {
+    const heat: Analyser<AnalyserRows, { slot: number }> = {
       id: 'heat',
       version: 1,
+      tables: { heatCells: '[replayId+paramsHash+seq], replayId' },
       inputs: ['units'],
       mode: 'lazy',
       dependsOn: ['base'],
       cache: { maxEntries: 2 },
       run: async (ctx, p) => {
         calls.push(p);
-        return (
-          (await ctx.read('units', { killerSlot: p.slot })).length + (ctx.results['base'] as number)
-        );
+        const [b] = await ctx.readTable<{ n: number }>('baseCount');
+        const kills = (await ctx.read('units', { killerSlot: p.slot })).length;
+        return { heatCells: [{ seq: 0, n: kills + b!.n }] };
       },
     };
     const registry = createRegistry([base, heat as never]);
+    const db = await fresh(registry.tables());
+    const { replayId } = await ingestInline(db, new Uint8Array(readFileSync(join(LOCAL, file))), {
+      fileName: file,
+      clock,
+    }).complete;
 
     const first = await analyse(db, replayId, 'heat', { registry, params: { slot: 0 }, clock });
     expect(calls).toEqual(['base', { slot: 0 }]); // dependency resolved lazily first
-    expect(first.error).toBeNull();
-    expect(first.result).toBeGreaterThan(10);
+    expect(first.run.error).toBeNull();
+    expect((first.rows['heatCells']![0] as { n: number }).n).toBeGreaterThan(10);
+    expect(await db.table('heatCells').count()).toBe(1);
 
     const again = await analyse(db, replayId, 'heat', { registry, params: { slot: 0 }, clock });
-    expect(again).toEqual(first); // cached, nothing ran
+    expect(again).toEqual(first); // cached: same run, rows read back from the table
     expect(calls).toHaveLength(2);
 
     await analyse(db, replayId, 'heat', { registry, params: { slot: 1 }, clock });
     await analyse(db, replayId, 'heat', { registry, params: { slot: 2 }, clock });
-    const rows = await db.derived
+    const runs = await db.analyserRuns
       .where('[replayId+analyserId]')
       .equals([replayId, 'heat'])
       .toArray();
-    expect(rows).toHaveLength(2); // maxEntries: oldest (slot 0) evicted
-    expect(await db.derived.get([replayId, 'heat', first.paramsHash])).toBeUndefined();
+    expect(runs).toHaveLength(2); // maxEntries: the oldest (slot 0) evicted …
+    expect(await db.analyserRuns.get([replayId, 'heat', first.run.paramsHash])).toBeUndefined();
+    expect(await db.table('heatCells').count()).toBe(2); // … with its rows
 
-    // a version bump makes the stored base row stale → recomputed
     const base2 = { ...base, version: 2 };
     const registry2 = createRegistry([base2, heat as never]);
     calls.length = 0;
     await analyse(db, replayId, 'base', { registry: registry2, clock });
     expect(calls).toEqual(['base']);
-    expect((await db.derived.get([replayId, 'base', '-']))?.analyserVersion).toBe(2);
+    expect((await db.analyserRuns.get([replayId, 'base', '-']))?.analyserVersion).toBe(2);
+    expect(await db.table('baseCount').count()).toBe(1); // replaced, not duplicated
 
-    // an errored stored row is not "fresh" either
-    await saveDerived(db, {
-      replayId,
-      analyserId: 'base',
-      paramsHash: '-',
-      analyserVersion: 2,
-      result: null,
-      error: 'x',
-      computedAt: 'x',
-      ms: 0,
+    await saveAnalyserOutput(db, base2, {
+      run: {
+        replayId,
+        analyserId: 'base',
+        paramsHash: '-',
+        analyserVersion: 2,
+        error: 'x',
+        computedAt: 'x',
+        ms: 0,
+      },
+      rows: {},
     });
     calls.length = 0;
     await analyse(db, replayId, 'base', { registry: registry2, clock });
-    expect(calls).toEqual(['base']);
+    expect(calls).toEqual(['base']); // an errored run is not fresh
 
     await expect(analyse(db, 'nope', 'base', { registry: registry2, clock })).rejects.toThrow(
       /not in the database/,

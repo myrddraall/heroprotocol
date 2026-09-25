@@ -55,8 +55,11 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
     .list()
     .map((r) => ({ id: r.analyser.id, mode: r.mode, version: r.analyser.version }));
 
-  let db: HeroDb | undefined;
-  const database = (): HeroDb => (db ??= new HeroDb(options.dbName ?? DEFAULT_DB_NAME));
+  const tables = registry.tables();
+  let db: Promise<HeroDb> | undefined;
+  let dbName = options.dbName ?? DEFAULT_DB_NAME;
+  const database = (): Promise<HeroDb> => (db ??= HeroDb.open(dbName, tables));
+  const ready = (): void => post({ type: 'ready', analysers: summaries, tables });
   const post = (message: WorkerResponse): void => target.postMessage(message);
   const services = options.services;
 
@@ -65,15 +68,16 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
     if (!isRequest(req)) return;
     switch (req.type) {
       case 'init':
-        if (db && db.name !== req.dbName) {
-          db.close();
+        if (db !== undefined && dbName !== req.dbName) {
+          (await db).close();
           db = undefined;
         }
-        db ??= new HeroDb(req.dbName);
-        post({ type: 'ready', analysers: summaries });
+        dbName = req.dbName;
+        await database();
+        ready();
         return;
       case 'ingest': {
-        const handle = ingestInline(database(), new Uint8Array(req.bytes), {
+        const handle = ingestInline(await database(), new Uint8Array(req.bytes), {
           fileName: req.fileName,
           keepFile: req.keepFile,
           registry,
@@ -98,7 +102,7 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
       }
       case 'analyse':
         try {
-          const row = await analyse(database(), req.replayId, req.analyserId, {
+          const output = await analyse(await database(), req.replayId, req.analyserId, {
             registry,
             params: req.params,
             force: req.force === true,
@@ -106,7 +110,7 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
             onStatus: (status) =>
               post({ type: 'analyser-status', ref: req.ref, replayId: req.replayId, status }),
           });
-          post({ type: 'analysed', ref: req.ref, row });
+          post({ type: 'analysed', ref: req.ref, output });
         } catch (err) {
           post({
             type: 'failed',
@@ -117,14 +121,14 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
         return;
       case 'reanalyse':
         try {
-          const rows = await reanalyse(database(), {
+          const outputs = await reanalyse(await database(), {
             registry,
             ...(req.replayId !== undefined ? { replayId: req.replayId } : {}),
             ...(services ? { services } : {}),
             onStatus: (replayId, status) =>
               post({ type: 'analyser-status', ref: req.ref, replayId, status }),
           });
-          post({ type: 'reanalysed', ref: req.ref, rows });
+          post({ type: 'reanalysed', ref: req.ref, runs: outputs.map((o) => o.run) });
         } catch (err) {
           post({
             type: 'failed',
@@ -134,7 +138,7 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
         }
         return;
       case 'close':
-        db?.close();
+        if (db !== undefined) (await db).close();
         db = undefined;
         post({ type: 'closed' });
         target.close?.();
@@ -148,11 +152,11 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
     void onMessage(event);
   });
   target.start?.();
-  post({ type: 'ready', analysers: summaries });
+  ready();
 
   return {
     async dispose(): Promise<void> {
-      db?.close();
+      if (db !== undefined) (await db).close();
       db = undefined;
     },
   };

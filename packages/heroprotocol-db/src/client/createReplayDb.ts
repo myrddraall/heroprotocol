@@ -1,4 +1,5 @@
 import { createRegistry } from '../analysers/registry.js';
+import type { AnalyserOutput } from '../analysers/runner.js';
 import type { AnalyserStatus, AnyAnalyser } from '../analysers/types.js';
 import { deleteReplay } from '../db/write.js';
 import { DEFAULT_DB_NAME, HeroDb } from '../db/HeroDb.js';
@@ -7,7 +8,7 @@ import { analyse as analyseInline } from '../ingest/lazy.js';
 import { ingestInline } from '../ingest/pipeline.js';
 import type { IngestResult } from '../ingest/pipeline.js';
 import type { IngestStatus } from '../ingest/status.js';
-import type { DerivedRecord, ReplayRecord } from '../model/records.js';
+import type { AnalyserRunRecord, ReplayRecord } from '../model/records.js';
 import type {
   AnalyserSummary,
   WorkerLike,
@@ -55,24 +56,35 @@ export interface ClientAnalyseOptions {
   readonly onStatus?: (status: AnalyserStatus) => void;
 }
 
+/** What `ready` resolves with: the worker's analysers and their tables. */
+export interface ReplayDbInfo {
+  readonly analysers: readonly AnalyserSummary[];
+  readonly tables: Readonly<Record<string, string>>;
+}
+
 export interface ReplayDbClient {
-  /** The main-thread Dexie instance: direct reads and `liveQuery`. */
+  /**
+   * The main-thread Dexie instance — the core stores plus every analyser table — for
+   * direct reads and `liveQuery`. Available once `ready` has resolved (the schema comes
+   * from the worker's announcement); accessing it earlier throws.
+   */
   readonly db: HeroDb;
-  /** Resolves when the worker has announced its analysers. */
-  readonly ready: Promise<readonly AnalyserSummary[]>;
+  /** Resolves when the database is open with the worker's schema. */
+  readonly ready: Promise<ReplayDbInfo>;
   ingest(bytes: Uint8Array | ArrayBuffer, options: IngestJobOptions): IngestJob;
+  /** Run (or fetch the cached rows of) one analyser; the rows are also in its tables. */
   analyse(
     replayId: string,
     analyserId: string,
     options?: ClientAnalyseOptions,
-  ): Promise<DerivedRecord>;
+  ): Promise<AnalyserOutput>;
   /** Several analysers at once (e.g. prefetch), in parallel. */
   analyseAll(
     replayId: string,
     analyserIds: readonly string[],
     options?: ClientAnalyseOptions,
-  ): Promise<DerivedRecord[]>;
-  reanalyse(replayId?: string): Promise<DerivedRecord[]>;
+  ): Promise<AnalyserOutput[]>;
+  reanalyse(replayId?: string): Promise<AnalyserRunRecord[]>;
   listReplays(): Promise<ReplayRecord[]>;
   deleteReplay(replayId: string): Promise<void>;
   pruneReplays(keep: number): Promise<string[]>;
@@ -95,8 +107,7 @@ const isResponse = (data: unknown): data is WorkerResponse =>
  */
 export function createReplayDb(options: ReplayDbOptions = {}): ReplayDbClient {
   const dbName = options.dbName ?? DEFAULT_DB_NAME;
-  const db = new HeroDb(dbName);
-  if (options.inline) return createInlineClient(db, options);
+  if (options.inline) return createInlineClient(dbName, options);
 
   let worker: WorkerLike;
   if (typeof options.worker === 'function') worker = options.worker();
@@ -109,19 +120,20 @@ export function createReplayDb(options: ReplayDbOptions = {}): ReplayDbClient {
   } else {
     throw new Error('createReplayDb: pass `worker`, `workerUrl`, or `inline: true`');
   }
-  return createWorkerClient(db, dbName, worker);
+  return createWorkerClient(dbName, worker);
 }
 
 interface Pending {
   readonly onResponse: (res: WorkerResponse) => void;
 }
 
-function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): ReplayDbClient {
+function createWorkerClient(dbName: string, worker: WorkerLike): ReplayDbClient {
   const pending = new Map<number, Pending>();
   let nextRef = 1;
-  let resolveReady!: (a: readonly AnalyserSummary[]) => void;
+  let db: HeroDb | undefined;
+  let resolveReady!: (info: ReplayDbInfo) => void;
   let rejectReady!: (e: unknown) => void;
-  const ready = new Promise<readonly AnalyserSummary[]>((res, rej) => {
+  const ready = new Promise<ReplayDbInfo>((res, rej) => {
     resolveReady = res;
     rejectReady = rej;
   });
@@ -132,7 +144,14 @@ function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): Rep
     const res = event.data;
     if (!isResponse(res)) return;
     if (res.type === 'ready') {
-      resolveReady(res.analysers);
+      HeroDb.open(dbName, res.tables).then(
+        (opened) => {
+          db ??= opened;
+          if (db !== opened) opened.close();
+          resolveReady({ analysers: res.analysers, tables: res.tables });
+        },
+        (err: unknown) => rejectReady(err),
+      );
       return;
     }
     if (res.type === 'closed') return;
@@ -185,9 +204,16 @@ function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): Rep
       });
       send(build(ref), transfer);
     });
+  const database = (): HeroDb => {
+    if (!db)
+      throw new Error('createReplayDb: the database opens when `ready` resolves — await it first');
+    return db;
+  };
 
   return {
-    db,
+    get db() {
+      return database();
+    },
     ready,
     ingest(bytes, jobOptions) {
       const listeners = new Set<(s: IngestStatus) => void>();
@@ -239,7 +265,7 @@ function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): Rep
       };
     },
     analyse(replayId, analyserId, analyseOptions = {}) {
-      return request<DerivedRecord>(
+      return request<AnalyserOutput>(
         (ref) => ({
           type: 'analyse',
           ref,
@@ -251,7 +277,7 @@ function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): Rep
         undefined,
         (res, done) => {
           if (res.type === 'analyser-status') analyseOptions.onStatus?.(res.status);
-          else if (res.type === 'analysed') done(res.row);
+          else if (res.type === 'analysed') done(res.output);
         },
       );
     },
@@ -259,17 +285,17 @@ function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): Rep
       return Promise.all(ids.map((id) => this.analyse(replayId, id, analyseOptions)));
     },
     reanalyse(replayId) {
-      return request<DerivedRecord[]>(
+      return request<AnalyserRunRecord[]>(
         (ref) => ({ type: 'reanalyse', ref, ...(replayId !== undefined ? { replayId } : {}) }),
         undefined,
         (res, done) => {
-          if (res.type === 'reanalysed') done([...res.rows]);
+          if (res.type === 'reanalysed') done([...res.runs]);
         },
       );
     },
-    listReplays: () => listReplays(db),
-    deleteReplay: (id) => deleteReplay(db, id),
-    pruneReplays: (keep) => pruneReplays(db, { keep }),
+    listReplays: () => ready.then(() => listReplays(database())),
+    deleteReplay: (id) => ready.then(() => deleteReplay(database(), id)),
+    pruneReplays: (keep) => ready.then(() => pruneReplays(database(), { keep })),
     async close() {
       if (closed) return;
       closed = true;
@@ -280,38 +306,68 @@ function createWorkerClient(db: HeroDb, dbName: string, worker: WorkerLike): Rep
       }
       worker.terminate?.();
       worker.close?.();
-      db.close();
+      db?.close();
     },
   };
 }
 
-function createInlineClient(db: HeroDb, options: ReplayDbOptions): ReplayDbClient {
+function createInlineClient(dbName: string, options: ReplayDbOptions): ReplayDbClient {
   const registry = createRegistry(options.analysers ?? []);
   registry.validate();
   const services = options.services;
+  const tables = registry.tables();
   const summaries = registry
     .list()
     .map((r) => ({ id: r.analyser.id, mode: r.mode, version: r.analyser.version }));
+  let db: HeroDb | undefined;
+  const ready = HeroDb.open(dbName, tables).then((opened): ReplayDbInfo => {
+    db = opened;
+    return { analysers: summaries, tables };
+  });
+  ready.catch(() => undefined);
+  const database = (): HeroDb => {
+    if (!db)
+      throw new Error('createReplayDb: the database opens when `ready` resolves — await it first');
+    return db;
+  };
+  const withDb = async <T>(fn: (db: HeroDb) => Promise<T>): Promise<T> => {
+    await ready;
+    return fn(database());
+  };
   return {
-    db,
-    ready: Promise.resolve(summaries),
+    get db() {
+      return database();
+    },
+    ready,
     ingest(bytes, jobOptions) {
       const listeners = new Set<(s: IngestStatus) => void>();
       if (jobOptions.onStatus) listeners.add(jobOptions.onStatus);
       let latest: IngestStatus | undefined;
-      const handle = ingestInline(db, bytes, {
-        fileName: jobOptions.fileName,
-        keepFile: jobOptions.keepFile === true,
-        registry,
-        ...(services ? { services } : {}),
-        onStatus: (s) => {
-          latest = s;
-          for (const l of listeners) l(s);
-        },
+      let resolveReadyJob!: (r: IngestResult) => void;
+      let rejectReadyJob!: (e: unknown) => void;
+      const readyJob = new Promise<IngestResult>((res, rej) => {
+        resolveReadyJob = res;
+        rejectReadyJob = rej;
       });
+      readyJob.catch(() => undefined);
+      const complete = withDb((db) => {
+        const handle = ingestInline(db, bytes, {
+          fileName: jobOptions.fileName,
+          keepFile: jobOptions.keepFile === true,
+          registry,
+          ...(services ? { services } : {}),
+          onStatus: (s) => {
+            latest = s;
+            for (const l of listeners) l(s);
+          },
+        });
+        handle.ready.then(resolveReadyJob, () => undefined);
+        return handle.complete;
+      });
+      complete.catch((err: unknown) => rejectReadyJob(err));
       return {
-        ready: handle.ready,
-        complete: handle.complete,
+        ready: readyJob,
+        complete,
         status(listener) {
           listeners.add(listener);
           return () => {
@@ -324,28 +380,34 @@ function createInlineClient(db: HeroDb, options: ReplayDbOptions): ReplayDbClien
       };
     },
     analyse(replayId, analyserId, analyseOptions = {}) {
-      return analyseInline(db, replayId, analyserId, {
-        registry,
-        params: analyseOptions.params,
-        force: analyseOptions.force === true,
-        ...(services ? { services } : {}),
-        ...(analyseOptions.onStatus ? { onStatus: analyseOptions.onStatus } : {}),
-      });
+      return withDb((db) =>
+        analyseInline(db, replayId, analyserId, {
+          registry,
+          params: analyseOptions.params,
+          force: analyseOptions.force === true,
+          ...(services ? { services } : {}),
+          ...(analyseOptions.onStatus ? { onStatus: analyseOptions.onStatus } : {}),
+        }),
+      );
     },
     analyseAll(replayId, ids, analyseOptions) {
       return Promise.all(ids.map((id) => this.analyse(replayId, id, analyseOptions)));
     },
     reanalyse: (replayId) =>
-      reanalyseInline(db, {
-        registry,
-        ...(replayId !== undefined ? { replayId } : {}),
-        ...(services ? { services } : {}),
-      }),
-    listReplays: () => listReplays(db),
-    deleteReplay: (id) => deleteReplay(db, id),
-    pruneReplays: (keep) => pruneReplays(db, { keep }),
+      withDb(async (db) =>
+        (
+          await reanalyseInline(db, {
+            registry,
+            ...(replayId !== undefined ? { replayId } : {}),
+            ...(services ? { services } : {}),
+          })
+        ).map((o) => o.run),
+      ),
+    listReplays: () => withDb((db) => listReplays(db)),
+    deleteReplay: (id) => withDb((db) => deleteReplay(db, id)),
+    pruneReplays: (keep) => withDb((db) => pruneReplays(db, { keep })),
     async close() {
-      db.close();
+      db?.close();
     },
   };
 }
