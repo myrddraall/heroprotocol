@@ -39,7 +39,7 @@ export function goldenName(replayFile: string): string {
   return replayFile.replace(/\.(stormreplay|stormr)$/i, '').toLowerCase() + '.analysis.json.gz';
 }
 
-/** Every built-in's result for a fixture, keyed by analyser id (lazy ones under their params hash). */
+/** Every built-in's rows for a fixture, keyed by analyser id (lazy parameterized ones `id#paramsHash`), then by table. */
 export type AnalysisGolden = Record<string, unknown>;
 
 export function goldenFor(replayFile: string): AnalysisGolden | undefined {

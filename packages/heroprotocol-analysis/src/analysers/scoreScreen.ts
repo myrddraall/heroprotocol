@@ -18,63 +18,66 @@ export const SCORE_SCREEN_STATS = [
 
 export type ScoreScreenStat = (typeof SCORE_SCREEN_STATS)[number];
 
-export interface ScoreScreenPlayer extends PlayerRef {
+/** One row per player; the ten stats are columns so any of them can be indexed or queried. */
+export interface ScoreScreenPlayerRow extends PlayerRef, Record<ScoreScreenStat, number | null> {
   readonly silenced: boolean;
   readonly voiceSilenced: boolean;
-  readonly stats: Readonly<Record<ScoreScreenStat, number | null>>;
   readonly awards: readonly string[];
+  readonly mvp: boolean;
 }
 
-export interface ScoreScreenTeam {
+export interface ScoreScreenTeamRow {
   readonly team: Team;
   readonly level: number | null;
   /** Takedowns scored by this team: the other team's deaths. */
   readonly kills: number;
   readonly won: boolean;
-}
-
-export interface ScoreScreen {
-  readonly winningTeam: Team | null;
   readonly gameloop: number | null;
-  readonly teams: readonly ScoreScreenTeam[];
-  readonly players: readonly ScoreScreenPlayer[];
 }
 
-export const scoreScreen: Analyser<ScoreScreen> = {
+export type ScoreScreenTables = {
+  readonly scoreScreenPlayers: ScoreScreenPlayerRow[];
+  readonly scoreScreenTeams: ScoreScreenTeamRow[];
+};
+
+export const scoreScreen: Analyser<ScoreScreenTables> = {
   id: `${NS}score-screen`,
-  version: 1,
+  version: 2,
+  tables: {
+    scoreScreenPlayers:
+      '[replayId+slot], replayId, heroId, name, team, won, mvp, Takedowns, HeroDamage, *awards',
+    scoreScreenTeams: '[replayId+team], replayId',
+  },
   inputs: ['players', 'scoreResults'],
   mode: 'ready',
   async run(ctx) {
     const [players, scores] = await Promise.all([participants(ctx), ctx.read('scoreResults')]);
-    const rows = players.map((p): ScoreScreenPlayer => {
+    const rows = players.map((p): ScoreScreenPlayerRow => {
       const score = scoreOf(scores, p.slot);
       const stats = Object.fromEntries(
         SCORE_SCREEN_STATS.map((name) => [name, score?.stats[name] ?? null]),
       ) as Record<ScoreScreenStat, number | null>;
+      const awards = score?.awards ?? [];
       return {
         ...ref(p),
         silenced: p.silenced,
         voiceSilenced: p.voiceSilenced,
-        stats,
-        awards: score?.awards ?? [],
+        awards,
+        mvp: awards.includes('MVP'),
+        ...stats,
       };
     });
-    const teams = TEAMS.map((team): ScoreScreenTeam => {
+    const teams = TEAMS.map((team): ScoreScreenTeamRow => {
       const mine = rows.filter((r) => r.team === team);
       const theirs = rows.filter((r) => r.team === otherTeam(team));
       return {
         team,
-        level: mine.find((r) => r.stats.TeamLevel !== null)?.stats.TeamLevel ?? null,
-        kills: sumBy(theirs, (r) => r.stats.Deaths),
+        level: mine.find((r) => r.TeamLevel !== null)?.TeamLevel ?? null,
+        kills: sumBy(theirs, (r) => r.Deaths),
         won: ctx.replay.winningTeam === team,
+        gameloop: scores[0]?.gameloop ?? null,
       };
     });
-    return {
-      winningTeam: ctx.replay.winningTeam,
-      gameloop: scores[0]?.gameloop ?? null,
-      teams,
-      players: rows,
-    };
+    return { scoreScreenPlayers: rows, scoreScreenTeams: teams };
   },
 };

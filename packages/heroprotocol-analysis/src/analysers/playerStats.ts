@@ -12,19 +12,26 @@ import {
   sumBy,
   TEAMS,
 } from './shared.js';
-import type { UnitKills } from './unitKills.js';
+import type { PlayerKillsRow } from './unitKills.js';
 
+/**
+ * One row per player: every recorded stat plus the derived ones, each as a column
+ * (`null` where the build does not support it), so any stat can be queried and indexed.
+ */
 export interface PlayerStatsRow extends PlayerRef {
   readonly silenced: boolean;
   readonly voiceSilenced: boolean;
-  /** Every recorded stat plus the derived ones; `null` where the build does not support it. */
-  readonly stats: Readonly<Record<string, number | null>>;
+  readonly [stat: string]: unknown;
 }
 
-export interface PlayerStats {
+export interface PlayerStatsSupportRow {
   readonly statSupport: StatSupportTable;
-  readonly players: readonly PlayerStatsRow[];
 }
+
+export type PlayerStatsTables = {
+  readonly playerStats: PlayerStatsRow[];
+  readonly playerStatsSupport: PlayerStatsSupportRow[];
+};
 
 /** Score instances the 2018 viewer left out of the full table. */
 function isTableStat(name: string): boolean {
@@ -61,14 +68,19 @@ const TEAM_SUMS = [
  * ratios and percentages the 2018 viewer computed, with the build's stat-support
  * table applied (unsupported stats are `null`, not zero).
  */
-export const playerStats: Analyser<PlayerStats> = {
+export const playerStats: Analyser<PlayerStatsTables> = {
   id: `${NS}player-stats`,
-  version: 1,
+  version: 2,
+  tables: {
+    playerStats:
+      '[replayId+slot], replayId, heroId, name, team, Takedowns, Deaths, HeroDamage, SiegeDamage, Healing, ExperienceContribution, KillParticipation',
+    playerStatsSupport: 'replayId',
+  },
   inputs: ['players', 'scoreResults', 'statEvents', 'events'],
   mode: 'ready',
   dependsOn: [`${NS}unit-kills`],
   async run(ctx) {
-    const [players, scores, deaths, globes, votes, leaves, joins] = await Promise.all([
+    const [players, scores, deaths, globes, votes, leaves, joins, kills] = await Promise.all([
       participants(ctx),
       ctx.read('scoreResults'),
       statEvents(ctx, 'PlayerDeath'),
@@ -76,8 +88,8 @@ export const playerStats: Analyser<PlayerStats> = {
       statEvents(ctx, 'EndOfGameUpVotesCollected'),
       ctx.read('events', { kind: 'PlayerLeft' }),
       ctx.read('events', { kind: 'PlayerJoined' }),
+      ctx.readTable<PlayerKillsRow>('unitKills'),
     ]);
-    const kills = ctx.results[`${NS}unit-kills`] as UnitKills | undefined;
     const gameSeconds = ctx.replay.durationSeconds;
     const unsupported = (name: string): boolean =>
       ctx.statSupport[name]?.support === 'none' || ctx.statSupport['*']?.support === 'none';
@@ -91,7 +103,6 @@ export const playerStats: Analyser<PlayerStats> = {
         if (isTableStat(name)) stats[name] = value;
       const playerId = p.slot + 1;
 
-      // tracker-derived
       const myLeaves = leaves.filter(
         (e) => e.playerSlot === p.slot && (e.data['reason'] as number) !== 0,
       );
@@ -99,15 +110,14 @@ export const playerStats: Analyser<PlayerStats> = {
       stats['Disconnects'] = myLeaves.length;
       stats['Reconnects'] = myJoins.length;
       stats['VotesReceived'] = votes.filter((v) => int(v, 'Player') === playerId).length;
-      const k = kills?.players.find((r) => r.slot === p.slot)?.kills;
+      const k = kills.find((r) => r.slot === p.slot);
       stats['MinionsKilled'] = k?.minions ?? null;
-      stats['MercsKilledCamp'] = k === undefined ? null : k.mercsCamp;
-      stats['MercsKilledLane'] = k === undefined ? null : k.mercsLane;
-      stats['BossKilledCamp'] = k === undefined ? null : k.bossCamp;
-      stats['BossKilledLane'] = k === undefined ? null : k.bossLane;
+      stats['MercsKilledCamp'] = k?.mercsCamp ?? null;
+      stats['MercsKilledLane'] = k?.mercsLane ?? null;
+      stats['BossKilledCamp'] = k?.bossCamp ?? null;
+      stats['BossKilledLane'] = k?.bossLane ?? null;
       stats['RegenGlobesCollected'] = globes.filter((g) => g.playerSlot === p.slot).length;
       stats['Kills'] = stats['SoloKill'] ?? null;
-      // solo kills recomputed from the death events: the only player among the killers
       stats['SoloKill'] = deaths.filter((d) => {
         const killers = all(d, 'KillingPlayer').map(Number);
         return killers.includes(playerId) && !killers.some((id) => id <= 10 && id !== playerId);
@@ -117,7 +127,6 @@ export const playerStats: Analyser<PlayerStats> = {
         return d.playerSlot === p.slot && killers.length === 1 && killers[0]! > 10;
       }).length;
 
-      // disconnect time from the leave/join sequence
       const presence = [
         ...myLeaves.map((e) => ({ loop: e.gameloop, left: true })),
         ...myJoins.map((e) => ({ loop: e.gameloop, left: false })),
@@ -194,7 +203,6 @@ export const playerStats: Analyser<PlayerStats> = {
       if (ctx.statSupport['PercentDamageHealed']?.support === 'flawed') {
         s['PercentDamageHealed'] = n('Healing') / (heroDamageAgainst[team] || 1);
       }
-      // the build's limits: unsupported → null, warriors-only → null for everyone else
       for (const name of Object.keys(s)) {
         if (unsupported(name)) s[name] = null;
         else if (warriorsOnly(name) && p.role !== 'warrior') s[name] = null;
@@ -202,13 +210,13 @@ export const playerStats: Analyser<PlayerStats> = {
     }
 
     return {
-      statSupport: ctx.statSupport,
-      players: players.map((p) => ({
+      playerStats: players.map((p) => ({
         ...ref(p),
         silenced: p.silenced,
         voiceSilenced: p.voiceSilenced,
-        stats: table.get(p.slot)!,
+        ...table.get(p.slot)!,
       })),
+      playerStatsSupport: [{ statSupport: ctx.statSupport }],
     };
   },
 };

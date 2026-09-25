@@ -1,5 +1,5 @@
 import type {
-  DerivedRecord,
+  AnalyserRunRecord,
   NormalizedReplay,
   RecordOf,
   ReplayCollectionName,
@@ -31,23 +31,41 @@ export interface StatSupportEntry {
 /** Stat name → how far this replay's build supports it (absent = full). */
 export type StatSupportTable = Readonly<Record<string, StatSupportEntry>>;
 
-/** Equality filter over a collection's fields. */
-export type Where<K extends ReplayCollectionName> = Partial<RecordOf<K>>;
+/** Equality filter over a table's fields. */
+export type Where<T> = Partial<T>;
+
+/** A row an analyser emits: any plain object; the framework stamps `replayId` (and `paramsHash`). */
+export type AnalyserRow = object;
+
+/** What `run()` returns: rows per declared table. Tables not mentioned get no rows. */
+export type AnalyserRows = Readonly<Record<string, readonly AnalyserRow[]>>;
+
+/** Stamped on every stored analyser row. */
+export interface StampedRow {
+  readonly replayId: string;
+  /** Present on rows of parameterized runs only. */
+  readonly paramsHash?: string;
+}
 
 /**
- * What an analyser sees. At ingest `read()` is backed by the in-memory normalized
- * replay; lazily it is backed by the store — the same analyser code runs in both.
+ * What an analyser sees. At ingest `read()` is backed by the in-memory replay and by the
+ * rows earlier analysers produced; lazily it is backed by the store — the same analyser
+ * code runs in both.
  */
 export interface AnalyserContext {
   readonly replay: ReplayRecord;
+  /** A core collection of this replay, optionally filtered by field equality. */
   read<K extends ReplayCollectionName>(
     collection: K,
-    where?: Where<K>,
+    where?: Where<RecordOf<K>>,
   ): Promise<readonly RecordOf<K>[]>;
-  /** Results of the analysers this one `dependsOn`, by id. */
-  readonly results: Readonly<Record<string, unknown>>;
+  /** An analyser table's rows for this replay (a dependency's output), optionally filtered. */
+  readTable<T extends AnalyserRow = AnalyserRow>(
+    table: string,
+    where?: Where<T>,
+  ): Promise<readonly T[]>;
   readonly statSupport: StatSupportTable;
-  /** Optional services a host registers (hero data, ability names, …). */
+  /** Optional services a host registers (hero data, …). */
   readonly services: Readonly<Record<string, unknown>>;
   /** Fine-grained progress for long analysers; optional to call. */
   progress(current: number, total: number): void;
@@ -59,23 +77,31 @@ export interface AnalyserCacheOptions {
 }
 
 /**
- * A versioned pure function over the normalized replay. Replay data never changes,
- * so the result is a function of (replay, params) and cached under that key.
+ * A versioned pure function over the normalized replay that writes rows into tables
+ * it declares. Replay data never changes, so the rows are a function of
+ * (replay, params); the run is recorded under that key.
  */
-export interface Analyser<TResult = unknown, TParams = void> {
+export interface Analyser<TRows extends AnalyserRows = AnalyserRows, TParams = void> {
   /** Namespaced: `@myrddraall/score-screen`, `com.example.my-stat`. */
   readonly id: string;
-  /** Bump when the output changes shape or meaning; stale results are recomputed. */
+  /** Bump when the tables or their meaning change; stale runs are recomputed. */
   readonly version: number;
-  /** Collections it reads; lets a store load only those. */
+  /**
+   * The analyser's tables as Dexie schema strings. Names must be unique across the
+   * database, and every primary key must start with `replayId` so a replay's rows are one
+   * range (`[replayId+slot]`, `[replayId+seq]`, or just `replayId` for one row per replay).
+   * Parameterized analysers include `paramsHash` in the key.
+   */
+  readonly tables: Readonly<Record<string, string>>;
+  /** Core collections it reads; lets a store load only those. */
   readonly inputs: readonly ReplayCollectionName[];
   readonly dependsOn?: readonly string[];
   readonly mode: AnalyserMode;
   readonly cache?: AnalyserCacheOptions;
-  run(ctx: AnalyserContext, params: TParams): TResult | Promise<TResult>;
+  run(ctx: AnalyserContext, params: TParams): TRows | Promise<TRows>;
 }
 
-export type AnyAnalyser = Analyser<unknown, unknown>;
+export type AnyAnalyser = Analyser<AnalyserRows, unknown>;
 
 export interface RegisterOptions {
   /** Override the analyser's declared mode for this registry. */
@@ -108,4 +134,4 @@ export interface RunClock {
   ms(): number;
 }
 
-export type { DerivedRecord, NormalizedReplay };
+export type { AnalyserRunRecord, NormalizedReplay };

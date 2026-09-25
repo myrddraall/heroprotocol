@@ -1,86 +1,53 @@
 import type { Analyser, Team } from '@myrddraall/heroprotocol-db';
-import { all, int, NS, participants, str } from './shared.js';
+import { all, int, NS, participants, str, withSeq } from './shared.js';
 
-export type TimelineEvent =
-  | {
-      readonly kind: 'alive';
-      readonly slot: number;
-      readonly team: Team | null;
-      readonly start: number;
-      readonly end: number;
-    }
-  | {
-      readonly kind: 'dead';
-      readonly slot: number;
-      readonly team: Team | null;
-      readonly start: number;
-      readonly end: number;
-    }
-  | {
-      readonly kind: 'death';
-      readonly slot: number;
-      readonly team: Team | null;
-      readonly start: number;
-      readonly killers: readonly number[];
-      readonly x: number | null;
-      readonly y: number | null;
-    }
-  | {
-      readonly kind: 'level';
-      readonly slot: number;
-      readonly team: Team | null;
-      readonly start: number;
-      readonly level: number;
-    }
-  | {
-      readonly kind: 'talent';
-      readonly slot: number;
-      readonly team: Team | null;
-      readonly start: number;
-      readonly talent: string;
-      readonly level: number;
-    }
-  | {
-      readonly kind: 'team-level';
-      readonly team: Team;
-      readonly start: number;
-      readonly level: number;
-    }
-  | {
-      readonly kind: 'structure-death';
-      readonly team: Team | null;
-      readonly start: number;
-      readonly unitType: string;
-      readonly townId: number | null;
-      readonly killerSlot: number | null;
-    }
-  | {
-      readonly kind: 'camp-capture';
-      readonly team: Team | null;
-      readonly start: number;
-      readonly campId: number | null;
-      readonly campType: string | null;
-    }
-  | {
-      readonly kind: 'objective';
-      readonly team: Team | null;
-      readonly start: number;
-      readonly name: string;
-      readonly values: Readonly<Record<string, number | string>>;
-    }
-  | { readonly kind: 'core-death'; readonly team: Team | null; readonly start: number }
-  | {
-      readonly kind: 'left';
-      readonly slot: number;
-      readonly team: Team | null;
-      readonly start: number;
-    };
+export type TimelineKind =
+  | 'alive'
+  | 'dead'
+  | 'death'
+  | 'level'
+  | 'talent'
+  | 'team-level'
+  | 'structure-death'
+  | 'camp-capture'
+  | 'objective'
+  | 'core-death'
+  | 'left';
 
-export interface Timeline {
-  readonly durationLoops: number;
-  /** Every event, by gameloop (`start`); lifespan segments also carry `end`. */
-  readonly events: readonly TimelineEvent[];
+/**
+ * One row per timeline event, by gameloop (`start`); lifespan spans (`alive`/`dead`)
+ * also carry `end`. Kind-specific fields are null when they do not apply.
+ */
+export interface TimelineEventRow {
+  readonly seq: number;
+  readonly kind: TimelineKind;
+  readonly start: number;
+  readonly end: number | null;
+  readonly slot: number | null;
+  readonly team: Team | null;
+  /** `level`, `talent`, `team-level` */
+  readonly level: number | null;
+  /** `talent` */
+  readonly talent: string | null;
+  /** `death`: PlayerIDs of the killers */
+  readonly killers: readonly number[] | null;
+  readonly x: number | null;
+  readonly y: number | null;
+  /** `structure-death` */
+  readonly unitType: string | null;
+  readonly townId: number | null;
+  readonly killerSlot: number | null;
+  /** `camp-capture` */
+  readonly campId: number | null;
+  readonly campType: string | null;
+  /** `objective`: the stat event's name and values */
+  readonly name: string | null;
+  readonly values: Readonly<Record<string, number | string>> | null;
 }
+
+export type TimelineTables = {
+  readonly timelineEvents: TimelineEventRow[];
+};
 
 /** Stat events that are neither player-level nor already represented, kept as generic map objectives. */
 const NOT_OBJECTIVES = new Set([
@@ -106,33 +73,53 @@ const NOT_OBJECTIVES = new Set([
   'EndOfGameUpVotesCollected',
 ]);
 
+type Draft = Omit<TimelineEventRow, 'seq'>;
+const blank: Omit<Draft, 'kind' | 'start'> = {
+  end: null,
+  slot: null,
+  team: null,
+  level: null,
+  talent: null,
+  killers: null,
+  x: null,
+  y: null,
+  unitType: null,
+  townId: null,
+  killerSlot: null,
+  campId: null,
+  campType: null,
+  name: null,
+  values: null,
+};
+
 /**
  * The game as a timeline: per-player alive/dead spans, deaths with killers, level-ups
  * and talent picks (the 2018 version emitted level-ups twice and talents never),
- * team levels, structure deaths, camp captures, map objectives and the core's death.
+ * team levels, structure deaths, camp captures, map objectives, the core's death, leavers.
  */
-export const timeline: Analyser<Timeline> = {
+export const timeline: Analyser<TimelineTables> = {
   id: `${NS}timeline`,
-  version: 1,
+  version: 2,
+  tables: { timelineEvents: '[replayId+seq], replayId, [replayId+kind], [replayId+slot], start' },
   inputs: ['players', 'statEvents', 'units', 'events'],
   mode: 'background',
   async run(ctx) {
-    const [players, stats, units, left] = await Promise.all([
+    const [players, stats, cores, left, revives] = await Promise.all([
       participants(ctx),
       ctx.read('statEvents'),
       ctx.read('units', { unitClass: 'core' }),
       ctx.read('events', { kind: 'PlayerLeft' }),
+      ctx.read('events', { kind: 'UnitRevived' }),
     ]);
     const teamOf = new Map(players.map((p) => [p.slot, p.team]));
-    const events: TimelineEvent[] = [];
+    const events: Draft[] = [];
     const duration = ctx.replay.durationLoops;
+    const push = (e: Partial<Draft> & Pick<Draft, 'kind' | 'start'>): void => {
+      events.push({ ...blank, ...e });
+    };
 
-    // lifespans: alive from spawn, dead from death to the next revive
     const spawns = stats.filter((e) => e.eventName === 'PlayerSpawned');
     const deaths = stats.filter((e) => e.eventName === 'PlayerDeath');
-    const revives = (await ctx.read('events', { kind: 'UnitRevived' })).filter(
-      (e) => e.playerSlot !== null,
-    );
     for (const p of players) {
       const marks = [
         ...spawns
@@ -149,7 +136,7 @@ export const timeline: Analyser<Timeline> = {
       for (const m of marks) {
         if (state && state.alive === m.alive) continue;
         if (state)
-          events.push({
+          push({
             kind: state.alive ? 'alive' : 'dead',
             slot: p.slot,
             team: p.team,
@@ -159,7 +146,7 @@ export const timeline: Analyser<Timeline> = {
         state = { alive: m.alive, start: state ? m.loop : 0 };
       }
       if (state)
-        events.push({
+        push({
           kind: state.alive ? 'alive' : 'dead',
           slot: p.slot,
           team: p.team,
@@ -173,7 +160,7 @@ export const timeline: Analyser<Timeline> = {
       switch (e.eventName) {
         case 'PlayerDeath':
           if (slot !== null)
-            events.push({
+            push({
               kind: 'death',
               slot,
               team: teamOf.get(slot) ?? null,
@@ -185,7 +172,7 @@ export const timeline: Analyser<Timeline> = {
           break;
         case 'LevelUp':
           if (slot !== null)
-            events.push({
+            push({
               kind: 'level',
               slot,
               team: teamOf.get(slot) ?? null,
@@ -198,7 +185,7 @@ export const timeline: Analyser<Timeline> = {
           const pick = players
             .find((p) => p.slot === slot)
             ?.talents.find((t) => t.gameloop === e.gameloop);
-          events.push({
+          push({
             kind: 'talent',
             slot,
             team: teamOf.get(slot) ?? null,
@@ -210,7 +197,7 @@ export const timeline: Analyser<Timeline> = {
         }
         case 'PeriodicXPBreakdown':
           if (e.team !== null)
-            events.push({
+            push({
               kind: 'team-level',
               team: e.team,
               start: e.gameloop,
@@ -220,7 +207,7 @@ export const timeline: Analyser<Timeline> = {
         case 'TownStructureDeath': {
           const killer = int(e, 'KillingPlayer');
           const killerSlot = killer !== null && killer >= 1 && killer <= 10 ? killer - 1 : null;
-          events.push({
+          push({
             kind: 'structure-death',
             team: killerSlot === null ? null : (teamOf.get(killerSlot) ?? null),
             start: e.gameloop,
@@ -231,7 +218,7 @@ export const timeline: Analyser<Timeline> = {
           break;
         }
         case 'JungleCampCapture':
-          events.push({
+          push({
             kind: 'camp-capture',
             team: e.team,
             start: e.gameloop,
@@ -241,7 +228,7 @@ export const timeline: Analyser<Timeline> = {
           break;
         default:
           if (!NOT_OBJECTIVES.has(e.eventName))
-            events.push({
+            push({
               kind: 'objective',
               team: e.team,
               start: e.gameloop,
@@ -250,9 +237,9 @@ export const timeline: Analyser<Timeline> = {
             });
       }
     }
-    for (const core of units)
+    for (const core of cores)
       if (core.diedAtLoop !== null)
-        events.push({ kind: 'core-death', team: core.ownerTeam, start: core.diedAtLoop });
+        push({ kind: 'core-death', team: core.ownerTeam, start: core.diedAtLoop });
     for (const e of left) {
       if (
         e.playerSlot !== null &&
@@ -260,10 +247,10 @@ export const timeline: Analyser<Timeline> = {
         e.gameloop > 0 &&
         e.gameloop < duration
       ) {
-        events.push({ kind: 'left', slot: e.playerSlot, team: e.team, start: e.gameloop });
+        push({ kind: 'left', slot: e.playerSlot, team: e.team, start: e.gameloop });
       }
     }
     events.sort((a, b) => a.start - b.start);
-    return { durationLoops: duration, events };
+    return { timelineEvents: withSeq(events) };
   },
 };

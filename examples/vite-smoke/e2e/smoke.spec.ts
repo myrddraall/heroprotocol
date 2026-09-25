@@ -22,17 +22,21 @@ const EXPECT = {
   worker: {
     ready: 'smoke/hero-count:ready',
     background: 'smoke/commands-per-player=done',
-    derived: ['smoke/hero-count - v1 → 10', 'smoke/commands-per-player', 'smoke/deaths-near'],
+    derived: ['smoke/hero-count - v1', 'smoke/commands-per-player - v1', 'smoke/deaths-near'],
   },
   url: {
     ready: 'smoke/hero-count:ready',
     background: 'smoke/commands-per-player=done',
-    derived: ['smoke/hero-count - v1 → 10', 'smoke/commands-per-player', 'smoke/deaths-near'],
+    derived: ['smoke/hero-count - v1', 'smoke/commands-per-player - v1', 'smoke/deaths-near'],
   },
   prebuilt: {
     ready: '@myrddraall/description:ready',
     background: '@myrddraall/timeline=done',
-    derived: ['@myrddraall/score-screen', '@myrddraall/xp-curve', '@myrddraall/death-heatmap'],
+    derived: [
+      '@myrddraall/score-screen - v2',
+      '@myrddraall/xp-curve - v2',
+      '@myrddraall/death-heatmap',
+    ],
   },
 } as const;
 
@@ -82,9 +86,8 @@ for (const mode of ['worker', 'url', 'prebuilt'] as const) {
       phases: string[];
     };
     expect(value.cached).toBe(true);
-    const near =
-      mode === 'prebuilt' ? (value.near as { total: number }).total : (value.near as number);
-    expect(near).toBeGreaterThanOrEqual(0);
+    expect(value.near).not.toBeNull();
+    expect((value.near as { total: number }).total).toBeGreaterThanOrEqual(0);
     expect(errors).toEqual([]);
   });
 }

@@ -22,27 +22,30 @@ export async function bulkAddChunked<T>(
 
 /**
  * The rows of one replay in a table whose primary key starts with `replayId`, as a
- * single primary-key range. Works for keys of any length: `[id, minKey]` sorts
- * before and `[id, maxKey]` after every longer key with the same first element.
+ * single primary-key range. Works for keys of any length: `[id, minKey]` sorts before
+ * and `[id, maxKey]` after every longer key with the same first element, and the plain
+ * key `replayId` (one row per replay) is matched exactly.
  */
 export function replayRange<T>(table: Table<T, unknown>, replayId: string): Collection<T, unknown> {
+  const primary = table.schema.primKey.src;
+  if (primary === 'replayId' || primary === '&replayId') return table.where(':id').equals(replayId);
   return table.where(':id').between([replayId, Dexie.minKey], [replayId, Dexie.maxKey], true, true);
 }
 
 /** Delete every row of a replay except the `replays` record itself — one range delete per table. */
 export async function deleteReplayRows(db: HeroDb, replayId: string): Promise<void> {
-  for (const name of REPLAY_COLLECTIONS) {
-    await replayRange(db.table(name) as Table<unknown, unknown>, replayId).delete();
+  for (const table of db.replayTables) {
+    if (table.name === 'replays') continue;
+    if (table.name === 'replayFiles') await db.replayFiles.delete(replayId);
+    else await replayRange(table as Table<unknown, unknown>, replayId).delete();
   }
-  await replayRange(db.derived as Table<unknown, unknown>, replayId).delete();
-  await db.replayFiles.delete(replayId);
 }
 
 /**
  * Write a normalized replay atomically: one read-write transaction that removes any
- * previous rows for the same id and inserts the new ones. Re-ingesting a replay
- * therefore always replaces it — that is the idempotency, and there is no policy knob.
- * A failure anywhere leaves the database as it was.
+ * previous rows for the same id (core and analyser tables alike) and inserts the new
+ * ones. Re-ingesting a replay therefore always replaces it. A failure anywhere leaves
+ * the database as it was.
  */
 export async function writeReplay(
   db: HeroDb,

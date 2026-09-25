@@ -32,7 +32,7 @@ const client = createReplayDb({ workerUrl: '/assets/hero-worker/worker.js' });
   is an RxJS-compatible observable (`from(liveQuery(...))`), and it fires when the
   worker commits — ingest progress in the list for free. Fine-grained progress is the
   `IngestStatus` stream from `client.ingest()`.
-- **Results**: `client.db.derived.get([replayId, '@myrddraall/score-screen', '-'])`, or
+- **Results**: each analyser's own tables, e.g. `client.db.table('scoreScreenPlayers').where('replayId').equals(replayId).toArray()` (the analysis README lists them), or
   `client.analyse(replayId, id, { params })` for lazy ones (computed once, then cached).
 - **Names**: `heroData.forBuild(replay.version.baseBuild)` once per replay; wrap the
   provider's `cache` over IndexedDB (a `meta`-style table) so the ~5 MB per build is

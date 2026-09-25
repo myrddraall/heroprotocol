@@ -328,14 +328,16 @@ export interface ChatRecord {
   readonly point: Point | null;
 }
 
-/** An analyser's persisted result. */
-export interface DerivedRecord {
+/**
+ * One analyser run on one replay. Results live in the tables the analyser declares;
+ * this is the bookkeeping that says which version ran, when, and whether it failed.
+ */
+export interface AnalyserRunRecord {
   readonly replayId: string;
   readonly analyserId: string;
   /** Stable hash of the parameters (`'-'` for an unparameterized run). */
   readonly paramsHash: string;
   readonly analyserVersion: number;
-  readonly result: unknown;
   readonly error: string | null;
   /** ISO-8601. */
   readonly computedAt: string;
@@ -371,7 +373,7 @@ export type ReplayCollectionName =
   'players' | 'scoreResults' | 'statEvents' | 'units' | 'commands' | 'events' | 'chat';
 
 export type CollectionName =
-  'replays' | ReplayCollectionName | 'derived' | 'replayFiles' | 'ingestJobs' | 'meta';
+  'replays' | ReplayCollectionName | 'analyserRuns' | 'replayFiles' | 'ingestJobs' | 'meta';
 
 export interface RecordTypes {
   replays: ReplayRecord;
@@ -382,7 +384,7 @@ export interface RecordTypes {
   commands: CommandRecord;
   events: EventRecord;
   chat: ChatRecord;
-  derived: DerivedRecord;
+  analyserRuns: AnalyserRunRecord;
   replayFiles: ReplayFileRecord;
   ingestJobs: IngestJobRecord;
   meta: MetaRecord;

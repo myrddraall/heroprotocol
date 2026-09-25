@@ -1,5 +1,5 @@
 import type { Analyser, Team, UnitRecord } from '@myrddraall/heroprotocol-db';
-import { int, NS, statEvents } from './shared.js';
+import { int, NS, statEvents, withSeq } from './shared.js';
 
 export type PoiType =
   | 'core'
@@ -12,7 +12,8 @@ export type PoiType =
   | 'jungle-camp'
   | 'structure';
 
-export interface PointOfInterest {
+export interface PointOfInterestRow {
+  readonly seq: number;
   readonly type: PoiType;
   readonly x: number;
   readonly y: number;
@@ -24,10 +25,16 @@ export interface PointOfInterest {
   readonly diedAtLoop: number | null;
 }
 
-export interface PointsOfInterest {
-  readonly mapSize: { readonly x: number; readonly y: number } | null;
-  readonly points: readonly PointOfInterest[];
+export interface MapInfoRow {
+  readonly width: number | null;
+  readonly height: number | null;
+  readonly points: number;
 }
+
+export type PointsOfInterestTables = {
+  readonly pointsOfInterest: PointOfInterestRow[];
+  readonly mapInfo: MapInfoRow[];
+};
 
 function poiType(u: UnitRecord): PoiType | null {
   const t = u.bornType ?? u.type;
@@ -43,9 +50,13 @@ function poiType(u: UnitRecord): PoiType | null {
 }
 
 /** Static map features from the units and camp-init events; map-specific mechanics are out of scope. */
-export const pointsOfInterest: Analyser<PointsOfInterest> = {
+export const pointsOfInterest: Analyser<PointsOfInterestTables> = {
   id: `${NS}points-of-interest`,
-  version: 1,
+  version: 2,
+  tables: {
+    pointsOfInterest: '[replayId+seq], replayId, [replayId+type], team',
+    mapInfo: 'replayId',
+  },
   inputs: ['units', 'statEvents'],
   mode: 'background',
   async run(ctx) {
@@ -55,7 +66,7 @@ export const pointsOfInterest: Analyser<PointsOfInterest> = {
       statEvents(ctx, 'GameStart'),
       statEvents(ctx, 'JungleCampInit'),
     ]);
-    const points: PointOfInterest[] = [];
+    const points: Omit<PointOfInterestRow, 'seq'>[] = [];
     for (const u of [...cores, ...structures]) {
       const type = poiType(u);
       if (type === null) continue;
@@ -82,9 +93,17 @@ export const pointsOfInterest: Analyser<PointsOfInterest> = {
         diedAtLoop: null,
       });
     }
-    const gs = start[0];
-    const mapSize = gs ? { x: int(gs, 'MapSizeX') ?? 0, y: int(gs, 'MapSizeY') ?? 0 } : null;
     points.sort((a, b) => a.type.localeCompare(b.type) || a.x - b.x || a.y - b.y);
-    return { mapSize, points };
+    const gs = start[0];
+    return {
+      pointsOfInterest: withSeq(points),
+      mapInfo: [
+        {
+          width: gs ? int(gs, 'MapSizeX') : null,
+          height: gs ? int(gs, 'MapSizeY') : null,
+          points: points.length,
+        },
+      ],
+    };
   },
 };

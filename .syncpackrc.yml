@@ -11,6 +11,12 @@ versionGroups:
     pinVersion: 'workspace:*'
 
 semverGroups:
+  - label: Playwright stays on the last line with a Debian 11 Chromium (the devcontainer)
+    range: '~'
+    dependencies:
+      - '@playwright/test'
+    packages:
+      - '**'
   - label: Use caret ranges for dependencies
     range: '^'
     dependencies:

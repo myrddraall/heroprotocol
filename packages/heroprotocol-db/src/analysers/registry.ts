@@ -1,4 +1,11 @@
-import type { AnalyserMode, AnalyserRegistration, AnyAnalyser, RegisterOptions } from './types.js';
+import type {
+  Analyser,
+  AnalyserMode,
+  AnalyserRegistration,
+  AnalyserRows,
+  AnyAnalyser,
+  RegisterOptions,
+} from './types.js';
 import { MODE_ORDER } from './types.js';
 
 export class AnalyserRegistrationError extends Error {
@@ -8,22 +15,69 @@ export class AnalyserRegistrationError extends Error {
   }
 }
 
+/** Core store names an analyser may not reuse. */
+export const RESERVED_TABLES: ReadonlySet<string> = new Set([
+  'replays',
+  'players',
+  'scoreResults',
+  'statEvents',
+  'units',
+  'commands',
+  'events',
+  'chat',
+  'analyserRuns',
+  'replayFiles',
+  'ingestJobs',
+  'meta',
+]);
+
+/** The primary key of a Dexie schema string: the first comma-separated spec. */
+export function primaryKeyOf(schema: string): string {
+  return schema.split(',')[0]!.trim();
+}
+
+/** Whether a primary key starts with `replayId`: `replayId`, `[replayId+…]`. */
+export function keyStartsWithReplayId(primaryKey: string): boolean {
+  const key = primaryKey.replace(/^&/, '');
+  return key === 'replayId' || key.startsWith('[replayId+');
+}
+
 /**
- * The set of analysers a host runs. Registration is by id (duplicates are an
- * error), modes may be overridden per host, and `validate()` checks the dependency
- * graph: every dependency registered, no cycles, and no analyser depending on one
- * that runs later than itself (`ready` → `background` is forbidden; the reverse is fine).
+ * The set of analysers a host runs. Registration is by id (duplicates are an error),
+ * modes may be overridden per host, table names are checked for uniqueness and for a
+ * `replayId`-first primary key, and `validate()` checks the dependency graph: every
+ * dependency registered, no cycles, and no analyser depending on one that runs later.
  */
 export class AnalyserRegistry {
   private readonly entries = new Map<string, AnalyserRegistration>();
+  private readonly tableOwners = new Map<string, string>();
 
-  register<T, P>(
-    analyser: import('./types.js').Analyser<T, P>,
+  register<T extends AnalyserRows, P>(
+    analyser: Analyser<T, P>,
     options: RegisterOptions = {},
   ): this {
     if (this.entries.has(analyser.id)) {
       throw new AnalyserRegistrationError(`analyser '${analyser.id}' is already registered`);
     }
+    for (const [table, schema] of Object.entries(analyser.tables)) {
+      if (RESERVED_TABLES.has(table)) {
+        throw new AnalyserRegistrationError(
+          `analyser '${analyser.id}' declares table '${table}', which is a core table`,
+        );
+      }
+      const owner = this.tableOwners.get(table);
+      if (owner !== undefined) {
+        throw new AnalyserRegistrationError(
+          `analyser '${analyser.id}' declares table '${table}', already declared by '${owner}'`,
+        );
+      }
+      if (!keyStartsWithReplayId(primaryKeyOf(schema))) {
+        throw new AnalyserRegistrationError(
+          `analyser '${analyser.id}' table '${table}': primary key must start with replayId (got '${primaryKeyOf(schema)}')`,
+        );
+      }
+    }
+    for (const table of Object.keys(analyser.tables)) this.tableOwners.set(table, analyser.id);
     this.entries.set(analyser.id, {
       analyser: analyser as AnyAnalyser,
       mode: options.mode ?? analyser.mode,
@@ -43,6 +97,18 @@ export class AnalyserRegistry {
   list(mode?: AnalyserMode): AnalyserRegistration[] {
     const all = [...this.entries.values()];
     return mode === undefined ? all : all.filter((r) => r.mode === mode);
+  }
+
+  /** Every analyser table with its schema — what the database adds to the core stores. */
+  tables(): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const { analyser } of this.entries.values()) Object.assign(out, analyser.tables);
+    return out;
+  }
+
+  /** Which analyser declared a table. */
+  ownerOf(table: string): string | undefined {
+    return this.tableOwners.get(table);
   }
 
   /** Throws `AnalyserRegistrationError` describing the first problem found. */

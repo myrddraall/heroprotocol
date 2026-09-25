@@ -1,29 +1,29 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { liveQuery } from 'dexie';
 import {
+  analyse,
   createReplayDb,
   createRegistry,
   createWorker,
   HeroDb,
-  type DerivedRecord,
   type NormalizedReplay,
   type WorkerLike,
   type WorkerScope,
 } from '@myrddraall/heroprotocol-db';
 import { builtins } from '../src/builtins.js';
-import { createBuiltinRegistry } from '../src/index.js';
-import type { Description } from '../src/analysers/description.js';
-import type { ScoreScreen } from '../src/analysers/scoreScreen.js';
-import type { PlayerStats } from '../src/analysers/playerStats.js';
-import type { Draft } from '../src/analysers/draft.js';
-import type { Timeline } from '../src/analysers/timeline.js';
-import type { XpCurve } from '../src/analysers/xpCurve.js';
-import type { UnitKills } from '../src/analysers/unitKills.js';
-import type { ChatLine } from '../src/analysers/chat.js';
-import type { PlayerCommands } from '../src/analysers/commands.js';
-import type { DeathHeatmap } from '../src/analysers/deathHeatmap.js';
-import type { PointsOfInterest } from '../src/analysers/pointsOfInterest.js';
-import type { PlayerTalents } from '../src/analysers/talents.js';
+import { builtinTables, createBuiltinRegistry } from '../src/index.js';
+import type { DescriptionPlayerRow, DescriptionRow } from '../src/analysers/description.js';
+import type { ScoreScreenPlayerRow, ScoreScreenTeamRow } from '../src/analysers/scoreScreen.js';
+import type { PlayerStatsRow, PlayerStatsSupportRow } from '../src/analysers/playerStats.js';
+import type { DraftRow, DraftStepRow } from '../src/analysers/draft.js';
+import type { TimelineEventRow } from '../src/analysers/timeline.js';
+import type { XpPointRow } from '../src/analysers/xpCurve.js';
+import type { PlayerKillsRow, TeamKillsRow } from '../src/analysers/unitKills.js';
+import type { ChatLineRow } from '../src/analysers/chat.js';
+import type { CommandStatsRow } from '../src/analysers/commands.js';
+import type { DeathHeatmapCellRow, DeathHeatmapRow } from '../src/analysers/deathHeatmap.js';
+import type { PointOfInterestRow } from '../src/analysers/pointsOfInterest.js';
+import type { TalentPickRow } from '../src/analysers/talents.js';
 import { goldenFor, localReplays, normalizeLocal, readLocal, stable } from './util.js';
 import { runFromStore, runInMemory } from './run.js';
 
@@ -40,7 +40,7 @@ afterEach(async () => {
 });
 
 describe('registry', () => {
-  it('registers every built-in with a valid dependency graph, in viewer order', () => {
+  it('registers every built-in with a valid dependency graph and unique replayId-first tables, in viewer order', () => {
     const reg = createBuiltinRegistry();
     expect(() => reg.validate()).not.toThrow();
     expect(reg.list('ready').map((r) => r.analyser.id)).toEqual([
@@ -61,19 +61,60 @@ describe('registry', () => {
       '@myrddraall/commands',
       '@myrddraall/death-heatmap',
     ]);
-    expect(builtins.every((a) => a.id.startsWith('@myrddraall/') && a.version >= 1)).toBe(true);
+    const tables = builtinTables();
+    expect(Object.keys(tables).sort()).toEqual([
+      'abilityUses',
+      'chatLines',
+      'commandStats',
+      'deathHeatmapCells',
+      'deathHeatmaps',
+      'description',
+      'descriptionPlayers',
+      'draft',
+      'draftSteps',
+      'mapInfo',
+      'playerStats',
+      'playerStatsSupport',
+      'pointsOfInterest',
+      'scoreScreenPlayers',
+      'scoreScreenTeams',
+      'talentPicks',
+      'teamUnitKills',
+      'timelineEvents',
+      'unitKills',
+      'xpPoints',
+    ]);
+    expect(builtins.every((a) => a.id.startsWith('@myrddraall/') && a.version >= 2)).toBe(true);
   });
 });
 
 describe.skipIf(replays.length === 0)('built-in analysers on real replays', () => {
   describe.each(replays)('%s', (file) => {
-    it('produce identical results at ingest (memory) and lazily (store)', async () => {
+    it('produce identical rows at ingest (memory) and lazily (store)', async () => {
       const f = fixtures.get(file)!;
       const mem = await runInMemory(f);
       const { results, db } = await runFromStore(f, `analysis-${n++}`);
       dbs.push(db);
       expect(Object.keys(results).sort()).toEqual(Object.keys(mem).sort());
       for (const id of Object.keys(mem)) expect(stable(results[id]), id).toEqual(stable(mem[id]));
+      // and the store holds exactly those rows, queryable through the analysers' indexes
+      expect(
+        await db
+          .table('scoreScreenPlayers')
+          .where('[replayId+slot]')
+          .equals([f.replay.id, 0])
+          .count(),
+      ).toBe(1);
+      expect(
+        await db
+          .table('timelineEvents')
+          .where('[replayId+kind]')
+          .equals([f.replay.id, 'death'])
+          .count(),
+      ).toBe(f.statEvents.filter((s) => s.eventName === 'PlayerDeath').length);
+      expect(
+        await db.table('scoreScreenPlayers').where('awards').equals('MVP').count(),
+      ).toBeLessThanOrEqual(1);
     });
 
     it('match the committed golden', async () => {
@@ -88,97 +129,109 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
     it('hold the invariants the 2018 viewer relied on, without its bugs', async () => {
       const f = fixtures.get(file)!;
       const r = await runInMemory(f);
-      const description = r['@myrddraall/description'] as Description;
-      const score = r['@myrddraall/score-screen'] as ScoreScreen;
-      const stats = r['@myrddraall/player-stats'] as PlayerStats;
-      const draft = r['@myrddraall/draft'] as Draft;
-      const tl = r['@myrddraall/timeline'] as Timeline;
-      const xp = r['@myrddraall/xp-curve'] as XpCurve;
-      const kills = r['@myrddraall/unit-kills'] as UnitKills;
-      const chat = r['@myrddraall/chat'] as ChatLine[];
-      const cmds = r['@myrddraall/commands'] as PlayerCommands[];
-      const heat = r['@myrddraall/death-heatmap#-'] as DeathHeatmap;
-      const poi = r['@myrddraall/points-of-interest'] as PointsOfInterest;
-      const talents = r['@myrddraall/talents'] as PlayerTalents[];
+      const t = <T>(id: string, table: string): T[] => r[id]![table] as T[];
+      const [description] = t<DescriptionRow>('@myrddraall/description', 'description');
+      const descPlayers = t<DescriptionPlayerRow>('@myrddraall/description', 'descriptionPlayers');
+      const scorePlayers = t<ScoreScreenPlayerRow>(
+        '@myrddraall/score-screen',
+        'scoreScreenPlayers',
+      );
+      const scoreTeams = t<ScoreScreenTeamRow>('@myrddraall/score-screen', 'scoreScreenTeams');
+      const stats = t<PlayerStatsRow>('@myrddraall/player-stats', 'playerStats');
+      const [support] = t<PlayerStatsSupportRow>('@myrddraall/player-stats', 'playerStatsSupport');
+      const [draft] = t<DraftRow>('@myrddraall/draft', 'draft');
+      const steps = t<DraftStepRow>('@myrddraall/draft', 'draftSteps');
+      const tl = t<TimelineEventRow>('@myrddraall/timeline', 'timelineEvents');
+      const xp = t<XpPointRow>('@myrddraall/xp-curve', 'xpPoints');
+      const kills = t<PlayerKillsRow>('@myrddraall/unit-kills', 'unitKills');
+      const teamKills = t<TeamKillsRow>('@myrddraall/unit-kills', 'teamUnitKills');
+      const chat = t<ChatLineRow>('@myrddraall/chat', 'chatLines');
+      const cmds = t<CommandStatsRow>('@myrddraall/commands', 'commandStats');
+      const [heat] = t<DeathHeatmapRow>('@myrddraall/death-heatmap#-', 'deathHeatmaps');
+      const cells = t<DeathHeatmapCellRow>('@myrddraall/death-heatmap#-', 'deathHeatmapCells');
+      const poi = t<PointOfInterestRow>('@myrddraall/points-of-interest', 'pointsOfInterest');
+      const talents = t<TalentPickRow>('@myrddraall/talents', 'talentPicks');
 
-      // description: ten participants, the winner is consistent
-      expect(description.players).toHaveLength(10);
+      // description: one replay row, ten participants, the winner is consistent
+      expect(description!.playerCount).toBe(10);
+      expect(descPlayers).toHaveLength(10);
       expect(
-        description.players.filter((p) => p.won).every((p) => p.team === description.winningTeam),
+        descPlayers.filter((p) => p.won).every((p) => p.team === description!.winningTeam),
       ).toBe(true);
-      expect(description.durationSeconds).toBe(f.replay.durationSeconds);
+      expect(description!.durationSeconds).toBe(f.replay.durationSeconds);
 
-      // score screen: each team's kills are the other team's deaths, winner flagged
+      // score screen: each team's kills are the other team's deaths, winner flagged, stats are columns
       const deaths = (team: 0 | 1) =>
-        score.players.filter((p) => p.team === team).reduce((a, p) => a + (p.stats.Deaths ?? 0), 0);
-      expect(score.teams[0]!.kills).toBe(deaths(1));
-      expect(score.teams[1]!.kills).toBe(deaths(0));
-      expect(score.teams.filter((t) => t.won)).toHaveLength(1);
-      expect(score.players.every((p) => p.stats.Takedowns !== null)).toBe(true);
+        scorePlayers.filter((p) => p.team === team).reduce((a, p) => a + (p.Deaths ?? 0), 0);
+      expect(scoreTeams.find((x) => x.team === 0)!.kills).toBe(deaths(1));
+      expect(scoreTeams.find((x) => x.team === 1)!.kills).toBe(deaths(0));
+      expect(scoreTeams.filter((x) => x.won)).toHaveLength(1);
+      expect(scorePlayers.every((p) => p.Takedowns !== null)).toBe(true);
+      expect(scorePlayers.filter((p) => p.mvp).length).toBeLessThanOrEqual(1);
 
-      // player stats: derived fields present, no award booleans, recomputed solo kills ≤ takedowns
-      for (const p of stats.players) {
-        expect(Object.keys(p.stats).some((k) => k.endsWith('Boolean'))).toBe(false);
-        expect(p.stats['KillParticipation']).toBeGreaterThanOrEqual(0);
-        expect(p.stats['KillParticipation']).toBeLessThanOrEqual(1);
-        expect(p.stats['SoloKill']!).toBeLessThanOrEqual(p.stats['Takedowns']!);
-        expect(p.stats['MinionsKilled']).toBe(
-          kills.players.find((k) => k.slot === p.slot)!.kills.minions,
-        );
-        expect(p.stats['RegenGlobesCollected']).toBeGreaterThanOrEqual(0);
-        expect(p.stats['TimeDisconnected']).toBeGreaterThanOrEqual(0);
-        expect(p.stats['Reconnects']).toBeGreaterThanOrEqual(0); // not inflated by the initial join
+      // player stats: derived columns present, no award booleans, recomputed solo kills ≤ takedowns
+      for (const p of stats) {
+        expect(Object.keys(p).some((k) => k.endsWith('Boolean'))).toBe(false);
+        expect(p['KillParticipation']).toBeGreaterThanOrEqual(0);
+        expect(p['KillParticipation']).toBeLessThanOrEqual(1);
+        expect(p['SoloKill'] as number).toBeLessThanOrEqual(p['Takedowns'] as number);
+        expect(p['MinionsKilled']).toBe(kills.find((k) => k.slot === p.slot)!.minions);
+        expect(p['RegenGlobesCollected']).toBeGreaterThanOrEqual(0);
+        expect(p['TimeDisconnected']).toBeGreaterThanOrEqual(0);
+        expect(p['Reconnects']).toBeGreaterThanOrEqual(0);
       }
-      expect(stats.statSupport).toEqual({}); // all three fixtures are ≥ 63507
-      const leaver = description.players.find((p) => p.leftAtSeconds !== null);
+      expect(support!.statSupport).toEqual({});
+      const leaver = descPlayers.find((p) => p.leftAtSeconds !== null);
       if (leaver)
-        expect(
-          stats.players.find((p) => p.slot === leaver.slot)!.stats['TimeDisconnected'],
-        ).toBeGreaterThan(0);
+        expect(stats.find((p) => p.slot === leaver.slot)!['TimeDisconnected']).toBeGreaterThan(0);
 
-      // draft: steps are in real order and picks name real players
-      expect(draft.steps.map((s) => s.order)).toEqual(draft.steps.map((_, i) => i + 1));
-      for (let i = 1; i < draft.steps.length; i++)
-        expect(draft.steps[i]!.gameloop).toBeGreaterThanOrEqual(draft.steps[i - 1]!.gameloop);
-      expect(draft.picks.every((p) => p.slot !== null && p.name !== null)).toBe(true);
-      if (draft.picking === 'draft') expect(draft.bans.length).toBeGreaterThan(0);
+      // draft: steps in real order, picks name real players
+      expect(steps.map((s) => s.order)).toEqual(steps.map((_, i) => i + 1));
+      for (let i = 1; i < steps.length; i++)
+        expect(steps[i]!.gameloop).toBeGreaterThanOrEqual(steps[i - 1]!.gameloop);
+      expect(
+        steps.filter((s) => s.type === 'pick').every((p) => p.slot !== null && p.name !== null),
+      ).toBe(true);
+      if (draft!.picking === 'draft') expect(draft!.bans).toBeGreaterThan(0);
 
-      // timeline: level events carry numeric levels once each, talents appear with names, spans tile the game
-      const levels = tl.events.filter((e) => e.kind === 'level');
-      const levelUps = f.statEvents.filter((s) => s.eventName === 'LevelUp').length;
-      expect(levels).toHaveLength(levelUps); // the 2018 version emitted these twice
-      expect(levels.every((e) => e.level > 0)).toBe(true);
-      const talentEvents = tl.events.filter((e) => e.kind === 'talent');
-      expect(talentEvents.length).toBe(f.players.reduce((a, p) => a + p.talents.length, 0)); // and never emitted these
-      expect(talentEvents.every((e) => e.talent.length > 0 && e.level > 0)).toBe(true);
-      for (const p of description.players) {
-        const spans = tl.events.filter(
+      // timeline: level events once each with numeric levels, talents with names, spans tile the game
+      const levels = tl.filter((e) => e.kind === 'level');
+      expect(levels).toHaveLength(f.statEvents.filter((s) => s.eventName === 'LevelUp').length);
+      expect(levels.every((e) => (e.level ?? 0) > 0)).toBe(true);
+      const talentEvents = tl.filter((e) => e.kind === 'talent');
+      expect(talentEvents.length).toBe(f.players.reduce((a, p) => a + p.talents.length, 0));
+      expect(talentEvents.every((e) => (e.talent ?? '').length > 0 && (e.level ?? 0) > 0)).toBe(
+        true,
+      );
+      for (const p of descPlayers) {
+        const spans = tl.filter(
           (e) => (e.kind === 'alive' || e.kind === 'dead') && e.slot === p.slot,
         );
         expect(spans[0]!.start).toBe(0);
-        expect((spans.at(-1) as { end: number }).end).toBe(f.replay.durationLoops);
-        for (let i = 1; i < spans.length; i++)
-          expect(spans[i]!.start).toBe((spans[i - 1] as { end: number }).end);
+        expect(spans.at(-1)!.end).toBe(f.replay.durationLoops);
+        for (let i = 1; i < spans.length; i++) expect(spans[i]!.start).toBe(spans[i - 1]!.end);
       }
-      expect(tl.events.filter((e) => e.kind === 'core-death')).toHaveLength(1);
-      for (let i = 1; i < tl.events.length; i++)
-        expect(tl.events[i]!.start).toBeGreaterThanOrEqual(tl.events[i - 1]!.start);
+      expect(tl.filter((e) => e.kind === 'core-death')).toHaveLength(1);
+      for (let i = 1; i < tl.length; i++)
+        expect(tl[i]!.start).toBeGreaterThanOrEqual(tl[i - 1]!.start);
+      expect(tl.map((e) => e.seq)).toEqual(tl.map((_, i) => i));
 
-      // xp curve: monotonic time per team, cumulative non-decreasing, ends at the final score
-      for (const team of xp) {
-        expect(team.points.length).toBeGreaterThan(2);
-        for (let i = 1; i < team.points.length; i++) {
-          expect(team.points[i]!.seconds).toBeGreaterThanOrEqual(team.points[i - 1]!.seconds);
-          expect(team.points[i]!.cumulative).toBeGreaterThanOrEqual(team.points[i - 1]!.cumulative);
+      // xp curve: per team, monotonic time and cumulative, ends at the final score
+      for (const team of [0, 1] as const) {
+        const points = xp.filter((p) => p.team === team);
+        expect(points.length).toBeGreaterThan(2);
+        for (let i = 1; i < points.length; i++) {
+          expect(points[i]!.seq).toBe(i);
+          expect(points[i]!.seconds).toBeGreaterThanOrEqual(points[i - 1]!.seconds);
+          expect(points[i]!.cumulative).toBeGreaterThanOrEqual(points[i - 1]!.cumulative);
         }
-        expect(team.points.at(-1)!.seconds).toBe(
+        expect(points.at(-1)!.seconds).toBe(
           (f.replay.finalScoreLoop ?? f.replay.durationLoops) / 16,
         );
       }
 
-      // unit kills: totals add up; hero kills are takedowns credited to the last hitter
-      for (const p of kills.players) {
-        const k = p.kills;
+      // unit kills: totals add up
+      for (const k of kills) {
         expect(k.total).toBe(
           k.minions +
             k.mercsCamp +
@@ -191,34 +244,41 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
             k.other,
         );
       }
-      expect(kills.teams[0]!.kills.total + kills.teams[1]!.kills.total).toBe(
-        kills.players.reduce((a, p) => a + p.kills.total, 0),
+      expect(teamKills.reduce((a, x) => a + x.total, 0)).toBe(
+        kills.reduce((a, k) => a + k.total, 0),
       );
 
-      // chat is joined with players (the 2018 version awaited nothing and returned no names)
+      // chat is joined with players
       expect(chat.length).toBe(f.chat.length);
       expect(
         chat.filter((c) => c.kind === 'chat').every((c) => c.name !== null && c.name.length > 0),
       ).toBe(true);
 
-      // commands: per-minute buckets sum to the total, APM is positive
+      // commands: per-minute buckets sum to the total, APM positive, ability uses sum to casts
+      const uses = r['@myrddraall/commands']!['abilityUses'] as { slot: number; count: number }[];
       for (const p of cmds) {
         expect(p.perMinute.reduce((a, b) => a + b, 0)).toBe(p.commands);
         expect(p.casts + p.moves).toBe(p.commands);
         expect(p.apm).toBeGreaterThan(0);
+        expect(uses.filter((u) => u.slot === p.slot).reduce((a, u) => a + u.count, 0)).toBe(
+          p.casts,
+        );
       }
       expect(cmds.reduce((a, p) => a + p.commands, 0)).toBe(f.commands.length);
 
-      // heatmap covers every death; POIs include the two cores
-      expect(heat.total).toBe(f.statEvents.filter((s) => s.eventName === 'PlayerDeath').length);
-      expect(heat.cells.reduce((a, c) => a + c.count, 0)).toBe(heat.total);
-      expect(heat.mapSize).not.toBeNull();
-      expect(poi.points.filter((p) => p.type === 'core')).toHaveLength(2);
-      expect(talents.every((t) => t.talents.every((x, i) => x.tier === i + 1))).toBe(true);
+      // heatmap covers every death; POIs include the two cores; talents are tiered in order
+      expect(heat!.total).toBe(f.statEvents.filter((s) => s.eventName === 'PlayerDeath').length);
+      expect(cells.reduce((a, c) => a + c.count, 0)).toBe(heat!.total);
+      expect(heat!.mapWidth).not.toBeNull();
+      expect(poi.filter((p) => p.type === 'core')).toHaveLength(2);
+      for (const p of descPlayers) {
+        const mine = talents.filter((x) => x.slot === p.slot);
+        expect(mine.map((x) => x.tier)).toEqual(mine.map((_, i) => i + 1));
+      }
     });
   });
 
-  it('lazy flow end to end: absent → analyse() streams status → liveQuery fires → second call is cached; version bump recomputes; mode override at registration', async () => {
+  it('lazy flow end to end: absent → analyse() streams status → liveQuery on the table fires → second call is cached; version bump recomputes; mode override at registration', async () => {
     const file = replays[0]!;
     const { scope, worker } = (() => {
       const ch = new MessageChannel();
@@ -227,7 +287,6 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
         worker: ch.port2 as unknown as WorkerLike,
       };
     })();
-    // the host overrides one mode at registration: commands becomes a background analyser
     const handle = createWorker(
       {
         analysers: builtins.map((a) =>
@@ -239,27 +298,23 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       scope,
     );
     const client = createReplayDb({ dbName: `analysis-lazy-${n++}`, worker });
+    const info = await client.ready;
     dbs.push(client.db);
-    const analysers = await client.ready;
-    expect(analysers.find((a) => a.id === '@myrddraall/commands')?.mode).toBe('background');
-    expect(analysers.find((a) => a.id === '@myrddraall/death-heatmap')?.mode).toBe('lazy');
+    expect(info.analysers.find((a) => a.id === '@myrddraall/commands')?.mode).toBe('background');
+    expect(info.analysers.find((a) => a.id === '@myrddraall/death-heatmap')?.mode).toBe('lazy');
+    expect(Object.keys(info.tables)).toContain('deathHeatmapCells');
 
     const { replayId } = await client.ingest(readLocal(file), { fileName: file }).complete;
-    expect(await client.db.derived.get([replayId, '@myrddraall/commands', '-'])).toBeDefined(); // ran in the background now
-    expect(
-      await client.db.derived
-        .where('[replayId+analyserId]')
-        .equals([replayId, '@myrddraall/death-heatmap'])
-        .count(),
-    ).toBe(0);
+    expect(await client.db.table('commandStats').where('replayId').equals(replayId).count()).toBe(
+      10,
+    ); // ran in the background now
+    expect(await client.db.table('deathHeatmaps').where('replayId').equals(replayId).count()).toBe(
+      0,
+    );
 
-    // liveQuery on the derived rows fires when the lazy result lands
-    const seen: DerivedRecord[][] = [];
+    const seen: unknown[][] = [];
     const sub = liveQuery(() =>
-      client.db.derived
-        .where('[replayId+analyserId]')
-        .equals([replayId, '@myrddraall/death-heatmap'])
-        .toArray(),
+      client.db.table('deathHeatmaps').where('replayId').equals(replayId).toArray(),
     ).subscribe((rows) => seen.push(rows));
     await new Promise((r) => setTimeout(r, 20));
     const states: string[] = [];
@@ -268,7 +323,7 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       onStatus: (s) => states.push(s.state),
     });
     expect(states).toEqual(['running', 'done']);
-    expect((first.result as DeathHeatmap).total).toBeGreaterThan(0);
+    expect((first.rows['deathHeatmaps']![0] as DeathHeatmapRow).total).toBeGreaterThan(0);
     await new Promise((r) => setTimeout(r, 50));
     expect(seen.at(-1)).toHaveLength(1);
     sub.unsubscribe();
@@ -278,21 +333,26 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       onStatus: (s) => states.push(s.state),
     });
     expect(states.at(-1)).toBe('cached');
-    expect(second).toEqual(first);
+    expect(second.run).toEqual(first.run);
+    // rows read back from a table come in primary-key order
+    const sorted = (rows: readonly object[]) =>
+      [...rows].sort((a, b) => (JSON.stringify(a) < JSON.stringify(b) ? -1 : 1));
+    for (const table of Object.keys(first.rows))
+      expect(sorted(second.rows[table]!), table).toEqual(sorted(first.rows[table]!));
 
-    // a version bump on the analyser makes the stored row stale
     const bumped = createRegistry(
       builtins.map((a) =>
         a.id === '@myrddraall/death-heatmap' ? { ...a, version: a.version + 1 } : a,
       ),
     );
-    const { analyse } = await import('@myrddraall/heroprotocol-db');
     const recomputed = await analyse(client.db, replayId, '@myrddraall/death-heatmap', {
       registry: bumped,
       params: { team: 1 },
     });
-    expect(recomputed.analyserVersion).toBe(first.analyserVersion + 1);
-    expect(recomputed.computedAt >= first.computedAt).toBe(true);
+    expect(recomputed.run.analyserVersion).toBe(first.run.analyserVersion + 1);
+    expect(await client.db.table('deathHeatmaps').where('replayId').equals(replayId).count()).toBe(
+      1,
+    ); // replaced, not duplicated
 
     await client.close();
     await handle.dispose();

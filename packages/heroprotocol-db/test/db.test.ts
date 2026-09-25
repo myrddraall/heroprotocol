@@ -1,35 +1,73 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import type { NormalizedReplay, ReplayCollectionName } from '../src/model/records.js';
+import type {
+  AnalyserRunRecord,
+  NormalizedReplay,
+  ReplayCollectionName,
+} from '../src/model/records.js';
 import { REPLAY_COLLECTIONS } from '../src/model/records.js';
 import { createMemoryContext } from '../src/analysers/context.js';
 import { createRegistry } from '../src/analysers/registry.js';
-import type { Analyser } from '../src/analysers/types.js';
+import type { Analyser, AnalyserRows } from '../src/analysers/types.js';
 import { HeroDb } from '../src/db/HeroDb.js';
-import { createDbContext, readRows } from '../src/db/read.js';
+import { createDbContext, readRows, readTableRows } from '../src/db/read.js';
 import { deleteReplay, writeReplay } from '../src/db/write.js';
-import { saveDerived } from '../src/db/derived.js';
+import { saveAnalyserOutput } from '../src/db/runs.js';
 import { listReplays, pruneReplays, reanalyse, staleReplays } from '../src/db/maintenance.js';
 import { localReplays, normalizeLocal } from './util/node.js';
 
 const replays = localReplays();
 let fixtures: NormalizedReplay[] = [];
-let db: HeroDb;
+const open: HeroDb[] = [];
 let n = 0;
 
 beforeAll(async () => {
   fixtures = await Promise.all(replays.map((f) => normalizeLocal(f)));
 });
 afterEach(async () => {
-  await db?.delete();
+  for (const db of open.splice(0)) await db.delete();
 });
-const fresh = (): HeroDb => (db = new HeroDb(`test-${n++}`));
-
+const fresh = async (tables: Record<string, string> = {}): Promise<HeroDb> => {
+  const db = await HeroDb.open(`test-${n++}`, tables);
+  open.push(db);
+  return db;
+};
 const sortRows = (rows: readonly unknown[]): unknown[] =>
   [...rows].sort((a, b) => (JSON.stringify(a) < JSON.stringify(b) ? -1 : 1));
 
+describe('HeroDb.open', () => {
+  it('adds analyser tables, bumps the version only when the store set changes, and keeps data', async () => {
+    const name = `schema-${n++}`;
+    const a = await HeroDb.open(name, { t_a: 'replayId, kind, zeta' });
+    expect(a.tables.map((t) => t.name)).toContain('t_a');
+    expect(a.verno).toBe(1);
+    await a.table('t_a').put({ replayId: 'r', kind: 'x' });
+    a.close();
+
+    const same = await HeroDb.open(name, { t_a: 'replayId, zeta, kind' }); // same specs, different order
+    expect(same.verno).toBe(1);
+    expect(await same.table('t_a').count()).toBe(1);
+    same.close();
+
+    const more = await HeroDb.open(name, {
+      t_a: 'replayId, kind',
+      t_b: '[replayId+seq], replayId',
+    });
+    expect(more.verno).toBe(2);
+    expect(more.tables.map((t) => t.name)).toContain('t_b');
+    expect(await more.table('t_a').count()).toBe(1); // upgrade kept the rows
+    expect(more.analyserTables.map((t) => t.name).sort()).toEqual(['t_a', 't_b']);
+    expect(more.replayTables.map((t) => t.name)).not.toContain('ingestJobs');
+    more.close();
+    await HeroDb.open(name).then(async (core) => {
+      expect(core.verno).toBe(3); // fewer stores is also a change
+      await core.delete();
+    });
+  });
+});
+
 describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
   it('writes every collection, is idempotent on re-ingest, and measures the write', async () => {
-    const db = fresh();
+    const db = await fresh();
     for (const f of fixtures) {
       const t = performance.now();
       await writeReplay(db, f);
@@ -45,8 +83,6 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
       }
     }
     expect(await db.replays.count()).toBe(fixtures.length);
-
-    // re-ingesting replaces: same counts, no duplicates
     await writeReplay(db, fixtures[0]!);
     expect(await db.replays.count()).toBe(fixtures.length);
     expect(await db.commands.where('replayId').equals(fixtures[0]!.replay.id).count()).toBe(
@@ -56,7 +92,7 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
   });
 
   it('keeps the file only when asked and records hasFile', async () => {
-    const db = fresh();
+    const db = await fresh();
     const f = fixtures[0]!;
     await writeReplay(db, f);
     expect((await db.replays.get(f.replay.id))?.hasFile).toBe(false);
@@ -69,46 +105,50 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
     expect(r?.hasFile).toBe(true);
     expect(r?.status).toBe('analysing');
     expect((await db.replayFiles.get(f.replay.id))?.bytes).toEqual(new Uint8Array([1, 2, 3]));
-    // and dropping the file on the next ingest removes it
     await writeReplay(db, f);
     expect(await db.replayFiles.count()).toBe(0);
   });
 
   it('leaves no rows behind when a write fails part-way', async () => {
-    const db = fresh();
+    const db = await fresh();
     const f = fixtures[0]!;
     await writeReplay(db, f);
-    // a duplicate unit primary key makes bulkAdd throw inside the transaction
     const broken: NormalizedReplay = { ...f, units: [...f.units, f.units[0]!], chat: [] };
     await expect(writeReplay(db, broken)).rejects.toThrow();
-    // the transaction rolled back: the previous rows are intact, including chat
     expect(await db.chat.where('replayId').equals(f.replay.id).count()).toBe(f.chat.length);
     expect(await db.units.where('replayId').equals(f.replay.id).count()).toBe(f.units.length);
     expect((await db.replays.get(f.replay.id))?.status).toBe(f.replay.status);
 
-    const empty = fresh();
+    const empty = await fresh();
     await expect(writeReplay(empty, broken)).rejects.toThrow();
     expect(await empty.replays.count()).toBe(0);
     for (const name of REPLAY_COLLECTIONS) expect(await empty.table(name).count(), name).toBe(0);
   });
 
-  it('deletes a replay and everything under it', async () => {
-    const db = fresh();
+  it('deletes a replay and everything under it, analyser tables included', async () => {
+    const db = await fresh({ t_x: '[replayId+seq], replayId' });
     for (const f of fixtures) await writeReplay(db, f);
-    await saveDerived(db, {
-      replayId: fixtures[0]!.replay.id,
+    const id = fixtures[0]!.replay.id;
+    await db.table('t_x').bulkAdd([
+      { replayId: id, seq: 0 },
+      { replayId: id, seq: 1 },
+      { replayId: fixtures[1]!.replay.id, seq: 0 },
+    ]);
+    const run: AnalyserRunRecord = {
+      replayId: id,
       analyserId: 'a',
       paramsHash: '-',
       analyserVersion: 1,
-      result: 1,
       error: null,
       computedAt: 'x',
       ms: 0,
-    });
-    await deleteReplay(db, fixtures[0]!.replay.id);
+    };
+    await db.analyserRuns.put(run);
+    await deleteReplay(db, id);
     expect(await db.replays.count()).toBe(fixtures.length - 1);
-    expect(await db.commands.where('replayId').equals(fixtures[0]!.replay.id).count()).toBe(0);
-    expect(await db.derived.count()).toBe(0);
+    expect(await db.commands.where('replayId').equals(id).count()).toBe(0);
+    expect(await db.analyserRuns.count()).toBe(0);
+    expect(await db.table('t_x').count()).toBe(1);
     expect(await db.commands.count()).toBe(
       fixtures.slice(1).reduce((a, f) => a + f.commands.length, 0),
     );
@@ -117,15 +157,13 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
 
 describe.skipIf(replays.length === 0)('read parity', () => {
   it('reads the same rows through Dexie as from memory, with and without filters', async () => {
-    const db = fresh();
+    const db = await fresh();
     const f = fixtures[0]!;
     await writeReplay(db, f);
     const mem = createMemoryContext(f);
     const dbCtx = await createDbContext(db, f.replay);
     for (const name of REPLAY_COLLECTIONS as readonly ReplayCollectionName[]) {
-      const a = sortRows(await mem.read(name));
-      const b = sortRows(await dbCtx.read(name));
-      expect(b, name).toEqual(a);
+      expect(sortRows(await dbCtx.read(name)), name).toEqual(sortRows(await mem.read(name)));
     }
     const filters: [ReplayCollectionName, Record<string, unknown>][] = [
       ['players', { team: 1 }],
@@ -146,11 +184,30 @@ describe.skipIf(replays.length === 0)('read parity', () => {
     }
     expect(dbCtx.statSupport).toEqual(mem.statSupport);
   });
+
+  it('reads analyser tables by replay range, one-row tables included', async () => {
+    const db = await fresh({ t_rows: '[replayId+seq], replayId, kind', t_one: 'replayId' });
+    await db.table('t_rows').bulkAdd([
+      { replayId: 'r1', seq: 0, kind: 'a' },
+      { replayId: 'r1', seq: 1, kind: 'b' },
+      { replayId: 'r2', seq: 0, kind: 'a' },
+    ]);
+    await db.table('t_one').bulkAdd([
+      { replayId: 'r1', total: 3 },
+      { replayId: 'r2', total: 4 },
+    ]);
+    expect(await readTableRows(db, 't_rows', 'r1')).toHaveLength(2);
+    expect(await readTableRows(db, 't_rows', 'r1', { kind: 'b' })).toEqual([
+      { replayId: 'r1', seq: 1, kind: 'b' },
+    ]);
+    expect(await readTableRows(db, 't_one', 'r2')).toEqual([{ replayId: 'r2', total: 4 }]);
+    await expect(readTableRows(db, 't_nope', 'r1')).rejects.toThrow(/not in the database/);
+  });
 });
 
 describe.skipIf(replays.length === 0)('maintenance', () => {
   it('finds stale replays, prunes to the newest N, and lists newest first', async () => {
-    const db = fresh();
+    const db = await fresh();
     for (const [i, f] of fixtures.entries()) {
       await writeReplay(db, {
         ...f,
@@ -173,66 +230,116 @@ describe.skipIf(replays.length === 0)('maintenance', () => {
     expect(await db.units.count()).toBe(fixtures[2]!.units.length);
   });
 
-  it('reanalyse recomputes stale and missing rows from the persisted model and drops stale lazy rows', async () => {
-    const db = fresh();
-    const f = fixtures[0]!;
-    await writeReplay(db, f, { status: 'ready' });
+  it('reanalyse recomputes stale and missing runs into their tables and drops stale lazy runs with their rows', async () => {
     const calls: string[] = [];
-    const heroes: Analyser<number> = {
+    const heroes: Analyser<AnalyserRows, void> = {
       id: 'heroes',
       version: 2,
+      tables: { heroesCount: 'replayId' },
       inputs: ['units'],
       mode: 'ready',
       run: async (ctx) => {
         calls.push('heroes');
-        return (await ctx.read('units', { unitClass: 'hero' })).length;
+        return { heroesCount: [{ n: (await ctx.read('units', { unitClass: 'hero' })).length }] };
       },
     };
-    const kills: Analyser<number> = {
+    const kills: Analyser<AnalyserRows, void> = {
       id: 'kills',
       version: 1,
+      tables: { killsCount: 'replayId' },
       inputs: ['scoreResults'],
       mode: 'background',
       dependsOn: ['heroes'],
       run: async (ctx) => {
         calls.push('kills');
-        return (ctx.results['heroes'] as number) * 10;
+        const [h] = await ctx.readTable<{ n: number }>('heroesCount');
+        return { killsCount: [{ n: h!.n * 10 }] };
       },
     };
-    const heat: Analyser<number, { slot: number }> = {
+    const heat: Analyser<AnalyserRows, { slot: number }> = {
       id: 'heat',
       version: 2,
+      tables: { heatCells: '[replayId+paramsHash+seq], replayId' },
       inputs: ['units'],
       mode: 'lazy',
-      run: () => 0,
+      run: () => ({ heatCells: [] }),
     };
     const registry = createRegistry([heroes, kills, heat as never]);
-    const row = (analyserId: string, analyserVersion: number, paramsHash = '-') => ({
+    const db = await fresh(registry.tables());
+    const f = fixtures[0]!;
+    await writeReplay(db, f, { status: 'ready' });
+    const run = (
+      analyserId: string,
+      analyserVersion: number,
+      paramsHash = '-',
+    ): AnalyserRunRecord => ({
       replayId: f.replay.id,
       analyserId,
       analyserVersion,
       paramsHash,
-      result: 'old',
       error: null,
       computedAt: '2020',
       ms: 0,
     });
-    await db.derived.bulkPut([row('heroes', 1), row('heat', 1, 'abc'), row('heat', 2, 'def')]);
+    await db.analyserRuns.bulkPut([run('heroes', 1), run('heat', 1, 'abc'), run('heat', 2, 'def')]);
+    await db.table('heroesCount').put({ replayId: f.replay.id, n: -1 });
+    await db.table('heatCells').bulkAdd([
+      { replayId: f.replay.id, paramsHash: 'abc', seq: 0 },
+      { replayId: f.replay.id, paramsHash: 'def', seq: 0 },
+    ]);
 
     const computed = await reanalyse(db, { registry, replayId: f.replay.id });
     expect(calls).toEqual(['heroes', 'kills']);
-    expect(computed.map((r) => [r.analyserId, r.result])).toEqual([
-      ['heroes', 10],
-      ['kills', 100],
+    expect(computed.map((o) => [o.run.analyserId, o.rows])).toEqual([
+      ['heroes', { heroesCount: [{ n: 10, replayId: f.replay.id }] }],
+      ['kills', { killsCount: [{ n: 100, replayId: f.replay.id }] }],
     ]);
-    expect((await db.derived.get([f.replay.id, 'heroes', '-']))?.result).toBe(10);
-    expect(await db.derived.get([f.replay.id, 'heat', 'abc'])).toBeUndefined(); // stale lazy dropped
-    expect((await db.derived.get([f.replay.id, 'heat', 'def']))?.result).toBe('old'); // fresh lazy kept
+    expect(await db.table('heroesCount').toArray()).toEqual([{ replayId: f.replay.id, n: 10 }]); // stale row replaced
+    expect((await db.analyserRuns.get([f.replay.id, 'heroes', '-']))?.analyserVersion).toBe(2);
+    expect(await db.analyserRuns.get([f.replay.id, 'heat', 'abc'])).toBeUndefined(); // stale lazy dropped …
+    expect(await db.table('heatCells').where('replayId').equals(f.replay.id).toArray()).toEqual([
+      { replayId: f.replay.id, paramsHash: 'def', seq: 0 }, // … with its rows; the fresh one kept
+    ]);
     expect((await db.replays.get(f.replay.id))?.status).toBe('complete');
 
-    // a second pass finds everything fresh
     calls.length = 0;
     expect(await reanalyse(db, { registry })).toEqual([]);
     expect(calls).toEqual([]);
+  });
+
+  it('saveAnalyserOutput replaces a run and bounds parameterized caches', async () => {
+    const heat: Analyser<AnalyserRows, { slot: number }> = {
+      id: 'heat',
+      version: 1,
+      tables: { heatCells: '[replayId+paramsHash+seq], replayId' },
+      inputs: [],
+      mode: 'lazy',
+      cache: { maxEntries: 2 },
+      run: () => ({}),
+    };
+    const db = await fresh({ heatCells: '[replayId+paramsHash+seq], replayId' });
+    const output = (hash: string, at: string, seqs: number[]) => ({
+      run: {
+        replayId: 'r',
+        analyserId: 'heat',
+        paramsHash: hash,
+        analyserVersion: 1,
+        error: null,
+        computedAt: at,
+        ms: 0,
+      },
+      rows: { heatCells: seqs.map((seq) => ({ replayId: 'r', paramsHash: hash, seq })) },
+    });
+    await saveAnalyserOutput(db, heat as never, output('a', '1', [0, 1]));
+    await saveAnalyserOutput(db, heat as never, output('a', '2', [0])); // same params: replaced, not appended
+    expect(await db.table('heatCells').count()).toBe(1);
+    await saveAnalyserOutput(db, heat as never, output('b', '3', [0]));
+    await saveAnalyserOutput(db, heat as never, output('c', '4', [0, 1, 2]));
+    expect((await db.analyserRuns.toArray()).map((r) => r.paramsHash).sort()).toEqual(['b', 'c']); // 'a' evicted
+    expect(
+      (await db.table('heatCells').toArray())
+        .map((r) => (r as { paramsHash: string }).paramsHash)
+        .sort(),
+    ).toEqual(['b', 'c', 'c', 'c']);
   });
 });

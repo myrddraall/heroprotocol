@@ -1,7 +1,10 @@
 import type { Analyser, Team } from '@myrddraall/heroprotocol-db';
 import { int, NS, participants, statEvents, TEAMS } from './shared.js';
 
-export interface XpPoint {
+export interface XpPointRow {
+  readonly team: Team;
+  /** Position within the team's curve. */
+  readonly seq: number;
   readonly seconds: number;
   readonly previousSeconds: number;
   readonly teamLevel: number | null;
@@ -16,12 +19,9 @@ export interface XpPoint {
   readonly cumulative: number;
 }
 
-export interface TeamXp {
-  readonly team: Team;
-  readonly points: readonly XpPoint[];
-}
-
-export type XpCurve = readonly TeamXp[];
+export type XpCurveTables = {
+  readonly xpPoints: XpPointRow[];
+};
 
 type XpSource = 'MinionXP' | 'CreepXP' | 'StructureXP' | 'HeroXP' | 'TrickleXP';
 
@@ -30,9 +30,10 @@ type XpSource = 'MinionXP' | 'CreepXP' | 'StructureXP' | 'HeroXP' | 'TrickleXP';
  * breakdown. The 2018 XPAnalyser used one player's end-of-game breakdown as the team's
  * final point; here the team's players are summed.
  */
-export const xpCurve: Analyser<XpCurve> = {
+export const xpCurve: Analyser<XpCurveTables> = {
   id: `${NS}xp-curve`,
-  version: 1,
+  version: 2,
+  tables: { xpPoints: '[replayId+team+seq], replayId, [replayId+team], seconds' },
   inputs: ['players', 'statEvents', 'scoreResults'],
   mode: 'background',
   async run(ctx) {
@@ -43,13 +44,14 @@ export const xpCurve: Analyser<XpCurve> = {
       ctx.read('scoreResults'),
     ]);
     const finalSeconds = (ctx.replay.finalScoreLoop ?? ctx.replay.durationLoops) / 16;
-    return TEAMS.map((team): TeamXp => {
-      const points: XpPoint[] = [];
+    const rows: XpPointRow[] = [];
+    for (const team of TEAMS) {
       let cumulative = 0;
-      const push = (p: Omit<XpPoint, 'total' | 'cumulative'>): void => {
+      let seq = 0;
+      const push = (p: Omit<XpPointRow, 'total' | 'cumulative' | 'seq' | 'team'>): void => {
         const total = p.minionXP + p.creepXP + p.structureXP + p.heroXP + p.trickleXP;
         cumulative += total;
-        points.push({ ...p, total, cumulative });
+        rows.push({ team, seq: seq++, ...p, total, cumulative });
       };
       for (const e of periodic.filter((e) => e.team === team)) {
         const v = (k: string): number => int(e, k) ?? 0;
@@ -68,14 +70,12 @@ export const xpCurve: Analyser<XpCurve> = {
       const finals = endOfGame.filter((e) => e.playerSlot !== null && slots.has(e.playerSlot));
       if (finals.length > 0) {
         const sum = (k: XpSource): number => finals.reduce((a, e) => a + (int(e, k) ?? 0), 0);
-        const level =
-          scores.find((s) => slots.has(s.slot))?.stats['TeamLevel'] ??
-          points.at(-1)?.teamLevel ??
-          null;
+        const last = rows.filter((r) => r.team === team).at(-1);
         push({
           seconds: finalSeconds,
-          previousSeconds: points.at(-1)?.seconds ?? 0,
-          teamLevel: level,
+          previousSeconds: last?.seconds ?? 0,
+          teamLevel:
+            scores.find((s) => slots.has(s.slot))?.stats['TeamLevel'] ?? last?.teamLevel ?? null,
           minionXP: sum('MinionXP'),
           creepXP: sum('CreepXP'),
           structureXP: sum('StructureXP'),
@@ -83,7 +83,7 @@ export const xpCurve: Analyser<XpCurve> = {
           trickleXP: sum('TrickleXP'),
         });
       }
-      return { team, points };
-    });
+    }
+    return { xpPoints: rows };
   },
 };

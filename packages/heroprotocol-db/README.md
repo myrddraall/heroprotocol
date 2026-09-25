@@ -62,8 +62,7 @@ const { computed, results } = await runAnalysers({
 
 `ready` analysers run before a replay is considered ready, `background` ones after,
 `lazy` ones on first request; a consumer may override the mode when registering.
-Dependencies (`dependsOn`) receive their results through `ctx.results` and may only
-point at an equal-or-earlier mode. A failing analyser produces an error row and never
+Dependencies (`dependsOn`) may only point at an equal-or-earlier mode. A failing analyser produces an error row and never
 fails the run; a stored result is reused while its `analyserVersion` matches.
 Parameters are part of the cache key (`paramsHash`).
 
@@ -87,9 +86,11 @@ const deaths = await readRows(db, 'statEvents', n.replay.id, { eventName: 'Playe
 await pruneReplays(db, { keep: 50 }); // "the last X"
 ```
 
-`createDbContext(db, replay)` is an `AnalyserContext` backed by the store; its
-`read()` returns exactly what the in-memory context returns (asserted by the tests),
-which is what lets an analyser run at ingest and lazily without change.
+`HeroDb.open(name, analyserTables)` opens the core stores plus the analysers' tables and
+bumps the Dexie version only when the store set changed. `createDbContext(db, replay)` is
+an `AnalyserContext` backed by the store; its `read()`/`readTable()` return exactly what
+the in-memory context returns (asserted by the tests), which is what lets an analyser run
+at ingest and lazily without change.
 `reanalyse(db, { registry })` brings stored results up to date from the persisted
 model — no raw file needed — and `staleReplays(db)` lists replays normalized by an
 older `NORMALIZE_VERSION`.
@@ -118,11 +119,11 @@ await handle.complete; // `background` analysers committed one by one
 
 `replays.status` walks `ingesting → analysing → ready → complete`; `ingestJobs`
 records status transitions only. A parse or write failure fails the job and writes no
-replay; an analyser failure is only an error row in `derived`.
+replay; an analyser failure is only an error in its run record.
 
-`analyse(db, replayId, analyserId, { registry, params })` is the lazy flow: a fresh
-`derived` row is served from cache, otherwise the analyser runs over the store (its
-dependencies resolved the same way) and the result is saved, evicting the oldest rows
+`analyse(db, replayId, analyserId, { registry, params })` is the lazy flow: a fresh run
+is served from its tables, otherwise the analyser runs over the store (its dependencies
+resolved the same way) and its rows are saved, evicting the oldest parameter sets
 beyond `cache.maxEntries` for parameterized analysers.
 
 ## Worker and client

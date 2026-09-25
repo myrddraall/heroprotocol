@@ -1,12 +1,12 @@
 import type { AnalyserRegistry } from '../analysers/registry.js';
-import { isFresh, runAnalysers } from '../analysers/runner.js';
+import { isFresh, runAnalysers, type AnalyserOutput } from '../analysers/runner.js';
 import type { AnalyserStatus, RunClock } from '../analysers/types.js';
 import { NO_PARAMS } from '../analysers/paramsHash.js';
-import type { DerivedRecord, ReplayRecord } from '../model/records.js';
+import type { ReplayRecord } from '../model/records.js';
 import { NORMALIZE_VERSION } from '../model/records.js';
-import { loadReplayDerived, saveDerived } from './derived.js';
 import type { HeroDb } from './HeroDb.js';
 import { createDbContext } from './read.js';
+import { deleteRun, loadReplayRuns, saveAnalyserOutput } from './runs.js';
 import { deleteReplay, setReplayStatus } from './write.js';
 
 /** Replays normalized by an older normalizer than the one now running. */
@@ -42,20 +42,20 @@ export interface ReanalyseOptions {
 }
 
 /**
- * Bring stored analyser results up to date from the persisted model: `ready` and
- * `background` analysers whose rows are missing, stale or errored are recomputed;
- * stale `lazy` rows are dropped so they recompute on next request (their parameters
- * are only known by hash). No raw file is needed — this is why the model is stored.
+ * Bring stored analyser output up to date from the persisted model: `ready` and
+ * `background` analysers whose runs are missing, stale or errored are recomputed and
+ * their tables rewritten; stale `lazy` runs are dropped with their rows so they
+ * recompute on next request. No raw file is needed — this is why the model is stored.
  */
-export async function reanalyse(db: HeroDb, options: ReanalyseOptions): Promise<DerivedRecord[]> {
+export async function reanalyse(db: HeroDb, options: ReanalyseOptions): Promise<AnalyserOutput[]> {
   const replays =
     options.replayId !== undefined
       ? [await db.replays.get(options.replayId)]
       : await db.replays.toArray();
-  const computed: DerivedRecord[] = [];
+  const computed: AnalyserOutput[] = [];
   for (const replay of replays) {
     if (!replay) continue;
-    const existing = await loadReplayDerived(db, replay.id);
+    const existing = await loadReplayRuns(db, replay.id);
     const ctx = await createDbContext(
       db,
       replay,
@@ -66,26 +66,26 @@ export async function reanalyse(db: HeroDb, options: ReanalyseOptions): Promise<
       ctx,
       modes: ['ready', 'background'],
       existing,
-      onComputed: (row) => saveDerived(db, row),
+      onComputed: (output) =>
+        saveAnalyserOutput(db, options.registry.get(output.run.analyserId)!.analyser, output),
       ...(options.onStatus
         ? { onStatus: (s: AnalyserStatus) => options.onStatus!(replay.id, s) }
         : {}),
       ...(options.clock ? { clock: options.clock } : {}),
     });
     computed.push(...outcome.computed);
-    const staleLazy: DerivedRecord[] = [];
-    for (const row of existing) {
-      const reg = options.registry.get(row.analyserId);
-      if (!reg || reg.mode !== 'lazy' || row.paramsHash === NO_PARAMS) continue;
-      const fresh = isFresh(row, reg.analyser);
-      if (!fresh) staleLazy.push(row);
+    for (const run of existing) {
+      const reg = options.registry.get(run.analyserId);
+      if (!reg || reg.mode !== 'lazy' || run.paramsHash === NO_PARAMS) continue;
+      const fresh = isFresh(run, reg.analyser);
+      if (!fresh) await deleteRun(db, reg.analyser, run);
     }
-    if (staleLazy.length > 0)
-      await db.derived.bulkDelete(staleLazy.map((r) => [r.replayId, r.analyserId, r.paramsHash]));
     if (replay.status === 'ready' || replay.status === 'complete') {
-      const allDone = options.registry
-        .list('background')
-        .every((r) => outcome.results[r.analyser.id] !== undefined);
+      const done = new Set([
+        ...outcome.reused,
+        ...outcome.computed.filter((o) => o.run.error === null).map((o) => o.run.analyserId),
+      ]);
+      const allDone = options.registry.list('background').every((r) => done.has(r.analyser.id));
       await setReplayStatus(db, replay.id, allDone ? 'complete' : 'ready');
     }
   }

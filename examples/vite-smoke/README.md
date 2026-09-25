@@ -14,9 +14,8 @@ pnpm run test.smoke            # build the library, build + preview the app, run
 pnpm --filter @myrddraall/heroprotocol-vite-smoke dev   # poke at it by hand
 ```
 
-The lockfile pins `@playwright/test` 1.50 on purpose: it is the last line that ships
-Chromium builds for Debian 11, which the devcontainer runs. Newer Playwright works
-anywhere else.
+The lockfile pins `@playwright/test` 1.56 on purpose: it is the newest line that ships a
+Chromium build for Debian 11, which the devcontainer runs.
 
 The only Vite configuration it needs is `worker: { format: 'es' }` — see
 [vite.config.ts](./vite.config.ts) for why. Not part of CI: it needs a browser and the
