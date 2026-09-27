@@ -146,7 +146,6 @@ describe('registry', () => {
     reg.register(analyser('b', () => ({}), { dependsOn: ['missing'] }));
     expect(() => reg.validate()).toThrow(/depends on 'missing'/);
 
-
     const ok = createRegistry([analyser('ready', () => ({}))]);
     ok.register(analyser('bg', () => ({}), { mode: 'background', dependsOn: ['ready'] }));
     expect(() => ok.validate()).not.toThrow();

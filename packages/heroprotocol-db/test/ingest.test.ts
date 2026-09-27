@@ -247,7 +247,9 @@ describe.skipIf(replays.length === 0)('lazy analyse', () => {
     expect((row as { count: number }).count).toBe(10);
     expect(await db.table('heroList').count()).toBe(10); // the dependency's rows were stored too
     expect(
-      statuses.some(([phase, id, state]) => phase === 'analysing-ready' && id === 'heroes' && state === 'done'),
+      statuses.some(
+        ([phase, id, state]) => phase === 'analysing-ready' && id === 'heroes' && state === 'done',
+      ),
     ).toBe(true);
 
     // Asking for the lazy analyser later is served from what ingest stored.
