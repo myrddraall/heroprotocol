@@ -11,7 +11,8 @@ import type {
  * - `ready`: at ingest, over the in-memory replay, before the replay is considered ready.
  * - `background`: at ingest, after ready, committed as it finishes.
  * - `lazy`: on first request, from the persisted model, then cached.
- * The modes are ordered; a dependency may only point at an equal or earlier mode.
+ * The modes are ordered. A dependency on a later mode pulls that analyser forward into
+ * its dependent's stage, so it still runs first.
  */
 export type AnalyserMode = 'ready' | 'background' | 'lazy';
 
@@ -95,6 +96,13 @@ export interface Analyser<TRows extends AnalyserRows = AnalyserRows, TParams = v
   readonly tables: Readonly<Record<string, string>>;
   /** Core collections it reads; lets a store load only those. */
   readonly inputs: readonly ReplayCollectionName[];
+  /**
+   * Analysers whose tables this one reads through `ctx.readTable()`. They always run
+   * first: at ingest in dependency order, and on demand (`analyse()`) any missing or stale
+   * dependency is computed before this one. A dependency in a later mode than this one
+   * (a `ready` analyser depending on a `lazy` one) is pulled forward to run in this
+   * analyser's stage.
+   */
   readonly dependsOn?: readonly string[];
   readonly mode: AnalyserMode;
   readonly cache?: AnalyserCacheOptions;
@@ -110,8 +118,13 @@ export interface RegisterOptions {
 
 export interface AnalyserRegistration {
   readonly analyser: AnyAnalyser;
-  /** Effective mode after any override. */
+  /**
+   * The mode it runs in: the declared mode (after any override), or earlier when an
+   * analyser of an earlier mode depends on it.
+   */
   readonly mode: AnalyserMode;
+  /** The analyser's own mode, after any registration override. */
+  readonly declaredMode: AnalyserMode;
 }
 
 export type AnalyserState = 'queued' | 'running' | 'done' | 'cached' | 'failed';

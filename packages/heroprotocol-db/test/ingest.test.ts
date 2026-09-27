@@ -203,6 +203,60 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
 describe.skipIf(replays.length === 0)('lazy analyse', () => {
   const file = replays[0]!;
 
+  it('runs a lazy dependency of an eager analyser automatically, first, at ingest', async () => {
+    const calls: string[] = [];
+    const heroes: Analyser<AnalyserRows, void> = {
+      id: 'heroes',
+      version: 1,
+      tables: { heroList: '[replayId+slot]' },
+      inputs: ['players'],
+      mode: 'lazy',
+      run: async (ctx) => {
+        calls.push('heroes');
+        const players = await ctx.read('players');
+        return { heroList: players.map((p) => ({ slot: p.slot, hero: p.hero })) };
+      },
+    };
+    const summary: Analyser<AnalyserRows, void> = {
+      id: 'summary',
+      version: 1,
+      tables: { heroSummary: 'replayId' },
+      inputs: [],
+      mode: 'ready',
+      dependsOn: ['heroes'],
+      run: async (ctx) => {
+        calls.push('summary');
+        const list = await ctx.readTable<{ hero: string }>('heroList');
+        return { heroSummary: [{ count: list.length }] };
+      },
+    };
+    const registry = createRegistry([summary, heroes]);
+    const db = await fresh(registry.tables());
+    const statuses: [string, string, string][] = [];
+    const { replayId } = await ingestInline(db, new Uint8Array(readFileSync(join(LOCAL, file))), {
+      fileName: file,
+      registry,
+      clock,
+      onStatus: (s) => {
+        for (const [id, a] of Object.entries(s.analysers)) statuses.push([s.phase, id, a.state]);
+      },
+    }).complete;
+
+    expect(calls).toEqual(['heroes', 'summary']); // dependency first, in the ready stage
+    const [row] = await db.table('heroSummary').toArray();
+    expect((row as { count: number }).count).toBe(10);
+    expect(await db.table('heroList').count()).toBe(10); // the dependency's rows were stored too
+    expect(
+      statuses.some(([phase, id, state]) => phase === 'analysing-ready' && id === 'heroes' && state === 'done'),
+    ).toBe(true);
+
+    // Asking for the lazy analyser later is served from what ingest stored.
+    calls.length = 0;
+    const out = await analyse(db, replayId, 'heroes', { registry, clock });
+    expect(out.run.error).toBeNull();
+    expect(calls).toEqual([]);
+  });
+
   it('computes from the store on first request, serves the cache after, recomputes on version bump, and bounds parameterized caches', async () => {
     const calls: unknown[] = [];
     const base: Analyser<AnalyserRows, void> = {

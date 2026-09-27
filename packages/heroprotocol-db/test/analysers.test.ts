@@ -116,18 +116,36 @@ describe('registry', () => {
     expect(reg.ownerOf('e_rows')).toBe('e');
   });
 
-  it('rejects duplicates, missing dependencies, later-mode dependencies and cycles', () => {
+  it('pulls a later-mode dependency forward to the earliest mode that needs it', () => {
+    const reg = createRegistry([
+      analyser('deep', () => ({}), { mode: 'lazy' }),
+      analyser('mid', () => ({}), { mode: 'lazy', dependsOn: ['deep'] }),
+      analyser('bg', () => ({}), { mode: 'background', dependsOn: ['mid'] }),
+      analyser('other', () => ({}), { mode: 'lazy' }),
+      analyser('first', () => ({}), { mode: 'ready', dependsOn: ['deep'] }),
+    ]);
+    expect(() => reg.validate()).not.toThrow();
+    const modes = Object.fromEntries(
+      reg.list().map((r) => [r.analyser.id, [r.mode, r.declaredMode]]),
+    );
+    expect(modes).toEqual({
+      deep: ['ready', 'lazy'], // needed by a ready analyser
+      mid: ['background', 'lazy'], // needed by a background one
+      bg: ['background', 'background'],
+      other: ['lazy', 'lazy'], // nobody eager needs it
+      first: ['ready', 'ready'],
+    });
+    expect(reg.list('ready').map((r) => r.analyser.id)).toEqual(['deep', 'first']);
+    expect(reg.order(['bg']).map((r) => r.analyser.id)).toEqual(['deep', 'mid', 'bg']);
+  });
+
+  it('rejects duplicates, missing dependencies and cycles', () => {
     const reg = createRegistry([analyser('a', () => ({}))]);
     expect(() => reg.register(analyser('a', () => ({})))).toThrow(AnalyserRegistrationError);
 
     reg.register(analyser('b', () => ({}), { dependsOn: ['missing'] }));
     expect(() => reg.validate()).toThrow(/depends on 'missing'/);
 
-    const dir = createRegistry([
-      analyser('lazy', () => ({}), { mode: 'lazy' }),
-      analyser('ready', () => ({}), { mode: 'ready', dependsOn: ['lazy'] }),
-    ]);
-    expect(() => dir.validate()).toThrow(/runs later/);
 
     const ok = createRegistry([analyser('ready', () => ({}))]);
     ok.register(analyser('bg', () => ({}), { mode: 'background', dependsOn: ['ready'] }));

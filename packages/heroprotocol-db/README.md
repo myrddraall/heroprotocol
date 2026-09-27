@@ -42,29 +42,62 @@ ARAM the lobby records the hero the slot had _selected_, not the one it played.
 
 ## Analysers
 
-An analyser is a versioned pure function of `(replay, params)`:
+An analyser is a versioned pure function of `(replay, params)` that writes rows into
+tables it declares (Dexie schema strings; every primary key starts with `replayId`):
 
 ```ts
-const takedowns: Analyser<number[]> = {
+const takedowns: Analyser = {
   id: 'com.example/takedowns',
   version: 1,
+  tables: { takedowns: '[replayId+slot]' },
   inputs: ['scoreResults'],
   mode: 'ready', // 'ready' | 'background' | 'lazy'
-  run: async (ctx) => (await ctx.read('scoreResults')).map((s) => s.stats.Takedowns ?? 0),
+  run: async (ctx) => ({
+    takedowns: (await ctx.read('scoreResults')).map((s) => ({
+      slot: s.slot,
+      takedowns: s.stats['Takedowns'] ?? 0,
+    })),
+  }),
 };
-const registry = createRegistry([takedowns]);
-const { computed, results } = await runAnalysers({
-  registry,
-  ctx: createMemoryContext(n),
-  modes: ['ready'],
-});
 ```
 
 `ready` analysers run before a replay is considered ready, `background` ones after,
 `lazy` ones on first request; a consumer may override the mode when registering.
-Dependencies (`dependsOn`) may only point at an equal-or-earlier mode. A failing analyser produces an error row and never
-fails the run; a stored result is reused while its `analyserVersion` matches.
-Parameters are part of the cache key (`paramsHash`).
+A failing analyser produces an error run and never fails the ingest; a stored run is
+reused while its `analyserVersion` matches. Parameters are part of the cache key
+(`paramsHash`).
+
+### Dependencies
+
+An analyser can use another analyser's output as input: list it in `dependsOn` and read
+its tables with `ctx.readTable()`.
+
+```ts
+const teamTakedowns: Analyser = {
+  id: 'com.example/team-takedowns',
+  version: 1,
+  tables: { teamTakedowns: 'replayId' },
+  inputs: [],
+  dependsOn: ['com.example/takedowns'],
+  mode: 'lazy',
+  run: async (ctx) => {
+    const rows = await ctx.readTable<{ takedowns: number }>('takedowns');
+    return { teamTakedowns: [{ total: rows.reduce((a, r) => a + r.takedowns, 0) }] };
+  },
+};
+```
+
+Dependencies always run first:
+
+- **At ingest**, analysers run in dependency order and each one's rows are readable by
+  the ones after it. A dependency in a later mode than its dependent (a `ready` analyser
+  depending on a `lazy` one) is pulled forward and runs automatically in the
+  dependent's stage; `registry.get(id).mode` reports where it runs, `declaredMode` what
+  it asked for.
+- **On demand**, `analyse()` computes any missing, stale or errored dependency (and its
+  own dependencies) before the analyser itself; fresh ones are reused.
+- A dependent of a failed dependency is recorded as failed without running.
+- `validate()` rejects unregistered dependencies and cycles.
 
 `ctx.read()` is the only way an analyser touches data, which is what lets the same
 function run at ingest over the in-memory replay and later over the store.

@@ -46,11 +46,17 @@ export function keyStartsWithReplayId(primaryKey: string): boolean {
  * The set of analysers a host runs. Registration is by id (duplicates are an error),
  * modes may be overridden per host, table names are checked for uniqueness and for a
  * `replayId`-first primary key, and `validate()` checks the dependency graph: every
- * dependency registered, no cycles, and no analyser depending on one that runs later.
+ * dependency registered and no cycles.
+ *
+ * A dependency may be in a later mode than its dependent (a `ready` analyser reading a
+ * `lazy` one's table). The dependency is then pulled forward: its effective `mode` becomes
+ * the earliest mode of anything that depends on it, so it runs, automatically and first,
+ * in the same stage. `declaredMode` keeps what it asked for.
  */
 export class AnalyserRegistry {
   private readonly entries = new Map<string, AnalyserRegistration>();
   private readonly tableOwners = new Map<string, string>();
+  private effective: Map<string, AnalyserRegistration> | null = null;
 
   register<T extends AnalyserRows, P>(
     analyser: Analyser<T, P>,
@@ -78,24 +84,53 @@ export class AnalyserRegistry {
       }
     }
     for (const table of Object.keys(analyser.tables)) this.tableOwners.set(table, analyser.id);
+    const mode = options.mode ?? analyser.mode;
     this.entries.set(analyser.id, {
       analyser: analyser as AnyAnalyser,
-      mode: options.mode ?? analyser.mode,
+      mode,
+      declaredMode: mode,
     });
+    this.effective = null;
     return this;
   }
 
+  /** Registrations with dependencies pulled forward to the earliest mode that needs them. */
+  private resolved(): Map<string, AnalyserRegistration> {
+    if (this.effective) return this.effective;
+    const modes = new Map<string, AnalyserMode>();
+    for (const [id, reg] of this.entries) modes.set(id, reg.declaredMode);
+    // Modes only move earlier, so this settles (cycles included; validate() reports those).
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const [id, reg] of this.entries) {
+        const mine = modes.get(id)!;
+        for (const dep of reg.analyser.dependsOn ?? []) {
+          const theirs = modes.get(dep);
+          if (theirs !== undefined && MODE_ORDER[theirs] > MODE_ORDER[mine]) {
+            modes.set(dep, mine);
+            changed = true;
+          }
+        }
+      }
+    }
+    const out = new Map<string, AnalyserRegistration>();
+    for (const [id, reg] of this.entries) out.set(id, { ...reg, mode: modes.get(id)! });
+    this.effective = out;
+    return out;
+  }
+
   get(id: string): AnalyserRegistration | undefined {
-    return this.entries.get(id);
+    return this.resolved().get(id);
   }
 
   has(id: string): boolean {
     return this.entries.has(id);
   }
 
-  /** Registrations, optionally of one mode, in registration order. */
+  /** Registrations, optionally of one (effective) mode, in registration order. */
   list(mode?: AnalyserMode): AnalyserRegistration[] {
-    const all = [...this.entries.values()];
+    const all = [...this.resolved().values()];
     return mode === undefined ? all : all.filter((r) => r.mode === mode);
   }
 
@@ -113,17 +148,11 @@ export class AnalyserRegistry {
 
   /** Throws `AnalyserRegistrationError` describing the first problem found. */
   validate(): void {
-    for (const { analyser, mode } of this.entries.values()) {
+    for (const { analyser } of this.entries.values()) {
       for (const dep of analyser.dependsOn ?? []) {
-        const target = this.entries.get(dep);
-        if (!target) {
+        if (!this.entries.has(dep)) {
           throw new AnalyserRegistrationError(
             `analyser '${analyser.id}' depends on '${dep}', which is not registered`,
-          );
-        }
-        if (MODE_ORDER[target.mode] > MODE_ORDER[mode]) {
-          throw new AnalyserRegistrationError(
-            `analyser '${analyser.id}' (${mode}) depends on '${dep}' (${target.mode}), which runs later`,
           );
         }
       }
@@ -146,7 +175,7 @@ export class AnalyserRegistry {
           `analyser dependency cycle: ${[...path, id].join(' → ')}`,
         );
       }
-      const reg = this.entries.get(id);
+      const reg = this.get(id);
       if (!reg) throw new AnalyserRegistrationError(`analyser '${id}' is not registered`);
       state.set(id, 'visiting');
       for (const dep of reg.analyser.dependsOn ?? []) visit(dep, [...path, id]);
