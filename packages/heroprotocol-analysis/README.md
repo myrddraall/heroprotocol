@@ -34,20 +34,21 @@ JSON. Every table's primary key starts with `replayId`; ids are namespaced
 `@myrddraall/<name>`. A host may override any mode at registration
 (`{ analyser, options: { mode } }` in `createWorker`).
 
-| Analyser             | Mode         | Tables (primary key)                                                                                                                                                                 |
-| -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `description`        | `ready`      | `description` (`replayId`): map, mode, played-at, duration, winner · `descriptionPlayers` (`[replayId+slot]`)                                                                        |
-| `score-screen`       | `ready`      | `scoreScreenPlayers` (`[replayId+slot]`): the ten score-screen stats as columns, awards, mvp · `scoreScreenTeams` (`[replayId+team]`)                                                |
-| `unit-kills`         | `ready`      | `unitKills` (`[replayId+slot]`): minions, camp/lane mercs, bosses, structures, heroes, summons · `teamUnitKills` (`[replayId+team]`)                                                 |
-| `player-stats`       | `ready`      | `playerStats` (`[replayId+slot]`): every recorded and derived stat as a column, `null` where unsupported · `playerStatsSupport` (`replayId`)                                         |
-| `draft`              | `ready`      | `draft` (`replayId`) · `draftSteps` (`[replayId+order]`): bans and picks in the order they happened                                                                                  |
-| `talents`            | `background` | `talentPicks` (`[replayId+slot+tier]`): talent id, level, time (hero-data maps names)                                                                                                |
-| `xp-curve`           | `background` | `xpPoints` (`[replayId+team+seq]`): XP by source per periodic breakdown, closed by the summed end-of-game one                                                                        |
-| `timeline`           | `background` | `timelineEvents` (`[replayId+seq]`): alive/dead spans, deaths with killers, levels, talents, structure deaths, camp captures, objectives, core death, leavers — `kind`-discriminated |
-| `points-of-interest` | `background` | `pointsOfInterest` (`[replayId+seq]`): cores, halls, towers, wells, gates, walls, watch towers, camps · `mapInfo` (`replayId`)                                                       |
-| `chat`               | `background` | `chatLines` (`[replayId+seq]`): chat and pings joined with the players                                                                                                               |
-| `commands`           | `lazy`       | `commandStats` (`[replayId+slot]`): commands, casts, moves, APM, per-minute curve · `abilityUses` (`[replayId+slot+abilLink]`)                                                       |
-| `death-heatmap`      | `lazy`       | `deathHeatmaps` (`[replayId+paramsHash]`) · `deathHeatmapCells` (`[replayId+paramsHash+x+y]`): parameterized by team / player / killer / cell; cache bounded to 32 filters           |
+| Analyser        | Mode         | Tables (primary key)                                                                                                                                                       |
+| --------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `description`   | `ready`      | `description` (`replayId`): map, mode, played-at, duration, winner · `descriptionPlayers` (`[replayId+slot]`)                                                              |
+| `score-screen`  | `ready`      | `scoreScreenPlayers` (`[replayId+slot]`): the ten score-screen stats as columns, awards, mvp · `scoreScreenTeams` (`[replayId+team]`)                                      |
+| `unit-kills`    | `ready`      | `unitKills` (`[replayId+slot]`): minions, camp/lane mercs, bosses, structures, heroes, summons · `teamUnitKills` (`[replayId+team]`)                                       |
+| `player-stats`  | `ready`      | `playerStats` (`[replayId+slot]`): every recorded and derived stat as a column, `null` where unsupported · `playerStatsSupport` (`replayId`)                               |
+| `draft`         | `ready`      | `draft` (`replayId`) · `draftSteps` (`[replayId+order]`): bans and picks in the order they happened                                                                        |
+| `talents`       | `background` | `talentPicks` (`[replayId+slot+tier]`): talent id, level, time (hero-data maps names)                                                                                      |
+| `xp-curve`      | `background` | `xpPoints` (`[replayId+team+seq]`): XP by source per periodic breakdown, closed by the summed end-of-game one                                                              |
+| `chat`          | `background` | `chatLines` (`[replayId+seq]`): chat and pings joined with the players                                                                                                     |
+| `commands`      | `lazy`       | `commandStats` (`[replayId+slot]`): commands, casts, moves, APM, per-minute curve · `abilityUses` (`[replayId+slot+abilLink]`)                                             |
+| `death-heatmap` | `lazy`       | `deathHeatmaps` (`[replayId+paramsHash]`) · `deathHeatmapCells` (`[replayId+paramsHash+x+y]`): parameterized by team / player / killer / cell; cache bounded to 32 filters |
+
+`timeline` and `points-of-interest`, which were built-ins up to 0.4, are specific to one
+viewer and now live in [heroes-replay-stats](https://github.com/myrddraall/heroes-replay-stats).
 
 The framework stamps `replayId` on every row (and `paramsHash` on parameterized runs, or
 `'-'` where a table is keyed by it), replaces an analyser's rows for the replay when it
@@ -61,10 +62,6 @@ The 2018 heroesbrowser analysers cannot be executed any more (their build and da
 sources are dead), so parity is by construction from their source, with these
 intentional deviations — each one a bug or an inaccuracy there:
 
-- **Timeline**: level-up events were emitted twice and talent events never
-  (`getTimlineEvents` spread `getTimlineLevelEvents` twice); level events carried a
-  `talent` field read from the wrong list. Here each level-up appears once with its
-  level and each talent pick once with its name and level.
 - **Chat**: `chatMessages` joined against an un-awaited promise, so names were never
   attached. Here every line carries the player's name, hero and team.
 - **XP curve**: the team's final point was one player's `EndOfGameXPBreakdown`. Here

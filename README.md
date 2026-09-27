@@ -6,7 +6,7 @@ Heroes of the Storm replay tooling, as a pnpm workspace:
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------ |
 | [`@myrddraall/heroprotocol`](./packages/heroprotocol)                   | the parser: protocols as data, best-effort decoding, browser and Node                        | **Stage 1 — done** |
 | [`@myrddraall/heroprotocol-db`](./packages/heroprotocol-db)             | the normalized replay model, analyser framework, IndexedDB store, ingest worker + client     | **done**           |
-| [`@myrddraall/heroprotocol-analysis`](./packages/heroprotocol-analysis) | the twelve built-in analysers and the batteries-included ingest worker                       | **Stage 5 — done** |
+| [`@myrddraall/heroprotocol-analysis`](./packages/heroprotocol-analysis) | the ten built-in analysers and the batteries-included ingest worker                          | **Stage 5 — done** |
 | [`@myrddraall/hero-data`](./packages/hero-data)                         | hero, talent, ability and award names — injectable provider over HeroesToolChest/heroes-data | **Stage 6 — done** |
 
 Continues [`myrddraall/heroesbrowser-heroprotocol`](https://github.com/myrddraall/heroesbrowser-heroprotocol),
