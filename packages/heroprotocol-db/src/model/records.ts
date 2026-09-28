@@ -65,6 +65,8 @@ export interface ReplayVersion {
 /** Denormalized onto the replay so lists render without touching `players`. */
 export interface PlayerSummary {
   readonly slot: number;
+  /** The account (`1-Hero-1-5750`): who the player is across replays; null for AI. */
+  readonly toonHandle: string | null;
   readonly name: string;
   /** Display name of the hero, from `details`. */
   readonly hero: string;

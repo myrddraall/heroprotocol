@@ -6,3 +6,4 @@ declare class AbortController {
   readonly signal: unknown;
   abort(): void;
 }
+declare function structuredClone<T>(value: T): T;
