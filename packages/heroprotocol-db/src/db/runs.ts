@@ -5,7 +5,7 @@ import type { AnalyserRow, AnyAnalyser } from '../analysers/types.js';
 import type { AnalyserRunRecord } from '../model/records.js';
 import type { HeroDb } from './HeroDb.js';
 import { keyedByParams } from '../analysers/runner.js';
-import { bulkAddChunked, replayRange } from './write.js';
+import { bulkAddChunked, replayRange, trackedWrite, type OnStoreWrite } from './write.js';
 
 /** The tables a set of runs' rows live in. */
 function tablesOf(db: HeroDb, analyser: AnyAnalyser): Table<AnalyserRow, unknown>[] {
@@ -36,39 +36,65 @@ async function deleteRunRows(
  * Persist an analyser's output atomically: its previous rows for this replay (and
  * params) are replaced by the new ones, and the run is recorded. With a `maxEntries`
  * cache bound, the oldest other parameter sets of the same analyser and replay are
- * evicted beyond the bound — rows and run record together.
+ * evicted beyond the bound — rows and run record together. `onProgress` reports waiting
+ * for the tables, then rows written.
  */
 export async function saveAnalyserOutput(
   db: HeroDb,
   analyser: AnyAnalyser,
   output: AnalyserOutput,
+  onProgress?: OnStoreWrite,
+): Promise<void> {
+  const { run } = output;
+  await trackedWrite(
+    db,
+    [db.analyserRuns, ...tablesOf(db, analyser)],
+    rowCount(output),
+    onProgress,
+    () => db.analyserRuns.get([run.replayId, run.analyserId, run.paramsHash]),
+    (added) => writeAnalyserOutput(db, analyser, output, added),
+  );
+}
+
+/** How many rows an output adds across its tables. */
+export function rowCount(output: AnalyserOutput): number {
+  return Object.values(output.rows).reduce((sum, list) => sum + list.length, 0);
+}
+
+/**
+ * The body of `saveAnalyserOutput`, for a caller that already holds a read-write
+ * transaction over `analyserRuns` and the analyser's tables (several outputs committed
+ * together). `added` gets each chunk's row count.
+ */
+export async function writeAnalyserOutput(
+  db: HeroDb,
+  analyser: AnyAnalyser,
+  output: AnalyserOutput,
+  added?: (rows: number) => void,
 ): Promise<void> {
   const { run, rows } = output;
-  const tables = tablesOf(db, analyser);
-  await db.transaction('rw', [db.analyserRuns, ...tables], async () => {
-    await deleteRunRows(db, analyser, run.replayId, run.paramsHash);
-    for (const [name, list] of Object.entries(rows)) {
-      await bulkAddChunked(db.table(name) as Table<AnalyserRow, unknown>, list);
-    }
-    await db.analyserRuns.put(run);
+  await deleteRunRows(db, analyser, run.replayId, run.paramsHash);
+  for (const [name, list] of Object.entries(rows)) {
+    await bulkAddChunked(db.table(name) as Table<AnalyserRow, unknown>, list, added);
+  }
+  await db.analyserRuns.put(run);
 
-    const max = analyser.cache?.maxEntries;
-    if (max === undefined || max < 1 || run.paramsHash === NO_PARAMS) return;
-    const runs = await db.analyserRuns
-      .where('[replayId+analyserId]')
-      .equals([run.replayId, run.analyserId])
-      .toArray();
-    const parameterized = runs.filter((r) => r.paramsHash !== NO_PARAMS);
-    if (parameterized.length <= max) return;
-    parameterized.sort((a, b) =>
-      a.computedAt < b.computedAt ? -1 : a.computedAt > b.computedAt ? 1 : 0,
-    );
-    for (const old of parameterized
-      .filter((r) => r.paramsHash !== run.paramsHash)
-      .slice(0, parameterized.length - max)) {
-      await deleteRun(db, analyser, old);
-    }
-  });
+  const max = analyser.cache?.maxEntries;
+  if (max === undefined || max < 1 || run.paramsHash === NO_PARAMS) return;
+  const runs = await db.analyserRuns
+    .where('[replayId+analyserId]')
+    .equals([run.replayId, run.analyserId])
+    .toArray();
+  const parameterized = runs.filter((r) => r.paramsHash !== NO_PARAMS);
+  if (parameterized.length <= max) return;
+  parameterized.sort((a, b) =>
+    a.computedAt < b.computedAt ? -1 : a.computedAt > b.computedAt ? 1 : 0,
+  );
+  for (const old of parameterized
+    .filter((r) => r.paramsHash !== run.paramsHash)
+    .slice(0, parameterized.length - max)) {
+    await deleteRun(db, analyser, old);
+  }
 }
 
 /** Remove a run and its rows. */

@@ -1,3 +1,4 @@
+import Dexie from 'dexie';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import type {
   AnalyserRunRecord,
@@ -9,6 +10,7 @@ import { createMemoryContext } from '../src/analysers/context.js';
 import { createRegistry } from '../src/analysers/registry.js';
 import type { Analyser, AnalyserRows } from '../src/analysers/types.js';
 import { HeroDb } from '../src/db/HeroDb.js';
+import { STORES } from '../src/db/schema.js';
 import { createDbContext, readRows, readTableRows } from '../src/db/read.js';
 import { deleteReplay, writeReplay } from '../src/db/write.js';
 import { saveAnalyserOutput } from '../src/db/runs.js';
@@ -65,6 +67,36 @@ describe('HeroDb.open', () => {
   });
 });
 
+describe('HeroDb.open over a database with the pre-0.5 indexes', () => {
+  it('drops the old secondary indexes, keeps the rows, and still answers where(replayId)', async () => {
+    const name = `old-indexes-${n++}`;
+    // The 0.4 schema of two core tables, as an existing browser would have it.
+    const old = new Dexie(name);
+    old.version(1).stores({
+      ...STORES,
+      commands:
+        '[replayId+seq], replayId, [replayId+playerSlot], [replayId+playerSlot+gameloop], [replayId+gameloop]',
+      players: '[replayId+slot], replayId, [replayId+team], toon.handle',
+    });
+    await old.open();
+    await old.table('commands').bulkAdd([
+      { replayId: 'r', seq: 0, playerSlot: 1, gameloop: 10 },
+      { replayId: 'r', seq: 1, playerSlot: 2, gameloop: 20 },
+      { replayId: 's', seq: 0, playerSlot: 1, gameloop: 5 },
+    ]);
+    old.close();
+
+    const db = await HeroDb.open(name);
+    open.push(db);
+    expect(db.verno).toBe(2); // the store set changed, so the version was bumped
+    expect(db.table('commands').schema.indexes.map((i) => i.name)).toEqual([]);
+    expect(db.table('players').schema.indexes.map((i) => i.name)).toEqual(['toon.handle']);
+    expect(await db.commands.count()).toBe(3);
+    expect(await db.commands.where('replayId').equals('r').count()).toBe(2);
+    expect((await readRows(db, 'commands', 'r', { playerSlot: 2 })).map((c) => c.seq)).toEqual([1]);
+  });
+});
+
 describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
   it('writes every collection, is idempotent on re-ingest, and measures the write', async () => {
     const db = await fresh();
@@ -91,22 +123,11 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
     expect(await db.commands.count()).toBe(fixtures.reduce((a, f) => a + f.commands.length, 0));
   });
 
-  it('keeps the file only when asked and records hasFile', async () => {
+  it('records the status it is given', async () => {
     const db = await fresh();
     const f = fixtures[0]!;
-    await writeReplay(db, f);
-    expect((await db.replays.get(f.replay.id))?.hasFile).toBe(false);
-    expect(await db.replayFiles.count()).toBe(0);
-    await writeReplay(db, f, {
-      file: { name: 'x.StormReplay', bytes: new Uint8Array([1, 2, 3]) },
-      status: 'analysing',
-    });
-    const r = await db.replays.get(f.replay.id);
-    expect(r?.hasFile).toBe(true);
-    expect(r?.status).toBe('analysing');
-    expect((await db.replayFiles.get(f.replay.id))?.bytes).toEqual(new Uint8Array([1, 2, 3]));
-    await writeReplay(db, f);
-    expect(await db.replayFiles.count()).toBe(0);
+    await writeReplay(db, f, { status: 'analysing' });
+    expect((await db.replays.get(f.replay.id))?.status).toBe('analysing');
   });
 
   it('leaves no rows behind when a write fails part-way', async () => {

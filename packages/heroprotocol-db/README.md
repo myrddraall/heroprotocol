@@ -42,29 +42,62 @@ ARAM the lobby records the hero the slot had _selected_, not the one it played.
 
 ## Analysers
 
-An analyser is a versioned pure function of `(replay, params)`:
+An analyser is a versioned pure function of `(replay, params)` that writes rows into
+tables it declares (Dexie schema strings; every primary key starts with `replayId`):
 
 ```ts
-const takedowns: Analyser<number[]> = {
+const takedowns: Analyser = {
   id: 'com.example/takedowns',
   version: 1,
+  tables: { takedowns: '[replayId+slot]' },
   inputs: ['scoreResults'],
   mode: 'ready', // 'ready' | 'background' | 'lazy'
-  run: async (ctx) => (await ctx.read('scoreResults')).map((s) => s.stats.Takedowns ?? 0),
+  run: async (ctx) => ({
+    takedowns: (await ctx.read('scoreResults')).map((s) => ({
+      slot: s.slot,
+      takedowns: s.stats['Takedowns'] ?? 0,
+    })),
+  }),
 };
-const registry = createRegistry([takedowns]);
-const { computed, results } = await runAnalysers({
-  registry,
-  ctx: createMemoryContext(n),
-  modes: ['ready'],
-});
 ```
 
 `ready` analysers run before a replay is considered ready, `background` ones after,
 `lazy` ones on first request; a consumer may override the mode when registering.
-Dependencies (`dependsOn`) may only point at an equal-or-earlier mode. A failing analyser produces an error row and never
-fails the run; a stored result is reused while its `analyserVersion` matches.
-Parameters are part of the cache key (`paramsHash`).
+A failing analyser produces an error run and never fails the ingest; a stored run is
+reused while its `analyserVersion` matches. Parameters are part of the cache key
+(`paramsHash`).
+
+### Dependencies
+
+An analyser can use another analyser's output as input: list it in `dependsOn` and read
+its tables with `ctx.readTable()`.
+
+```ts
+const teamTakedowns: Analyser = {
+  id: 'com.example/team-takedowns',
+  version: 1,
+  tables: { teamTakedowns: 'replayId' },
+  inputs: [],
+  dependsOn: ['com.example/takedowns'],
+  mode: 'lazy',
+  run: async (ctx) => {
+    const rows = await ctx.readTable<{ takedowns: number }>('takedowns');
+    return { teamTakedowns: [{ total: rows.reduce((a, r) => a + r.takedowns, 0) }] };
+  },
+};
+```
+
+Dependencies always run first:
+
+- **At ingest**, analysers run in dependency order and each one's rows are readable by
+  the ones after it. A dependency in a later mode than its dependent (a `ready` analyser
+  depending on a `lazy` one) is pulled forward and runs automatically in the
+  dependent's stage; `registry.get(id).mode` reports where it runs, `declaredMode` what
+  it asked for.
+- **On demand**, `analyse()` computes any missing, stale or errored dependency (and its
+  own dependencies) before the analyser itself; fresh ones are reused.
+- A dependent of a failed dependency is recorded as failed without running.
+- `validate()` rejects unregistered dependencies and cycles.
 
 `ctx.read()` is the only way an analyser touches data, which is what lets the same
 function run at ingest over the in-memory replay and later over the store.
@@ -76,6 +109,14 @@ has a compound primary key starting with `replayId`, so a replay is one contiguo
 key range: `writeReplay()` replaces a replay with one range delete per table plus
 chunked `bulkAdd`s in a single transaction (a failure leaves the database untouched),
 and `deleteReplay()` / `pruneReplays({ keep })` are the same range deletes.
+
+The per-replay tables have no secondary indexes (only `players.toon.handle`, for finding
+a player across replays). Every read is per replay, so `readRows()` is one range scan
+with the filter applied in memory, and `where('replayId')` still works because Dexie
+serves it from the primary key. Each index would be one more write per row; in a
+Chromium benchmark the indexes of 0.4 made writing a replay several times slower. The
+database uses relaxed durability: commits do not wait for the OS to flush them, which
+is a little faster and can only lose the last writes on an OS crash or power loss.
 
 ```ts
 import { openHeroDb, writeReplay, readRows, pruneReplays } from '@myrddraall/heroprotocol-db/db';
@@ -95,9 +136,9 @@ at ingest and lazily without change.
 model — no raw file needed — and `staleReplays(db)` lists replays normalized by an
 older `NORMALIZE_VERSION`.
 
-Measured with fake-indexeddb in Node (a browser's IndexedDB is faster): 22–30k rows
-per replay, 6–9 MB as JSON, written in 1.2–1.9 s; `normalizeReplay` itself takes
-10–70 ms.
+A replay is 22–30k rows, 6–9 MB as JSON; `normalizeReplay` itself takes 10–70 ms.
+Writing one took 5–9 s in headless Chromium in a devcontainer (28 s with the 0.4
+indexes) and 1.2–1.9 s in fake-indexeddb in Node; real browsers on a local disk vary.
 
 ## Ingest
 
@@ -110,12 +151,18 @@ import { ingestInline } from '@myrddraall/heroprotocol-db/ingest';
 const handle = ingestInline(db, bytes, {
   fileName: file.name,
   registry, // analysers; `ready` ones gate readiness, `background` ones follow
-  keepFile: false,
   onStatus: (s) => render(s), // IngestStatus snapshots: phase, per-section and per-analyser state
 });
 const { replay } = await handle.ready; // written, `ready` analysers committed
 await handle.complete; // `background` analysers committed one by one
 ```
+
+Each snapshot also carries `store` while a database write is in flight: the replay
+itself, the `ready` analysers' commit, a background analyser's save, or the final status
+update. IndexedDB runs read-write transactions over the same tables one at a time, so
+with several imports running a write is first `waiting` (another job holds the tables),
+then `writing` with `current` of `total` rows added. Row counts advance once per
+2,000-row chunk, throttled like the other progress ticks.
 
 `replays.status` walks `ingesting → analysing → ready → complete`; `ingestJobs`
 records status transitions only. A parse or write failure fails the job and writes no

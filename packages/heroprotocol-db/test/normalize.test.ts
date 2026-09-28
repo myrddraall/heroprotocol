@@ -378,6 +378,8 @@ describe('game and message events', () => {
     });
     // slot 9 left at 500 and never came back; slot 3 left at end of game (reason 0)
     expect([...r.leftAt]).toEqual([[9, 500]]);
+    // slot 3's leave is on the final loop, so its client recorded the replay
+    expect(r.recorderSlot).toBe(3);
   });
 
   it('turns chat and pings into chat rows and reconnects into events', () => {

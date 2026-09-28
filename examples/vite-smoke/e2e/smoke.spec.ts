@@ -31,7 +31,7 @@ const EXPECT = {
   },
   prebuilt: {
     ready: '@myrddraall/description:ready',
-    background: '@myrddraall/timeline=done',
+    background: '@myrddraall/chat=done',
     derived: [
       '@myrddraall/score-screen - v2',
       '@myrddraall/xp-curve - v2',

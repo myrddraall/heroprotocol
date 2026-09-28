@@ -1,0 +1,1603 @@
+{
+  "meta": {
+    "heroesVersion": "2.55.17.98025",
+    "hdpVersion": "5.0.4",
+    "itemsType": "Data",
+    "dataType": "HeroData",
+    "localizedText": "Extracted",
+    "totalItems": 3
+  },
+  "items": {
+    "Barbarian": {
+      "unitId": "HeroBarbarian",
+      "hyperlinkId": "Sonya",
+      "attributeId": "Barb",
+      "franchise": "Diablo",
+      "rarity": "Epic",
+      "releaseDate": "2014-03-13",
+      "isMelee": true,
+      "gender": "Female",
+      "radius": 0.75,
+      "innerRadius": 0.75,
+      "sight": 12,
+      "speed": 4.8398,
+      "attributes": ["Heroic"],
+      "scalingLinkIds": ["HeroDummyVeterancy"],
+      "defaultMountId": "BattleBeast",
+      "ratings": {
+        "complexity": 5,
+        "damage": 7,
+        "survivability": 6,
+        "utility": 5
+      },
+      "portraits": {
+        "heroSelect": "storm_ui_ingame_heroselect_btn_femalebarbarian.png",
+        "leaderboard": "storm_ui_ingame_hero_leaderboard_femalebarbarian.png",
+        "loading": "storm_ui_ingame_hero_loadingscreen_barbarian.png",
+        "partyPanel": "storm_ui_ingame_partypanel_btn_barbarian.png",
+        "target": "ui_targetportrait_hero_barbarian.png",
+        "draftScreen": "storm_ui_glues_draft_portrait_barbarian.png",
+        "partyFrames": ["storm_ui_ingame_partyframe_barbarian.png"],
+        "minimap": "storm_ui_minimapicon_heros_femalebarbarian.png",
+        "targetInfo": "storm_ui_ingame_partyframe_barbarian.png"
+      },
+      "life": {
+        "amount": 2450,
+        "scale": 0.04,
+        "regenRate": 5.1054,
+        "regenScale": 0.04
+      },
+      "energy": {
+        "amount": 100,
+        "regenRate": 0
+      },
+      "playstyles": [
+        "Ganker",
+        "MercKiller",
+        "Overconfident",
+        "RoleAutoAttacker",
+        "RoleCaster",
+        "SoloLaner",
+        "WaveClearer"
+      ],
+      "weapons": [
+        {
+          "nameId": "HeroBarbarian",
+          "isDisabled": false,
+          "range": 1.5,
+          "minimumRange": 0,
+          "period": 0.8,
+          "damage": 84,
+          "damageScale": 0.04
+        }
+      ],
+      "skinIds": [
+        "BarbarianDeathKnightFemale",
+        "BarbarianDeathKnightFemaleVar5",
+        "BarbarianLegionFemale",
+        "BarbarianSummer18",
+        "BarbarianWrathFemale",
+        "SonyaUltimate",
+        "SuperSonya"
+      ],
+      "variationSkinIds": [
+        "BarbarianBaseVar3",
+        "BarbarianBaseVar4",
+        "BarbarianBlue",
+        "BarbarianRed"
+      ],
+      "voiceLineIds": [
+        "BarbarianBase_VoiceLine01",
+        "BarbarianBase_VoiceLine02",
+        "BarbarianBase_VoiceLine03",
+        "BarbarianBase_VoiceLine04",
+        "BarbarianBase_VoiceLine05"
+      ],
+      "mountCategoryIds": ["Ride", "Ridebeast", "Ridebike", "Ridesurf"],
+      "abilities": {
+        "Basic": [
+          {
+            "linkId": "BarbarianAncientSpear|BarbarianAncientSpear|Q",
+            "abilityId": "BarbarianAncientSpear",
+            "buttonId": "BarbarianAncientSpear",
+            "icon": "storm_ui_icon_sonya_ancientspear.png",
+            "abilityType": "Q"
+          },
+          {
+            "linkId": "BarbarianSeismicSlam|BarbarianSeismicSlam|W",
+            "abilityId": "BarbarianSeismicSlam",
+            "buttonId": "BarbarianSeismicSlam",
+            "icon": "storm_ui_icon_sonya_seismicslam.png",
+            "abilityType": "W"
+          },
+          {
+            "linkId": "BarbarianWhirlwind|BarbarianWhirlwind|E",
+            "abilityId": "BarbarianWhirlwind",
+            "buttonId": "BarbarianWhirlwind",
+            "icon": "storm_ui_icon_sonya_whirlwind.png",
+            "abilityType": "E"
+          }
+        ],
+        "Heroic": [
+          {
+            "linkId": "BarbarianLeap|BarbarianLeap|Heroic",
+            "abilityId": "BarbarianLeap",
+            "buttonId": "BarbarianLeap",
+            "icon": "storm_ui_icon_sonya_leap.png",
+            "abilityType": "Heroic"
+          },
+          {
+            "linkId": "BarbarianWrathoftheBerserker|BarbarianWrathoftheBerserker|Heroic",
+            "abilityId": "BarbarianWrathoftheBerserker",
+            "buttonId": "BarbarianWrathoftheBerserker",
+            "icon": "storm_ui_icon_sonya_wrathoftheberserker.png",
+            "abilityType": "Heroic"
+          }
+        ],
+        "Trait": [
+          {
+            "linkId": ":PASSIVE:|BarbarianFury|Trait",
+            "abilityId": ":PASSIVE:",
+            "buttonId": "BarbarianFury",
+            "icon": "storm_ui_icon_sonya_fury.png",
+            "abilityType": "Trait"
+          }
+        ],
+        "Mount": [
+          {
+            "linkId": "Mount|SummonMount|Z",
+            "abilityId": "Mount",
+            "buttonId": "SummonMount",
+            "icon": "storm_ui_icon_generic_mount.png",
+            "abilityType": "Z"
+          }
+        ],
+        "Hearth": [
+          {
+            "linkId": "Hearthstone|HearthstoneNoMana|B",
+            "abilityId": "Hearthstone",
+            "buttonId": "HearthstoneNoMana",
+            "icon": "storm_ui_icon_miscrune_1.png",
+            "abilityType": "B"
+          }
+        ]
+      },
+      "subAbilities": {
+        "BarbarianWhirlwind|BarbarianWhirlwind|E": {
+          "Basic": [
+            {
+              "linkId": "BarbarianWhirlwindCancel|BarbarianWhirlwindCancel|E",
+              "abilityId": "BarbarianWhirlwindCancel",
+              "buttonId": "BarbarianWhirlwindCancel",
+              "icon": "hud_btn_bg_ability_cancel.png",
+              "toggleCooldown": 0.75,
+              "abilityType": "E"
+            }
+          ]
+        },
+        "BarbarianLeap|BarbarianLeap|Heroic": {
+          "Heroic": [
+            {
+              "linkId": "BarbarianCancelLeapArreatCrater|BarbarianLeapArreatCraterCancel|Heroic",
+              "abilityId": "BarbarianCancelLeapArreatCrater",
+              "buttonId": "BarbarianLeapArreatCraterCancel",
+              "icon": "hud_btn_bg_ability_cancel.png",
+              "abilityType": "Heroic"
+            }
+          ]
+        },
+        "Mount|SummonMount|Z": {
+          "Mount": [
+            {
+              "linkId": "Dismount|UnsummonMount|Z",
+              "abilityId": "Dismount",
+              "buttonId": "UnsummonMount",
+              "icon": "storm_ui_icon_generic_cancel_mount.png",
+              "toggleCooldown": 0.1,
+              "abilityType": "Z"
+            }
+          ]
+        },
+        "BarbarianShotOfFury|BarbarianFuryShotOfFuryTalent|Trait|Level4": {
+          "Trait": [
+            {
+              "linkId": "BarbarianShotofFury|BarbarianFuryShotOfFury|Trait",
+              "abilityId": "BarbarianShotofFury",
+              "buttonId": "BarbarianFuryShotOfFury",
+              "icon": "storm_ui_icon_sonya_fury.png",
+              "abilityType": "Trait"
+            }
+          ]
+        },
+        "BarbarianBattleRage|BarbarianBattleRage|Active|Level7": {
+          "Activable": [
+            {
+              "linkId": "BarbarianBattleRage|BarbarianBattleRage|Active",
+              "abilityId": "BarbarianBattleRage",
+              "buttonId": "BarbarianBattleRage",
+              "icon": "storm_ui_icon_talent_mercenarylord.png",
+              "charges": {
+                "countMax": 2,
+                "countUse": 1,
+                "recastCooldown": 8,
+                "isCountHidden": false
+              },
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "BarbarianNervesOfSteel|BarbarianNervesOfSteel|Active|Level16": {
+          "Activable": [
+            {
+              "linkId": "BarbarianNervesOfSteel|BarbarianNervesOfSteel|Active",
+              "abilityId": "BarbarianNervesOfSteel",
+              "buttonId": "BarbarianNervesOfSteel",
+              "icon": "storm_ui_icon_sonya_nervesofsteel.png",
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "BarbarianStridingGiant|BarbarianStridingGiant|Heroic|Level20": {
+          "Activable": [
+            {
+              "linkId": "BarbarianStridingGiant|BarbarianStridingGiantActive|Heroic",
+              "abilityId": "BarbarianStridingGiant",
+              "buttonId": "BarbarianStridingGiantActive",
+              "icon": "storm_ui_icon_sonya_wrathoftheberserker_b.png",
+              "abilityType": "Heroic"
+            }
+          ]
+        },
+        "BarbarianIgnorePain|BarbarianIgnorePain|Active|Level20": {
+          "Activable": [
+            {
+              "linkId": "BarbarianIgnorePain|BarbarianIgnorePain|Active",
+              "abilityId": "BarbarianIgnorePain",
+              "buttonId": "BarbarianIgnorePain",
+              "icon": "storm_ui_icon_sonya_ignorepain.png",
+              "abilityType": "Active"
+            }
+          ]
+        }
+      },
+      "talents": {
+        "Level1": [
+          {
+            "linkId": "BarbarianFuriousBlow|BarbarianSeismicSlamFuriousBlowTalent|W|Level1",
+            "talentId": "BarbarianFuriousBlow",
+            "buttonId": "BarbarianSeismicSlamFuriousBlowTalent",
+            "abilityId": "BarbarianSeismicSlam",
+            "icon": "storm_ui_icon_sonya_seismicslam.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["BarbarianSeismicSlam|BarbarianSeismicSlam|W"]
+          },
+          {
+            "linkId": "BarbarianWarPaint|BarbarianFuryWarPaintTalent|Passive|Level1",
+            "talentId": "BarbarianWarPaint",
+            "buttonId": "BarbarianFuryWarPaintTalent",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_talent_autoattack_heal.png",
+            "abilityType": "Passive",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 2,
+            "tooltipAbilityLinkIds": [
+              ":PASSIVE:|BarbarianFury|Trait",
+              "BarbarianShotofFury|BarbarianFuryShotOfFury|Trait"
+            ]
+          },
+          {
+            "linkId": "BarbarianToughAsNails|BarbarianToughAsNails|Passive|Level1",
+            "talentId": "BarbarianToughAsNails",
+            "buttonId": "BarbarianToughAsNails",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_talent_block.png",
+            "abilityType": "Passive",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level4": [
+          {
+            "linkId": "BarbarianShatteredGround|BarbarianSeismicSlamShatteredGroundTalent|W|Level4",
+            "talentId": "BarbarianShatteredGround",
+            "buttonId": "BarbarianSeismicSlamShatteredGroundTalent",
+            "abilityId": "BarbarianSeismicSlam",
+            "icon": "storm_ui_icon_sonya_seismicslam.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["BarbarianSeismicSlam|BarbarianSeismicSlam|W"]
+          },
+          {
+            "linkId": "BarbarianHurricane|BarbarianHurricaneWhirlwindTalent|E|Level4",
+            "talentId": "BarbarianHurricane",
+            "buttonId": "BarbarianHurricaneWhirlwindTalent",
+            "abilityId": "BarbarianWhirlwind",
+            "icon": "storm_ui_icon_sonya_whirlwind.png",
+            "abilityType": "E",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["BarbarianWhirlwind|BarbarianWhirlwind|E"]
+          },
+          {
+            "linkId": "BarbarianShotOfFury|BarbarianFuryShotOfFuryTalent|Trait|Level4",
+            "talentId": "BarbarianShotOfFury",
+            "buttonId": "BarbarianFuryShotOfFuryTalent",
+            "abilityId": "BarbarianShotofFury",
+            "icon": "storm_ui_icon_sonya_fury.png",
+            "abilityType": "Trait",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 3,
+            "tooltipAbilityLinkIds": [
+              ":PASSIVE:|BarbarianFury|Trait",
+              "BarbarianShotofFury|BarbarianFuryShotOfFury|Trait"
+            ]
+          }
+        ],
+        "Level7": [
+          {
+            "linkId": "BarbarianPoisonedSpear|BarbarianAncientSpearPoisonedSpearTalent|Q|Level7",
+            "talentId": "BarbarianPoisonedSpear",
+            "buttonId": "BarbarianAncientSpearPoisonedSpearTalent",
+            "abilityId": "BarbarianAncientSpear",
+            "icon": "storm_ui_icon_sonya_ancientspear.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["BarbarianAncientSpear|BarbarianAncientSpear|Q"]
+          },
+          {
+            "linkId": "BarbarianLifeFunnel|BarbarianWhirlwindLifeFunnelTalent|E|Level7",
+            "talentId": "BarbarianLifeFunnel",
+            "buttonId": "BarbarianWhirlwindLifeFunnelTalent",
+            "abilityId": "BarbarianWhirlwind",
+            "icon": "storm_ui_icon_sonya_whirlwind.png",
+            "abilityType": "E",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["BarbarianWhirlwind|BarbarianWhirlwind|E"]
+          },
+          {
+            "linkId": "BarbarianBattleRage|BarbarianBattleRage|Active|Level7",
+            "talentId": "BarbarianBattleRage",
+            "buttonId": "BarbarianBattleRage",
+            "abilityId": "BarbarianBattleRage",
+            "icon": "storm_ui_icon_talent_mercenarylord.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level10": [
+          {
+            "linkId": "BarbarianHeroicAbilityLeap|BarbarianLeap|Heroic|Level10",
+            "talentId": "BarbarianHeroicAbilityLeap",
+            "buttonId": "BarbarianLeap",
+            "abilityId": "BarbarianLeap",
+            "icon": "storm_ui_icon_sonya_leap.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 1
+          },
+          {
+            "linkId": "BarbarianHeroicAbilityWrathoftheBerserker|BarbarianWrathoftheBerserker|Heroic|Level10",
+            "talentId": "BarbarianHeroicAbilityWrathoftheBerserker",
+            "buttonId": "BarbarianWrathoftheBerserker",
+            "abilityId": "BarbarianWrathoftheBerserker",
+            "icon": "storm_ui_icon_sonya_wrathoftheberserker.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 2
+          }
+        ],
+        "Level13": [
+          {
+            "linkId": "BarbarianMysticalSpear|BarbarianAncientSpearMysticalSpearTalent|Q|Level13",
+            "talentId": "BarbarianMysticalSpear",
+            "buttonId": "BarbarianAncientSpearMysticalSpearTalent",
+            "abilityId": "BarbarianAncientSpear",
+            "icon": "storm_ui_icon_sonya_ancientspear.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["BarbarianAncientSpear|BarbarianAncientSpear|Q"]
+          },
+          {
+            "linkId": "BarbarianRuthless|BarbarianRuthless|E|Level13",
+            "talentId": "BarbarianRuthless",
+            "buttonId": "BarbarianRuthless",
+            "abilityId": "BarbarianWhirlwind",
+            "icon": "storm_ui_icon_sonya_whirlwind.png",
+            "abilityType": "E",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["BarbarianWhirlwind|BarbarianWhirlwind|E"]
+          },
+          {
+            "linkId": "BarbarianNoEscape|BarbarianFuryNoEscapeTalent|Trait|Level13",
+            "talentId": "BarbarianNoEscape",
+            "buttonId": "BarbarianFuryNoEscapeTalent",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_sonya_fury.png",
+            "abilityType": "Trait",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": false,
+            "sort": 3,
+            "tooltipAbilityLinkIds": [
+              ":PASSIVE:|BarbarianFury|Trait",
+              "BarbarianShotofFury|BarbarianFuryShotOfFury|Trait"
+            ]
+          }
+        ],
+        "Level16": [
+          {
+            "linkId": "BarbarianGiantSlammer|BarbarianGiantSlammer|W|Level16",
+            "talentId": "BarbarianGiantSlammer",
+            "buttonId": "BarbarianGiantSlammer",
+            "abilityId": "BarbarianSeismicSlam",
+            "icon": "storm_ui_icon_sonya_seismicslam.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["BarbarianSeismicSlam|BarbarianSeismicSlam|W"]
+          },
+          {
+            "linkId": "BarbarianRampage|BarbarianRampage|Passive|Level16",
+            "talentId": "BarbarianRampage",
+            "buttonId": "BarbarianRampage",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_talent_autoattack_cooldown.png",
+            "abilityType": "Passive",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 2
+          },
+          {
+            "linkId": "BarbarianNervesOfSteel|BarbarianNervesOfSteel|Active|Level16",
+            "talentId": "BarbarianNervesOfSteel",
+            "buttonId": "BarbarianNervesOfSteel",
+            "abilityId": "BarbarianNervesOfSteel",
+            "icon": "storm_ui_icon_sonya_nervesofsteel.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level20": [
+          {
+            "linkId": "BarbarianArreatCrater|BarbarianLeapArreatCraterTalent|Heroic|Level20",
+            "talentId": "BarbarianArreatCrater",
+            "buttonId": "BarbarianLeapArreatCraterTalent",
+            "abilityId": "BarbarianLeap",
+            "icon": "storm_ui_icon_sonya_leap.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["BarbarianLeap|BarbarianLeap|Heroic"],
+            "prerequisiteTalentIds": ["BarbarianHeroicAbilityLeap"]
+          },
+          {
+            "linkId": "BarbarianStridingGiant|BarbarianStridingGiant|Heroic|Level20",
+            "talentId": "BarbarianStridingGiant",
+            "buttonId": "BarbarianStridingGiant",
+            "abilityId": "BarbarianWrathoftheBerserker",
+            "icon": "storm_ui_icon_sonya_wrathoftheberserker.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": [
+              "BarbarianWrathoftheBerserker|BarbarianWrathoftheBerserker|Heroic"
+            ],
+            "prerequisiteTalentIds": ["BarbarianHeroicAbilityWrathoftheBerserker"]
+          },
+          {
+            "linkId": "BarbarianCompositeSpear|BarbarianAncientSpearCompositeSpearTalent|Q|Level20",
+            "talentId": "BarbarianCompositeSpear",
+            "buttonId": "BarbarianAncientSpearCompositeSpearTalent",
+            "abilityId": "BarbarianAncientSpear",
+            "icon": "storm_ui_icon_sonya_ancientspear.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 3,
+            "tooltipAbilityLinkIds": ["BarbarianAncientSpear|BarbarianAncientSpear|Q"]
+          },
+          {
+            "linkId": "BarbarianIgnorePain|BarbarianIgnorePain|Active|Level20",
+            "talentId": "BarbarianIgnorePain",
+            "buttonId": "BarbarianIgnorePain",
+            "abilityId": "BarbarianIgnorePain",
+            "icon": "storm_ui_icon_sonya_ignorepain.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 4
+          }
+        ]
+      }
+    },
+    "Malthael": {
+      "unitId": "HeroMalthael",
+      "hyperlinkId": "Malthael",
+      "attributeId": "MALT",
+      "franchise": "Diablo",
+      "rarity": "Legendary",
+      "releaseDate": "2017-06-13",
+      "isMelee": true,
+      "gender": "Male",
+      "radius": 0.6875,
+      "innerRadius": 0.6875,
+      "sight": 12,
+      "speed": 4.8398,
+      "attributes": ["Heroic"],
+      "scalingLinkIds": ["ExcellentMana", "HeroDummyVeterancy"],
+      "defaultMountId": "HorseCommon",
+      "ratings": {
+        "complexity": 6,
+        "damage": 7,
+        "survivability": 6,
+        "utility": 4
+      },
+      "portraits": {
+        "heroSelect": "storm_ui_ingame_heroselect_btn_malthael.png",
+        "leaderboard": "storm_ui_ingame_hero_leaderboard_malthael.png",
+        "loading": "storm_ui_ingame_hero_loadingscreen_malthael.png",
+        "partyPanel": "storm_ui_ingame_partypanel_btn_malthael.png",
+        "target": "ui_targetportrait_hero_malthael.png",
+        "draftScreen": "storm_ui_glues_draft_portrait_malthael.png",
+        "partyFrames": ["storm_ui_ingame_partyframe_malthael.png"],
+        "minimap": "storm_ui_minimapicon_malthael.png",
+        "targetInfo": "storm_ui_ingame_partyframe_malthael.png"
+      },
+      "life": {
+        "amount": 1962,
+        "scale": 0.04,
+        "regenRate": 4.086,
+        "regenScale": 0.04
+      },
+      "energy": {
+        "amount": 500,
+        "regenRate": 3
+      },
+      "playstyles": [
+        "BodyBlocker",
+        "DeadUpdater",
+        "EnergyImportant",
+        "Ganker",
+        "RoleAutoAttacker",
+        "SoloLaner",
+        "WaveClearer"
+      ],
+      "weapons": [
+        {
+          "nameId": "MalthaelHeroWeapon",
+          "isDisabled": false,
+          "range": 1.5,
+          "minimumRange": 0,
+          "period": 1.1,
+          "damage": 82,
+          "damageScale": 0.04
+        }
+      ],
+      "skinIds": ["MalthaelGrave", "MalthaelMecha19", "MalthaelWinter17"],
+      "variationSkinIds": [
+        "MalthaelBaseVar1",
+        "MalthaelBaseVar2",
+        "MalthaelBaseVar3",
+        "MalthaelBaseVar4"
+      ],
+      "voiceLineIds": [
+        "MalthaelBase_VoiceLine01",
+        "MalthaelBase_VoiceLine02",
+        "MalthaelBase_VoiceLine03",
+        "MalthaelBase_VoiceLine04",
+        "MalthaelBase_VoiceLine05"
+      ],
+      "mountCategoryIds": ["Ride", "Ridebeast", "Ridebike", "Ridesurf"],
+      "abilities": {
+        "Basic": [
+          {
+            "linkId": "MalthaelSoulRip|MalthaelSoulRip|Q",
+            "abilityId": "MalthaelSoulRip",
+            "buttonId": "MalthaelSoulRip",
+            "icon": "storm_ui_icon_malthael_soulrip.png",
+            "abilityType": "Q"
+          },
+          {
+            "linkId": "MalthaelWraithStrike|MalthaelWraithStrike|W",
+            "abilityId": "MalthaelWraithStrike",
+            "buttonId": "MalthaelWraithStrike",
+            "icon": "storm_ui_icon_malthael_wraithstrike.png",
+            "abilityType": "W"
+          },
+          {
+            "linkId": "MalthaelDeathShroud|MalthaelDeathShroud|E",
+            "abilityId": "MalthaelDeathShroud",
+            "buttonId": "MalthaelDeathShroud",
+            "icon": "storm_ui_icon_malthael_deathshroud.png",
+            "abilityType": "E"
+          }
+        ],
+        "Heroic": [
+          {
+            "linkId": "MalthaelTormentedSouls|MalthaelTormentedSouls|Heroic",
+            "abilityId": "MalthaelTormentedSouls",
+            "buttonId": "MalthaelTormentedSouls",
+            "icon": "storm_ui_icon_malthael_tormentedsoul.png",
+            "abilityType": "Heroic"
+          },
+          {
+            "linkId": "MalthaelLastRites|MalthaelLastRites|Heroic",
+            "abilityId": "MalthaelLastRites",
+            "buttonId": "MalthaelLastRites",
+            "icon": "storm_ui_icon_malthael_lastrites.png",
+            "abilityType": "Heroic"
+          }
+        ],
+        "Trait": [
+          {
+            "linkId": ":PASSIVE:|MalthaelReapersMark|Trait",
+            "abilityId": ":PASSIVE:",
+            "buttonId": "MalthaelReapersMark",
+            "icon": "storm_ui_icon_malthael_reapersmark.png",
+            "abilityType": "Trait"
+          }
+        ],
+        "Mount": [
+          {
+            "linkId": "Mount|SummonMount|Z",
+            "abilityId": "Mount",
+            "buttonId": "SummonMount",
+            "icon": "storm_ui_icon_generic_mount.png",
+            "abilityType": "Z"
+          }
+        ],
+        "Hearth": [
+          {
+            "linkId": "Hearthstone|Hearthstone|B",
+            "abilityId": "Hearthstone",
+            "buttonId": "Hearthstone",
+            "icon": "storm_ui_icon_miscrune_1.png",
+            "abilityType": "B"
+          }
+        ]
+      },
+      "subAbilities": {
+        "Mount|SummonMount|Z": {
+          "Mount": [
+            {
+              "linkId": "Dismount|UnsummonMount|Z",
+              "abilityId": "Dismount",
+              "buttonId": "UnsummonMount",
+              "icon": "storm_ui_icon_generic_cancel_mount.png",
+              "toggleCooldown": 0.1,
+              "abilityType": "Z"
+            }
+          ]
+        },
+        "MalthaelFearTheReaper|MalthaelFearTheReaper|Active|Level1": {
+          "Activable": [
+            {
+              "linkId": "MalthaelFearTheReaper|MalthaelFearTheReaper|Active",
+              "abilityId": "MalthaelFearTheReaper",
+              "buttonId": "MalthaelFearTheReaper",
+              "icon": "storm_ui_icon_malthael_fearthereaper.png",
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "MalthaelTouchOfDeath|MalthaelTouchOfDeath|Active|Level7": {
+          "Activable": [
+            {
+              "linkId": "MalthaelTouchOfDeath|MalthaelTouchOfDeath|Active",
+              "abilityId": "MalthaelTouchOfDeath",
+              "buttonId": "MalthaelTouchOfDeath",
+              "icon": "storm_ui_icon_malthael_touchofdeath.png",
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "MalthaelInevitableEnd|MalthaelInevitableEnd|Active|Level13": {
+          "Activable": [
+            {
+              "linkId": "MalthaelInevitableEnd|MalthaelInevitableEnd|Active",
+              "abilityId": "MalthaelInevitableEnd",
+              "buttonId": "MalthaelInevitableEnd",
+              "icon": "storm_ui_icon_malthael_inevitableend.png",
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "MalthaelShroudOfWisdom|MalthaelShroudOfWisdom|Active|Level13": {
+          "Activable": [
+            {
+              "linkId": "MalthaelShroudOfWisdom|MalthaelShroudOfWisdom|Active",
+              "abilityId": "MalthaelShroudOfWisdom",
+              "buttonId": "MalthaelShroudOfWisdom",
+              "icon": "storm_ui_icon_malthael_shroudofwisdom.png",
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "MalthaelNoOneCanStopDeath|MalthaelNoOneCanStopDeath|Active|Level20": {
+          "Activable": [
+            {
+              "linkId": "MalthaelNoOneCanStopDeath|MalthaelNoOneCanStopDeath|Active",
+              "abilityId": "MalthaelNoOneCanStopDeath",
+              "buttonId": "MalthaelNoOneCanStopDeath",
+              "icon": "storm_ui_icon_malthael_noonecanstopdeath.png",
+              "abilityType": "Active"
+            }
+          ]
+        }
+      },
+      "talents": {
+        "Level1": [
+          {
+            "linkId": "MalthaelDeathsReach|MalthaelDeathsReach|W|Level1",
+            "talentId": "MalthaelDeathsReach",
+            "buttonId": "MalthaelDeathsReach",
+            "abilityId": "MalthaelWraithStrike",
+            "icon": "storm_ui_icon_malthael_wraithstrike.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["MalthaelWraithStrike|MalthaelWraithStrike|W"]
+          },
+          {
+            "linkId": "MalthaelOnAPaleHorse|MalthaelOnAPaleHorse|Passive|Level1",
+            "talentId": "MalthaelOnAPaleHorse",
+            "buttonId": "MalthaelOnAPaleHorse",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_malthael_onpalehorse.png",
+            "abilityType": "Passive",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["Dismount|UnsummonMount|Z", "Mount|SummonMount|Z"]
+          },
+          {
+            "linkId": "MalthaelFearTheReaper|MalthaelFearTheReaper|Active|Level1",
+            "talentId": "MalthaelFearTheReaper",
+            "buttonId": "MalthaelFearTheReaper",
+            "abilityId": "MalthaelFearTheReaper",
+            "icon": "storm_ui_icon_malthael_fearthereaper.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level4": [
+          {
+            "linkId": "MalthaelDieAlone|MalthaelDieAlone|Q|Level4",
+            "talentId": "MalthaelDieAlone",
+            "buttonId": "MalthaelDieAlone",
+            "abilityId": "MalthaelSoulRip",
+            "icon": "storm_ui_icon_malthael_soulrip.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["MalthaelSoulRip|MalthaelSoulRip|Q"]
+          },
+          {
+            "linkId": "MalthaelThrowingShade|MalthaelThrowingShade|E|Level4",
+            "talentId": "MalthaelThrowingShade",
+            "buttonId": "MalthaelThrowingShade",
+            "abilityId": "MalthaelDeathShroud",
+            "icon": "storm_ui_icon_malthael_deathshroud.png",
+            "abilityType": "E",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["MalthaelDeathShroud|MalthaelDeathShroud|E"]
+          },
+          {
+            "linkId": "MalthaelBlackHarvest|MalthaelBlackHarvest|Trait|Level4",
+            "talentId": "MalthaelBlackHarvest",
+            "buttonId": "MalthaelBlackHarvest",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_malthael_reapersmark.png",
+            "abilityType": "Trait",
+            "isQuest": true,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3,
+            "tooltipAbilityLinkIds": [":PASSIVE:|MalthaelReapersMark|Trait"]
+          }
+        ],
+        "Level7": [
+          {
+            "linkId": "MalthaelColdHand|MalthaelColdHand|Q|Level7",
+            "talentId": "MalthaelColdHand",
+            "buttonId": "MalthaelColdHand",
+            "abilityId": "MalthaelSoulRip",
+            "icon": "storm_ui_icon_malthael_soulrip.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["MalthaelSoulRip|MalthaelSoulRip|Q"]
+          },
+          {
+            "linkId": "MalthaelMassacre|MalthaelMassacre|W|Level7",
+            "talentId": "MalthaelMassacre",
+            "buttonId": "MalthaelMassacre",
+            "abilityId": "MalthaelWraithStrike",
+            "icon": "storm_ui_icon_malthael_wraithstrike.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["MalthaelWraithStrike|MalthaelWraithStrike|W"]
+          },
+          {
+            "linkId": "MalthaelTouchOfDeath|MalthaelTouchOfDeath|Active|Level7",
+            "talentId": "MalthaelTouchOfDeath",
+            "buttonId": "MalthaelTouchOfDeath",
+            "abilityId": "MalthaelTouchOfDeath",
+            "icon": "storm_ui_icon_malthael_touchofdeath.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level10": [
+          {
+            "linkId": "MalthaelTormentedSouls|MalthaelTormentedSouls|Heroic|Level10",
+            "talentId": "MalthaelTormentedSouls",
+            "buttonId": "MalthaelTormentedSouls",
+            "abilityId": "MalthaelTormentedSouls",
+            "icon": "storm_ui_icon_malthael_tormentedsoul.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 1
+          },
+          {
+            "linkId": "MalthaelLastRites|MalthaelLastRites|Heroic|Level10",
+            "talentId": "MalthaelLastRites",
+            "buttonId": "MalthaelLastRites",
+            "abilityId": "MalthaelLastRites",
+            "icon": "storm_ui_icon_malthael_lastrites.png",
+            "abilityType": "Heroic",
+            "isQuest": true,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 2
+          }
+        ],
+        "Level13": [
+          {
+            "linkId": "MalthaelSoulSiphon|MalthaelSoulSiphon|Q|Level13",
+            "talentId": "MalthaelSoulSiphon",
+            "buttonId": "MalthaelSoulSiphon",
+            "abilityId": "MalthaelSoulRip",
+            "icon": "storm_ui_icon_malthael_soulrip.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["MalthaelSoulRip|MalthaelSoulRip|Q"]
+          },
+          {
+            "linkId": "MalthaelEtherealExistence|MalthaelEtherealExistence|Trait|Level13",
+            "talentId": "MalthaelEtherealExistence",
+            "buttonId": "MalthaelEtherealExistence",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_malthael_reapersmark.png",
+            "abilityType": "Trait",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": false,
+            "sort": 2,
+            "tooltipAbilityLinkIds": [":PASSIVE:|MalthaelReapersMark|Trait"]
+          },
+          {
+            "linkId": "MalthaelInevitableEnd|MalthaelInevitableEnd|Active|Level13",
+            "talentId": "MalthaelInevitableEnd",
+            "buttonId": "MalthaelInevitableEnd",
+            "abilityId": "MalthaelInevitableEnd",
+            "icon": "storm_ui_icon_malthael_inevitableend.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          },
+          {
+            "linkId": "MalthaelShroudOfWisdom|MalthaelShroudOfWisdom|Active|Level13",
+            "talentId": "MalthaelShroudOfWisdom",
+            "buttonId": "MalthaelShroudOfWisdom",
+            "abilityId": "MalthaelShroudOfWisdom",
+            "icon": "storm_ui_icon_malthael_shroudofwisdom.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 4
+          }
+        ],
+        "Level16": [
+          {
+            "linkId": "MalthaelSoulCollector|MalthaelSoulCollector|Q|Level16",
+            "talentId": "MalthaelSoulCollector",
+            "buttonId": "MalthaelSoulCollector",
+            "abilityId": "MalthaelSoulRip",
+            "icon": "storm_ui_icon_malthael_soulrip.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["MalthaelSoulRip|MalthaelSoulRip|Q"]
+          },
+          {
+            "linkId": "MalthaelMortality|MalthaelMortality|W|Level16",
+            "talentId": "MalthaelMortality",
+            "buttonId": "MalthaelMortality",
+            "abilityId": "MalthaelWraithStrike",
+            "icon": "storm_ui_icon_malthael_wraithstrike.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["MalthaelWraithStrike|MalthaelWraithStrike|W"]
+          },
+          {
+            "linkId": "MalthaelMementoMori|MalthaelMementoMori|Trait|Level16",
+            "talentId": "MalthaelMementoMori",
+            "buttonId": "MalthaelMementoMori",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_malthael_reapersmark.png",
+            "abilityType": "Trait",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": false,
+            "sort": 3,
+            "tooltipAbilityLinkIds": [":PASSIVE:|MalthaelReapersMark|Trait"]
+          }
+        ],
+        "Level20": [
+          {
+            "linkId": "MalthaelReaperOfSouls|MalthaelReaperOfSouls|Heroic|Level20",
+            "talentId": "MalthaelReaperOfSouls",
+            "buttonId": "MalthaelReaperOfSouls",
+            "abilityId": "MalthaelTormentedSouls",
+            "icon": "storm_ui_icon_malthael_tormentedsoul.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["MalthaelTormentedSouls|MalthaelTormentedSouls|Heroic"],
+            "prerequisiteTalentIds": ["MalthaelTormentedSouls"]
+          },
+          {
+            "linkId": "MalthaelAngelOfDeath|MalthaelAngelOfDeath|Heroic|Level20",
+            "talentId": "MalthaelAngelOfDeath",
+            "buttonId": "MalthaelAngelOfDeath",
+            "abilityId": "MalthaelLastRites",
+            "icon": "storm_ui_icon_malthael_lastrites.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["MalthaelLastRites|MalthaelLastRites|Heroic"],
+            "prerequisiteTalentIds": ["MalthaelLastRites"]
+          },
+          {
+            "linkId": "MalthaelFinalCurtain|MalthaelFinalCurtain|E|Level20",
+            "talentId": "MalthaelFinalCurtain",
+            "buttonId": "MalthaelFinalCurtain",
+            "abilityId": "MalthaelDeathShroud",
+            "icon": "storm_ui_icon_malthael_deathshroud.png",
+            "abilityType": "E",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 3,
+            "tooltipAbilityLinkIds": ["MalthaelDeathShroud|MalthaelDeathShroud|E"]
+          },
+          {
+            "linkId": "MalthaelNoOneCanStopDeath|MalthaelNoOneCanStopDeath|Active|Level20",
+            "talentId": "MalthaelNoOneCanStopDeath",
+            "buttonId": "MalthaelNoOneCanStopDeath",
+            "abilityId": "MalthaelNoOneCanStopDeath",
+            "icon": "storm_ui_icon_malthael_noonecanstopdeath.png",
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 4
+          }
+        ]
+      }
+    },
+    "Zagara": {
+      "unitId": "HeroZagara",
+      "hyperlinkId": "Zagara",
+      "attributeId": "Zaga",
+      "franchise": "Starcraft",
+      "rarity": "Epic",
+      "releaseDate": "2014-06-25",
+      "isMelee": false,
+      "gender": "Female",
+      "radius": 1.125,
+      "innerRadius": 0.9375,
+      "sight": 12,
+      "speed": 4.8398,
+      "attributes": ["Heroic"],
+      "scalingLinkIds": ["ExcellentMana", "HeroDummyVeterancy"],
+      "defaultMountId": "ZagaraWings",
+      "ratings": {
+        "complexity": 6,
+        "damage": 6,
+        "survivability": 5,
+        "utility": 8
+      },
+      "portraits": {
+        "heroSelect": "storm_ui_ingame_heroselect_btn_zagara.png",
+        "leaderboard": "storm_ui_ingame_hero_leaderboard_zagara.png",
+        "loading": "storm_ui_ingame_hero_loadingscreen_zagara.png",
+        "partyPanel": "storm_ui_ingame_partypanel_btn_zagara.png",
+        "target": "ui_targetportrait_hero_zagara.png",
+        "draftScreen": "storm_ui_glues_draft_portrait_zagara.png",
+        "partyFrames": ["storm_ui_ingame_partyframe_zagara.png"],
+        "minimap": "storm_ui_minimapicon_zagara.png",
+        "targetInfo": "storm_ui_ingame_partyframe_zagara.png"
+      },
+      "life": {
+        "amount": 1550,
+        "scale": 0.04,
+        "regenRate": 3.2304,
+        "regenScale": 0.04
+      },
+      "energy": {
+        "amount": 500,
+        "regenRate": 3
+      },
+      "playstyles": [
+        "EnergyImportant",
+        "RoleSpecialist",
+        "SoloLaner",
+        "TowerPusher",
+        "WaveClearer"
+      ],
+      "summonedUnitIds": [
+        "ZagaraBaneling",
+        "ZagaraCreepTumor",
+        "ZagaraHydralisk",
+        "ZagaraMutalisk",
+        "ZagaraNydusWorm",
+        "ZagaraRoach"
+      ],
+      "weapons": [
+        {
+          "nameId": "HeroZagara",
+          "isDisabled": false,
+          "range": 6.6,
+          "minimumRange": 0,
+          "period": 0.8,
+          "damage": 83,
+          "damageScale": 0.04
+        }
+      ],
+      "skinIds": ["ZagaraCryptQueen", "ZagaraInsectoid", "ZagaraLuxoriaQueen", "ZagaraUltimate"],
+      "variationSkinIds": ["ZagaraBaseVar3", "ZagaraChar", "ZagaraToxic"],
+      "voiceLineIds": [
+        "ZagaraBase_VoiceLine01",
+        "ZagaraBase_VoiceLine02",
+        "ZagaraBase_VoiceLine03",
+        "ZagaraBase_VoiceLine04",
+        "ZagaraBase_VoiceLine05"
+      ],
+      "mountCategoryIds": ["Ridesurf", "ZagaraWings"],
+      "abilities": {
+        "Basic": [
+          {
+            "linkId": "ZagaraBanelingBarrage|ZagaraBanelingBarrage|Q",
+            "abilityId": "ZagaraBanelingBarrage",
+            "buttonId": "ZagaraBanelingBarrage",
+            "icon": "storm_ui_icon_zagara_banelingbarrage.png",
+            "charges": {
+              "countMax": 2,
+              "countStart": 2,
+              "countUse": 1,
+              "recastCooldown": 0.125,
+              "isCountHidden": false
+            },
+            "abilityType": "Q"
+          },
+          {
+            "linkId": "ZagaraSummonHydralisk|ZagaraHunterKiller|W",
+            "abilityId": "ZagaraSummonHydralisk",
+            "buttonId": "ZagaraHunterKiller",
+            "icon": "storm_ui_icon_zagara_hunterkiller.png",
+            "abilityType": "W"
+          },
+          {
+            "linkId": "ZagaraInfestedDrop|ZagaraInfestedDrop|E",
+            "abilityId": "ZagaraInfestedDrop",
+            "buttonId": "ZagaraInfestedDrop",
+            "icon": "storm_ui_icon_zagara_infesteddrop.png",
+            "abilityType": "E"
+          }
+        ],
+        "Heroic": [
+          {
+            "linkId": "ZagaraSummonNydusWorm|ZagaraNydusNetwork|Heroic",
+            "abilityId": "ZagaraSummonNydusWorm",
+            "buttonId": "ZagaraNydusNetwork",
+            "icon": "storm_ui_icon_zagara_nydusworm.png",
+            "charges": {
+              "countMax": 2,
+              "countStart": 2,
+              "countUse": 1,
+              "recastCooldown": 2,
+              "isCountHidden": false
+            },
+            "abilityType": "Heroic"
+          },
+          {
+            "linkId": "ZagaraDevouringMaw|ZagaraDevouringMaw|Heroic",
+            "abilityId": "ZagaraDevouringMaw",
+            "buttonId": "ZagaraDevouringMaw",
+            "icon": "storm_ui_icon_zagara_devouringmaw.png",
+            "abilityType": "Heroic"
+          }
+        ],
+        "Trait": [
+          {
+            "linkId": "ZagaraSummonCreepTumor|ZagaraCreepTumor|Trait",
+            "abilityId": "ZagaraSummonCreepTumor",
+            "buttonId": "ZagaraCreepTumor",
+            "icon": "storm_ui_icon_zagara_creep.png",
+            "charges": {
+              "countMax": 3,
+              "countStart": 1,
+              "countUse": 1,
+              "recastCooldown": 3,
+              "isCountHidden": false
+            },
+            "abilityType": "Trait"
+          }
+        ],
+        "Mount": [
+          {
+            "linkId": "Mount|SummonMount|Z",
+            "abilityId": "Mount",
+            "buttonId": "SummonMount",
+            "icon": "storm_ui_icon_generic_mount.png",
+            "abilityType": "Z"
+          }
+        ],
+        "Hearth": [
+          {
+            "linkId": "Hearthstone|Hearthstone|B",
+            "abilityId": "Hearthstone",
+            "buttonId": "Hearthstone",
+            "icon": "storm_ui_icon_miscrune_1.png",
+            "abilityType": "B"
+          }
+        ]
+      },
+      "subAbilities": {
+        "Mount|SummonMount|Z": {
+          "Mount": [
+            {
+              "linkId": "Dismount|UnsummonMount|Z",
+              "abilityId": "Dismount",
+              "buttonId": "UnsummonMount",
+              "icon": "storm_ui_icon_generic_cancel_mount.png",
+              "toggleCooldown": 0.1,
+              "abilityType": "Z"
+            }
+          ]
+        },
+        "HeroGenericSpellShield|GenericSpellShieldItemEnabled|Active": {
+          "Activable": [
+            {
+              "linkId": "HeroGenericSpellShield|GenericSpellShieldItemDisabled|Active",
+              "abilityId": "HeroGenericSpellShield",
+              "buttonId": "GenericSpellShieldItemDisabled",
+              "icon": "storm_ui_icon_talent_spellshield.png",
+              "toggleCooldown": 0.5,
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "ZagaraInfestToggle|ZagaraInfestItem|Active": {
+          "Activable": [
+            {
+              "linkId": "ZagaraInfestToggle|ZagaraInfestToggleOff|Active",
+              "abilityId": "ZagaraInfestToggle",
+              "buttonId": "ZagaraInfestToggleOff",
+              "icon": "hud_btn_bg_ability_cancel.png",
+              "toggleCooldown": 0.5,
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "ZagaraMasteryInfest|ZagaraInfest|Active|Level1": {
+          "Activable": [
+            {
+              "linkId": "ZagaraInfestToggle|ZagaraInfestItem|Active",
+              "abilityId": "ZagaraInfestToggle",
+              "buttonId": "ZagaraInfestItem",
+              "icon": "storm_ui_icon_zagara_infest.png",
+              "toggleCooldown": 0.5,
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "ZagaraMasteryEnvenomedSpines|ZagaraEnvenomedSpinesTalent|Active|Level4": {
+          "Activable": [
+            {
+              "linkId": "ZagaraEnvenomedSpines|ZagaraEnvenomedSpinesTalent|Active",
+              "abilityId": "ZagaraEnvenomedSpines",
+              "buttonId": "ZagaraEnvenomedSpinesTalent",
+              "icon": "storm_ui_icon_talent_autoattack_range.png",
+              "toggleCooldown": 0.5,
+              "abilityType": "Active"
+            }
+          ]
+        },
+        "GenericTalentSpellShield|GenericSpellShieldTalent|Active|Level13": {
+          "Activable": [
+            {
+              "linkId": "HeroGenericSpellShield|GenericSpellShieldItemEnabled|Active",
+              "abilityId": "HeroGenericSpellShield",
+              "buttonId": "GenericSpellShieldItemEnabled",
+              "icon": "hud_btn_bg_ability_cancel.png",
+              "toggleCooldown": 0.5,
+              "abilityType": "Active"
+            }
+          ]
+        }
+      },
+      "talents": {
+        "Level1": [
+          {
+            "linkId": "ZagaraMasteryVolatileAcid|ZagaraBanelingBarrageVolatileAcidTalent|Q|Level1",
+            "talentId": "ZagaraMasteryVolatileAcid",
+            "buttonId": "ZagaraBanelingBarrageVolatileAcidTalent",
+            "abilityId": "ZagaraBanelingBarrage",
+            "icon": "storm_ui_icon_zagara_banelingbarrage.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["ZagaraBanelingBarrage|ZagaraBanelingBarrage|Q"]
+          },
+          {
+            "linkId": "ZagaraMasteryCorpseFeeders|ZagaraInfestedDropCorpseFeedersTalent|E|Level1",
+            "talentId": "ZagaraMasteryCorpseFeeders",
+            "buttonId": "ZagaraInfestedDropCorpseFeedersTalent",
+            "abilityId": "ZagaraInfestedDrop",
+            "icon": "storm_ui_icon_zagara_infesteddrop.png",
+            "abilityType": "E",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["ZagaraInfestedDrop|ZagaraInfestedDrop|E"]
+          },
+          {
+            "linkId": "ZagaraMasteryInfest|ZagaraInfest|Active|Level1",
+            "talentId": "ZagaraMasteryInfest",
+            "buttonId": "ZagaraInfest",
+            "abilityId": "ZagaraInfestToggle",
+            "icon": "storm_ui_icon_zagara_infest.png",
+            "toggleCooldown": 0.5,
+            "abilityType": "Active",
+            "isQuest": true,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level4": [
+          {
+            "linkId": "ZagaraMasteryEnvenomedSpines|ZagaraEnvenomedSpinesTalent|Active|Level4",
+            "talentId": "ZagaraMasteryEnvenomedSpines",
+            "buttonId": "ZagaraEnvenomedSpinesTalent",
+            "abilityId": "ZagaraEnvenomedSpines",
+            "icon": "storm_ui_icon_talent_autoattack_range.png",
+            "toggleCooldown": 0.5,
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 1
+          },
+          {
+            "linkId": "ZagaraCombatStyleMedusaBlades|ZagaraMedusaBladesTalent|Passive|Level4",
+            "talentId": "ZagaraCombatStyleMedusaBlades",
+            "buttonId": "ZagaraMedusaBladesTalent",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_talent_autoattack_aoe.png",
+            "abilityType": "Passive",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 2
+          },
+          {
+            "linkId": "ZagaraMasterySerratedSpines|ZagaraSerratedSpinesTalent|Passive|Level4",
+            "talentId": "ZagaraMasterySerratedSpines",
+            "buttonId": "ZagaraSerratedSpinesTalent",
+            "abilityId": ":PASSIVE:",
+            "icon": "storm_ui_icon_talent_autoattack_damage.png",
+            "abilityType": "Passive",
+            "isQuest": true,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level7": [
+          {
+            "linkId": "ZagaraMasteryBanelingMassacre|ZagaraBanelingBarrageBanelingMassacreTalent|Q|Level7",
+            "talentId": "ZagaraMasteryBanelingMassacre",
+            "buttonId": "ZagaraBanelingBarrageBanelingMassacreTalent",
+            "abilityId": "ZagaraBanelingBarrage",
+            "icon": "storm_ui_icon_zagara_banelingbarrage.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["ZagaraBanelingBarrage|ZagaraBanelingBarrage|Q"]
+          },
+          {
+            "linkId": "ZagaraViscousAcid|ZagaraViscousAcid|Q|Level7",
+            "talentId": "ZagaraViscousAcid",
+            "buttonId": "ZagaraViscousAcid",
+            "abilityId": "ZagaraBanelingBarrage",
+            "icon": "storm_ui_icon_zagara_banelingbarrage_a.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["ZagaraBanelingBarrage|ZagaraBanelingBarrage|Q"]
+          },
+          {
+            "linkId": "ZagaraMasteryBileDrop|ZagaraInfestedDropBileDropTalent|E|Level7",
+            "talentId": "ZagaraMasteryBileDrop",
+            "buttonId": "ZagaraInfestedDropBileDropTalent",
+            "abilityId": "ZagaraInfestedDrop",
+            "icon": "storm_ui_icon_zagara_infesteddrop.png",
+            "abilityType": "E",
+            "isQuest": true,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 3,
+            "tooltipAbilityLinkIds": ["ZagaraInfestedDrop|ZagaraInfestedDrop|E"]
+          }
+        ],
+        "Level10": [
+          {
+            "linkId": "ZagaraHeroicAbilityDevouringMaw|ZagaraDevouringMaw|Heroic|Level10",
+            "talentId": "ZagaraHeroicAbilityDevouringMaw",
+            "buttonId": "ZagaraDevouringMaw",
+            "abilityId": "ZagaraDevouringMaw",
+            "icon": "storm_ui_icon_zagara_devouringmaw.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 1
+          },
+          {
+            "linkId": "ZagaraHeroicAbilityNydusAssault|ZagaraNydusNetwork|Heroic|Level10",
+            "talentId": "ZagaraHeroicAbilityNydusAssault",
+            "buttonId": "ZagaraNydusNetwork",
+            "abilityId": "ZagaraSummonNydusWorm",
+            "icon": "storm_ui_icon_zagara_nydusworm.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": true,
+            "sort": 2
+          }
+        ],
+        "Level13": [
+          {
+            "linkId": "ZagaraMasteryHydraliskTransfusion|ZagaraHydraliskTransfusionTalent|W|Level13",
+            "talentId": "ZagaraMasteryHydraliskTransfusion",
+            "buttonId": "ZagaraHydraliskTransfusionTalent",
+            "abilityId": "ZagaraSummonHydralisk",
+            "icon": "storm_ui_icon_zagara_hunterkiller.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["ZagaraSummonHydralisk|ZagaraHunterKiller|W"]
+          },
+          {
+            "linkId": "ZagaraMasteryProtectiveCoating|ZagaraCreepTumorProtectiveCoating|Trait|Level13",
+            "talentId": "ZagaraMasteryProtectiveCoating",
+            "buttonId": "ZagaraCreepTumorProtectiveCoating",
+            "abilityId": "ZagaraSummonCreepTumor",
+            "icon": "storm_ui_icon_zagara_creep.png",
+            "abilityType": "Trait",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["ZagaraSummonCreepTumor|ZagaraCreepTumor|Trait"]
+          },
+          {
+            "linkId": "GenericTalentSpellShield|GenericSpellShieldTalent|Active|Level13",
+            "talentId": "GenericTalentSpellShield",
+            "buttonId": "GenericSpellShieldTalent",
+            "abilityId": "HeroGenericSpellShield",
+            "icon": "storm_ui_icon_talent_spellshield.png",
+            "toggleCooldown": 0.5,
+            "abilityType": "Active",
+            "isQuest": false,
+            "upgradesAbilityType": false,
+            "hasHotkey": false,
+            "sort": 3
+          }
+        ],
+        "Level16": [
+          {
+            "linkId": "ZagaraMasteryCorrosiveSaliva|ZagaraCorrosiveSalivaHunterKillerTalent|W|Level16",
+            "talentId": "ZagaraMasteryCorrosiveSaliva",
+            "buttonId": "ZagaraCorrosiveSalivaHunterKillerTalent",
+            "abilityId": "ZagaraSummonHydralisk",
+            "icon": "storm_ui_icon_zagara_hunterkiller.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["ZagaraSummonHydralisk|ZagaraHunterKiller|W"]
+          },
+          {
+            "linkId": "ZagaraMasteryMutalisk|ZagaraHunterKillerMutaliskTalent|W|Level16",
+            "talentId": "ZagaraMasteryMutalisk",
+            "buttonId": "ZagaraHunterKillerMutaliskTalent",
+            "abilityId": "ZagaraSummonHydralisk",
+            "icon": "storm_ui_icon_zagara_hunterkillermuta.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["ZagaraSummonHydralisk|ZagaraHunterKiller|W"]
+          },
+          {
+            "linkId": "ZagaraJaggedBarbsTalent|ZagaraCreepTumorJaggedBarbs|Trait|Level16",
+            "talentId": "ZagaraJaggedBarbsTalent",
+            "buttonId": "ZagaraCreepTumorJaggedBarbs",
+            "abilityId": "ZagaraSummonCreepTumor",
+            "icon": "storm_ui_icon_zagara_creep.png",
+            "abilityType": "Trait",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 3,
+            "tooltipAbilityLinkIds": ["ZagaraSummonCreepTumor|ZagaraCreepTumor|Trait"]
+          }
+        ],
+        "Level20": [
+          {
+            "linkId": "ZagaraMasteryTyrantMaw|ZagaraDevouringMawTyrantMawTalent|Heroic|Level20",
+            "talentId": "ZagaraMasteryTyrantMaw",
+            "buttonId": "ZagaraDevouringMawTyrantMawTalent",
+            "abilityId": "ZagaraDevouringMaw",
+            "icon": "storm_ui_icon_zagara_devouringmaw.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 1,
+            "tooltipAbilityLinkIds": ["ZagaraDevouringMaw|ZagaraDevouringMaw|Heroic"],
+            "prerequisiteTalentIds": ["ZagaraHeroicAbilityDevouringMaw"]
+          },
+          {
+            "linkId": "ZagaraMasteryEndlessCreep|ZagaraCreepTumorEndlessCreepTalent|Heroic|Level20",
+            "talentId": "ZagaraMasteryEndlessCreep",
+            "buttonId": "ZagaraCreepTumorEndlessCreepTalent",
+            "abilityId": "ZagaraSummonNydusWorm",
+            "icon": "storm_ui_icon_zagara_nydusworm.png",
+            "abilityType": "Heroic",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 2,
+            "tooltipAbilityLinkIds": ["ZagaraSummonNydusWorm|ZagaraNydusNetwork|Heroic"],
+            "prerequisiteTalentIds": ["ZagaraHeroicAbilityNydusAssault"]
+          },
+          {
+            "linkId": "ZagaraBroodmother|ZagaraBroodmother|Q|Level20",
+            "talentId": "ZagaraBroodmother",
+            "buttonId": "ZagaraBroodmother",
+            "abilityId": "ZagaraBanelingBarrage",
+            "icon": "storm_ui_icon_zagara_banelingbarrage.png",
+            "abilityType": "Q",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 3,
+            "tooltipAbilityLinkIds": ["ZagaraBanelingBarrage|ZagaraBanelingBarrage|Q"]
+          },
+          {
+            "linkId": "ZagaraPackInstinct|ZagaraPackInstinct|W|Level20",
+            "talentId": "ZagaraPackInstinct",
+            "buttonId": "ZagaraPackInstinct",
+            "abilityId": "ZagaraSummonHydralisk",
+            "icon": "storm_ui_icon_zagara_hunterkiller.png",
+            "abilityType": "W",
+            "isQuest": false,
+            "upgradesAbilityType": true,
+            "hasHotkey": true,
+            "sort": 4,
+            "tooltipAbilityLinkIds": ["ZagaraSummonHydralisk|ZagaraHunterKiller|W"]
+          }
+        ]
+      }
+    }
+  }
+}

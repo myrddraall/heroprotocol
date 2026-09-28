@@ -6,21 +6,10 @@ import type { RecordOf, ReplayCollectionName, ReplayRecord } from '../model/reco
 import type { HeroDb } from './HeroDb.js';
 import { replayRange } from './write.js';
 
-/** Core fields that have a `[replayId+field]` index and so can be narrowed before filtering. */
-const INDEXED: Readonly<Partial<Record<ReplayCollectionName, readonly string[]>>> = {
-  players: ['slot', 'team'],
-  scoreResults: ['slot', 'team'],
-  statEvents: ['eventName', 'playerSlot', 'gameloop'],
-  units: ['tag', 'unitClass', 'ownerSlot', 'killerSlot'],
-  commands: ['playerSlot', 'gameloop'],
-  events: ['kind', 'playerSlot', 'gameloop'],
-  chat: ['gameloop'],
-};
-
 /**
- * Read one replay's rows from a core collection, optionally filtered by field equality.
- * Uses a compound index for the first indexable filter field and applies the rest in
- * memory — the same semantics as the in-memory context's `read()`.
+ * Read one replay's rows from a core collection, optionally filtered by field equality:
+ * one primary-key range scan, then the filter in memory — the same semantics as the
+ * in-memory context's `read()`.
  */
 export async function readRows<K extends ReplayCollectionName>(
   db: HeroDb,
@@ -28,17 +17,10 @@ export async function readRows<K extends ReplayCollectionName>(
   replayId: string,
   where?: Where<RecordOf<K>>,
 ): Promise<RecordOf<K>[]> {
-  const table = db.table(collection) as Table<RecordOf<K>, unknown>;
-  const indexed = where
-    ? INDEXED[collection]?.find((f) => (where as Record<string, unknown>)[f] !== undefined)
-    : undefined;
-  const rows =
-    indexed === undefined
-      ? await table.where('replayId').equals(replayId).toArray()
-      : await table
-          .where(`[replayId+${indexed}]`)
-          .equals([replayId, (where as Record<string, unknown>)[indexed] as string | number])
-          .toArray();
+  const rows = await replayRange(
+    db.table(collection) as Table<RecordOf<K>, unknown>,
+    replayId,
+  ).toArray();
   return where ? rows.filter((r) => matches(r, where)) : rows;
 }
 
