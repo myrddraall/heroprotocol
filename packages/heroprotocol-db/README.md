@@ -150,6 +150,13 @@ const { replay } = await handle.ready; // written, `ready` analysers committed
 await handle.complete; // `background` analysers committed one by one
 ```
 
+Each snapshot also carries `store` while a database write is in flight: the replay
+itself, the `ready` analysers' commit, a background analyser's save, or the final status
+update. IndexedDB runs read-write transactions over the same tables one at a time, so
+with several imports running a write is first `waiting` (another job holds the tables),
+then `writing` with `current` of `total` rows added. Row counts advance once per
+2,000-row chunk, throttled like the other progress ticks.
+
 `replays.status` walks `ingesting → analysing → ready → complete`; `ingestJobs`
 records status transitions only. A parse or write failure fails the job and writes no
 replay; an analyser failure is only an error in its run record.

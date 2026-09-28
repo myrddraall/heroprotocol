@@ -4,9 +4,9 @@ import { createMemoryContext, TableSink } from '../analysers/context.js';
 import { createRegistry, type AnalyserRegistry } from '../analysers/registry.js';
 import { runAnalysers, systemClock } from '../analysers/runner.js';
 import type { RunClock } from '../analysers/types.js';
-import { saveAnalyserOutput } from '../db/runs.js';
+import { rowCount, saveAnalyserOutput, writeAnalyserOutput } from '../db/runs.js';
 import type { HeroDb } from '../db/HeroDb.js';
-import { setReplayStatus, writeReplay } from '../db/write.js';
+import { setReplayStatus, trackedWrite, writeReplay } from '../db/write.js';
 import type { NormalizedReplay, ReplayRecord } from '../model/records.js';
 import { normalizeReplay } from '../normalize/normalizeReplay.js';
 import { StatusTracker, type IngestStatus } from './status.js';
@@ -150,6 +150,7 @@ async function runPipeline(
   try {
     await writeReplay(db, normalized, {
       status: 'analysing',
+      onProgress: (p) => tracker.store(p),
       ...(options.keepFile
         ? {
             file: {
@@ -160,10 +161,12 @@ async function runPipeline(
         : {}),
     });
   } catch (err) {
+    tracker.store(undefined);
     const error = new IngestError('write', err);
     await failJob(error.message);
     throw error;
   }
+  tracker.store(undefined);
   tracker.timing('write', clock.ms() - t);
 
   // 4. ready analysers → commit 2
@@ -190,11 +193,19 @@ async function runPipeline(
     clock,
     onStatus: (s) => tracker.analyser(s),
   });
-  await db.transaction('rw', db.replayTables, async () => {
-    for (const output of readyRun.computed)
-      await saveAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output);
-    await setReplayStatus(db, normalized.replay.id, 'ready');
-  });
+  await trackedWrite(
+    db,
+    db.replayTables,
+    readyRun.computed.reduce((sum, o) => sum + rowCount(o), 0),
+    (p) => tracker.store(p),
+    () => db.replays.get(normalized.replay.id),
+    async (added) => {
+      for (const output of readyRun.computed)
+        await writeAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output, added);
+      await setReplayStatus(db, normalized.replay.id, 'ready');
+    },
+  );
+  tracker.store(undefined);
   tracker.timing('ready', clock.ms() - t);
   await db.ingestJobs.update(jobId, { status: 'ready' });
   const replayReady: ReplayRecord = {
@@ -220,11 +231,23 @@ async function runPipeline(
     sink,
     clock,
     onStatus: (s) => tracker.analyser(s),
-    onComputed: (output) =>
-      saveAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output),
+    onComputed: async (output) => {
+      await saveAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output, (p) =>
+        tracker.store(p),
+      );
+      tracker.store(undefined);
+    },
   });
   tracker.timing('background', clock.ms() - t);
-  await setReplayStatus(db, normalized.replay.id, 'complete');
+  await trackedWrite(
+    db,
+    [db.replays],
+    0,
+    (p) => tracker.store(p),
+    () => db.replays.get(normalized.replay.id),
+    () => setReplayStatus(db, normalized.replay.id, 'complete'),
+  );
+  tracker.store(undefined);
   await db.ingestJobs.update(jobId, { status: 'complete', finishedAt: clock.now() });
   tracker.setPhase('complete');
   return {

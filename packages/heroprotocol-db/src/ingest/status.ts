@@ -1,6 +1,7 @@
 import type { SectionName, SectionStatus } from '@myrddraall/heroprotocol';
 import { ALL_SECTIONS } from '@myrddraall/heroprotocol';
 import type { AnalyserMode, AnalyserState, AnalyserStatus } from '../analysers/types.js';
+import type { StoreWriteProgress } from '../db/write.js';
 
 export type IngestPhase =
   | 'parsing'
@@ -44,6 +45,12 @@ export interface IngestStatus {
   readonly sections: Readonly<Record<SectionName, SectionProgress>>;
   readonly analysers: Readonly<Record<string, AnalyserProgress>>;
   readonly timingsMs: Readonly<Partial<Record<IngestTiming, number>>>;
+  /**
+   * The store write in flight, if any: the replay itself (`writing`), the ready
+   * analysers' commit, a background analyser's save, or the final status update.
+   * `waiting` means another job holds the tables; `current`/`total` count rows.
+   */
+  readonly store?: StoreWriteProgress;
   readonly error?: string;
 }
 
@@ -65,6 +72,7 @@ export class StatusTracker {
   private readonly sections: Record<SectionName, SectionProgress>;
   private readonly analysers: Record<string, AnalyserProgress> = {};
   private readonly timings: Partial<Record<IngestTiming, number>> = {};
+  private storeWrite: StoreWriteProgress | undefined;
   private lastTick = -Infinity;
   private readonly minTickMs: number;
 
@@ -84,6 +92,7 @@ export class StatusTracker {
       sections: { ...this.sections },
       analysers: { ...this.analysers },
       timingsMs: { ...this.timings },
+      ...(this.storeWrite !== undefined ? { store: this.storeWrite } : {}),
       ...(this.error !== undefined ? { error: this.error } : {}),
     };
   }
@@ -144,6 +153,23 @@ export class StatusTracker {
           : {}),
     };
     if (isTick) this.tick();
+    else this.emit();
+  }
+
+  /**
+   * A store write started, moved on, or ended (`undefined`). Changes of state always
+   * emit; row counts within `writing` are throttled like other progress ticks, except
+   * the last chunk, so a write ends on its true count.
+   */
+  store(progress: StoreWriteProgress | undefined): void {
+    const prev = this.storeWrite;
+    this.storeWrite = progress;
+    const onlyCount =
+      prev !== undefined &&
+      progress !== undefined &&
+      prev.state === progress.state &&
+      progress.current < progress.total;
+    if (onlyCount) this.tick();
     else this.emit();
   }
 

@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createRegistry } from '../src/analysers/registry.js';
 import type { Analyser, AnalyserRows, RunClock } from '../src/analysers/types.js';
 import { HeroDb } from '../src/db/HeroDb.js';
+import { WRITE_CHUNK } from '../src/db/schema.js';
 import { saveAnalyserOutput } from '../src/db/runs.js';
 import { analyse } from '../src/ingest/lazy.js';
 import { ingestInline } from '../src/ingest/pipeline.js';
@@ -168,6 +169,44 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
     const atReady = statuses.find((s) => s.phase === 'analysing-ready')!;
     expect(atReady.analysers['bg']?.state).toBe('queued');
     expect(last.replayId).toBe(done.replayId);
+  });
+
+  it('reports waiting while another transaction holds the tables, then rows written per chunk', async () => {
+    const db = await fresh();
+    // Another job's write: a read-write transaction over the replay tables, kept alive
+    // with tiny requests until released.
+    let released = false;
+    const holding = db.transaction('rw', db.replayTables, async () => {
+      while (!released) await db.replays.get('keep-alive');
+    });
+    const statuses: IngestStatus[] = [];
+    const job = ingestInline(db, bytes(), {
+      fileName: file,
+      clock,
+      onStatus: (s) => {
+        statuses.push(s);
+        if (s.phase === 'writing' && s.store?.state === 'waiting') released = true;
+      },
+    });
+    await holding;
+    await job.complete;
+
+    const writes = statuses.filter((s) => s.phase === 'writing' && s.store !== undefined);
+    expect(writes[0]!.store).toMatchObject({ state: 'waiting', current: 0 });
+    const total = writes[0]!.store!.total;
+    expect(total).toBeGreaterThan(WRITE_CHUNK); // a real replay spans several chunks
+    const counts = writes.filter((s) => s.store!.state === 'writing').map((s) => s.store!.current);
+    expect(counts[0]).toBe(0); // the transaction started
+    expect(counts.at(-1)).toBe(total);
+    for (let i = 1; i < counts.length; i++)
+      expect(counts[i]!).toBeGreaterThanOrEqual(counts[i - 1]!);
+    // at most one snapshot per chunk (plus start), not one per row
+    expect(counts.length).toBeLessThanOrEqual(Math.ceil(total / WRITE_CHUNK) + 10);
+    // once written, the write is no longer reported
+    const afterWrite = statuses.find((s) => s.phase === 'analysing-ready');
+    expect(afterWrite?.store).toBeUndefined();
+    expect(statuses.at(-1)).toMatchObject({ phase: 'complete' });
+    expect(statuses.at(-1)!.store).toBeUndefined();
   });
 
   it('re-ingesting the same replay replaces it and keeps one replay row', async () => {
