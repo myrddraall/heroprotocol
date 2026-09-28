@@ -15,7 +15,7 @@
  * installed, so there is no hand-maintained version number.
  */
 export const STORES: Readonly<Record<string, string>> = {
-  replays: 'id, playedAt, ingestedAt, map, mode, status',
+  replays: 'id, playedAt, ingestedAt, map, mode, status, recorderToonHandle',
   players: '[replayId+slot], toon.handle',
   scoreResults: '[replayId+slot]',
   statEvents: '[replayId+seq]',
@@ -25,7 +25,6 @@ export const STORES: Readonly<Record<string, string>> = {
   chat: '[replayId+seq]',
   analyserRuns:
     '[replayId+analyserId+paramsHash], replayId, [replayId+analyserId], analyserId, computedAt',
-  replayFiles: 'replayId',
   ingestJobs: '++id, replayId, status, startedAt',
   meta: 'key',
 };

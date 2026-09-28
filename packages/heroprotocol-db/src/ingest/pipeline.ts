@@ -26,8 +26,6 @@ export interface IngestOptions {
   readonly fileName: string;
   /** Analysers to run at ingest; none by default. */
   readonly registry?: AnalyserRegistry;
-  /** Keep the raw bytes in `replayFiles` (default false). */
-  readonly keepFile?: boolean;
   readonly onStatus?: (status: IngestStatus) => void;
   /** Protocol source for the parser; default bundled definitions. */
   readonly source?: ProtocolSource;
@@ -151,14 +149,6 @@ async function runPipeline(
     await writeReplay(db, normalized, {
       status: 'analysing',
       onProgress: (p) => tracker.store(p),
-      ...(options.keepFile
-        ? {
-            file: {
-              name: options.fileName,
-              bytes: bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes),
-            },
-          }
-        : {}),
     });
   } catch (err) {
     tracker.store(undefined);
@@ -210,7 +200,6 @@ async function runPipeline(
   await db.ingestJobs.update(jobId, { status: 'ready' });
   const replayReady: ReplayRecord = {
     ...normalized.replay,
-    hasFile: options.keepFile === true,
     status: 'ready',
   };
   resolveReady({

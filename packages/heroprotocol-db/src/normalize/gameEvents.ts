@@ -29,6 +29,8 @@ export interface GameEvents {
   readonly events: readonly EventRecord[];
   /** Slot → loop at which the player left for good before the end, if any. */
   readonly leftAt: ReadonlyMap<number, number>;
+  /** Slot whose leave ends the replay — the recording client's. */
+  readonly recorderSlot: number | null;
 }
 
 const point = (p: { readonly x: number; readonly y: number } | undefined | null): Point | null =>
@@ -43,6 +45,7 @@ export function normalizeGameEvents(
   const commands: CommandRecord[] = [];
   const events: EventRecord[] = [];
   const presence = new Map<number, { loop: number; left: boolean }>();
+  let recorderSlot: number | null = null;
 
   const slotOf = (e: RawEvent): number | null => lookup.slotOfUser(e._userid?.m_userId);
   const push = (e: RawEvent, kind: EventRecord['kind'], data: Record<string, unknown>): void => {
@@ -102,6 +105,8 @@ export function normalizeGameEvents(
         const l = e as SGameUserLeaveEvent;
         push(e, 'PlayerLeft', { reason: l.m_leaveReason });
         const slot = slotOf(e);
+        // The recording client writes until it leaves, so its leave is the last event.
+        recorderSlot = e._gameloop === durationLoops ? slot : null;
         if (slot !== null && l.m_leaveReason !== UserLeaveReason.EndOfGame) {
           presence.set(slot, { loop: e._gameloop, left: true });
         }
@@ -141,5 +146,5 @@ export function normalizeGameEvents(
   for (const [slot, p] of presence) {
     if (p.left && p.loop > 0 && p.loop < durationLoops) leftAt.set(slot, p.loop);
   }
-  return { commands, events, leftAt };
+  return { commands, events, leftAt, recorderSlot };
 }

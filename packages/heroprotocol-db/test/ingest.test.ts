@@ -212,11 +212,9 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
   it('re-ingesting the same replay replaces it and keeps one replay row', async () => {
     const db = await fresh();
     const a = await ingestInline(db, bytes(), { fileName: file, clock }).complete;
-    const b = await ingestInline(db, bytes(), { fileName: file, keepFile: true, clock }).complete;
+    const b = await ingestInline(db, bytes(), { fileName: file, clock }).complete;
     expect(b.replayId).toBe(a.replayId);
     expect(await db.replays.count()).toBe(1);
-    expect((await db.replays.get(a.replayId))?.hasFile).toBe(true);
-    expect(await db.replayFiles.count()).toBe(1);
     expect(await db.ingestJobs.count()).toBe(2);
   });
 

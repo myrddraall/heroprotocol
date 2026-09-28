@@ -37,7 +37,6 @@ export interface ReplayDbOptions {
 
 export interface IngestJobOptions {
   readonly fileName: string;
-  readonly keepFile?: boolean;
   readonly onStatus?: (status: IngestStatus) => void;
 }
 
@@ -238,7 +237,6 @@ function createWorkerClient(dbName: string, worker: WorkerLike): ReplayDbClient 
           ref,
           bytes: buffer,
           fileName: jobOptions.fileName,
-          keepFile: jobOptions.keepFile === true,
         }),
         [buffer],
         (res, done) => {
@@ -353,7 +351,6 @@ function createInlineClient(dbName: string, options: ReplayDbOptions): ReplayDbC
       const complete = withDb((db) => {
         const handle = ingestInline(db, bytes, {
           fileName: jobOptions.fileName,
-          keepFile: jobOptions.keepFile === true,
           registry,
           ...(services ? { services } : {}),
           onStatus: (s) => {

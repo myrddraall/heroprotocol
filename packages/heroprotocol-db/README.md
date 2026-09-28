@@ -151,7 +151,6 @@ import { ingestInline } from '@myrddraall/heroprotocol-db/ingest';
 const handle = ingestInline(db, bytes, {
   fileName: file.name,
   registry, // analysers; `ready` ones gate readiness, `background` ones follow
-  keepFile: false,
   onStatus: (s) => render(s), // IngestStatus snapshots: phase, per-section and per-analyser state
 });
 const { replay } = await handle.ready; // written, `ready` analysers committed

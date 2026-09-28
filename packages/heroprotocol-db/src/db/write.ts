@@ -18,8 +18,6 @@ export interface StoreWriteProgress {
 export type OnStoreWrite = (progress: StoreWriteProgress) => void;
 
 export interface WriteReplayOptions {
-  /** Keep the raw `.StormReplay`. Off by default — tie it to the app's privacy setting. */
-  readonly file?: { readonly name: string; readonly bytes: Uint8Array };
   /** Status to record with the replay (default: the record's own, `ingesting`). */
   readonly status?: ReplayStatus;
   /** Waiting, then once per chunk of rows written. */
@@ -83,8 +81,7 @@ export function replayRange<T>(table: Table<T, unknown>, replayId: string): Coll
 export async function deleteReplayRows(db: HeroDb, replayId: string): Promise<void> {
   for (const table of db.replayTables) {
     if (table.name === 'replays') continue;
-    if (table.name === 'replayFiles') await db.replayFiles.delete(replayId);
-    else await replayRange(table as Table<unknown, unknown>, replayId).delete();
+    await replayRange(table as Table<unknown, unknown>, replayId).delete();
   }
 }
 
@@ -110,20 +107,9 @@ export async function writeReplay(
     () => db.replays.get(id),
     async (added) => {
       await deleteReplayRows(db, id);
-      await db.replays.put({
-        ...n.replay,
-        hasFile: options.file !== undefined,
-        status: options.status ?? n.replay.status,
-      });
+      await db.replays.put({ ...n.replay, status: options.status ?? n.replay.status });
       for (const name of collections) {
         await bulkAddChunked(db.table(name) as Table<unknown, unknown>, n[name], added);
-      }
-      if (options.file) {
-        await db.replayFiles.put({
-          replayId: id,
-          name: options.file.name,
-          bytes: options.file.bytes,
-        });
       }
     },
   );

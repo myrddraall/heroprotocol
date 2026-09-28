@@ -7,7 +7,6 @@ import type {
   IngestJobRecord,
   MetaRecord,
   PlayerRecord,
-  ReplayFileRecord,
   ReplayRecord,
   ScoreResultRecord,
   StatEventRecord,
@@ -32,7 +31,6 @@ export class HeroDb extends Dexie {
   events!: Table<EventRecord, [string, number]>;
   chat!: Table<ChatRecord, [string, number]>;
   analyserRuns!: Table<AnalyserRunRecord, [string, string, string]>;
-  replayFiles!: Table<ReplayFileRecord, string>;
   ingestJobs!: Table<IngestJobRecord, number>;
   meta!: Table<MetaRecord, string>;
 

@@ -122,6 +122,8 @@ export function normalizeReplay(
     winningTeam,
     region,
     players: summarize(players),
+    recorderSlot: game.recorderSlot,
+    recorderToonHandle: players.find((p) => p.slot === game.recorderSlot)?.toon?.handle ?? null,
     draft: {
       picking: picking === 'drft' ? 'draft' : picking === 'stan' ? 'standard' : 'unknown',
       private: attribute(parsed.attributes, LOBBY_SCOPE, PRIVACY_ATTRIBUTE) === 'Priv',
@@ -134,7 +136,6 @@ export function normalizeReplay(
     fileSize: parsed.fileSize,
     rowCounts,
     normalizeVersion: NORMALIZE_VERSION,
-    hasFile: false,
     status: 'ingesting',
     ingestedAt: options.now ?? new Date().toISOString(),
   };

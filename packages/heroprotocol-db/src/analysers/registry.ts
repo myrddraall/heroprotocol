@@ -26,7 +26,6 @@ export const RESERVED_TABLES: ReadonlySet<string> = new Set([
   'events',
   'chat',
   'analyserRuns',
-  'replayFiles',
   'ingestJobs',
   'meta',
 ]);

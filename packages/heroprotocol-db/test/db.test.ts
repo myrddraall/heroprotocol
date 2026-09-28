@@ -123,22 +123,11 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
     expect(await db.commands.count()).toBe(fixtures.reduce((a, f) => a + f.commands.length, 0));
   });
 
-  it('keeps the file only when asked and records hasFile', async () => {
+  it('records the status it is given', async () => {
     const db = await fresh();
     const f = fixtures[0]!;
-    await writeReplay(db, f);
-    expect((await db.replays.get(f.replay.id))?.hasFile).toBe(false);
-    expect(await db.replayFiles.count()).toBe(0);
-    await writeReplay(db, f, {
-      file: { name: 'x.StormReplay', bytes: new Uint8Array([1, 2, 3]) },
-      status: 'analysing',
-    });
-    const r = await db.replays.get(f.replay.id);
-    expect(r?.hasFile).toBe(true);
-    expect(r?.status).toBe('analysing');
-    expect((await db.replayFiles.get(f.replay.id))?.bytes).toEqual(new Uint8Array([1, 2, 3]));
-    await writeReplay(db, f);
-    expect(await db.replayFiles.count()).toBe(0);
+    await writeReplay(db, f, { status: 'analysing' });
+    expect((await db.replays.get(f.replay.id))?.status).toBe('analysing');
   });
 
   it('leaves no rows behind when a write fails part-way', async () => {
