@@ -53,7 +53,8 @@ export async function trackedWrite<T>(
   probe: () => Promise<unknown>,
   body: (added: (rows: number) => void) => Promise<T>,
 ): Promise<T> {
-  if (!onProgress) return db.transaction('rw', [...tables], () => body(() => undefined));
+  if (!onProgress)
+    return db.transaction('rw', [...tables], async () => await body(() => undefined));
   let current = 0;
   onProgress({ state: 'waiting', current, total });
   return db.transaction('rw', [...tables], async () => {
