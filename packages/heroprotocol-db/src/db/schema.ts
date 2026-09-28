@@ -1,10 +1,14 @@
 /**
  * Core Dexie schema. Every per-replay table has a compound primary key that starts with
  * `replayId`, so a replay's rows are one contiguous key range: deleting a replay is one
- * range delete per table (no key enumeration), and reading it is one range scan. The
- * plain `replayId` index is kept for ergonomic `where('replayId')` queries, and compound
- * indexes lead with `replayId` so per-replay filters (by kind, by player, by time) are
- * index walks.
+ * range delete per table (no key enumeration), and reading it is one range scan.
+ * `where('replayId')` still works: Dexie serves it from the primary key's first part.
+ *
+ * The per-replay tables carry no secondary indexes. Every read is per replay, so a range
+ * scan plus an in-memory filter is cheap, while each index is one more write per row:
+ * in a Chromium benchmark, dropping them took writing a ~30k-row replay from about 28 s
+ * to 5–9 s.
+ * The only one kept is `players.toon.handle`, for finding a player across replays.
  *
  * Analysers add their own tables under the same rule; `HeroDb.open()` merges them in and
  * bumps the database version whenever the resulting store set differs from what is
@@ -12,17 +16,13 @@
  */
 export const STORES: Readonly<Record<string, string>> = {
   replays: 'id, playedAt, ingestedAt, map, mode, status',
-  players: '[replayId+slot], replayId, [replayId+team], toon.handle',
-  scoreResults: '[replayId+slot], replayId, [replayId+team]',
-  statEvents:
-    '[replayId+seq], replayId, [replayId+eventName], [replayId+eventName+gameloop], [replayId+playerSlot], [replayId+gameloop]',
-  units:
-    '[replayId+tag], replayId, [replayId+unitClass], [replayId+unitClass+diedAtLoop], [replayId+ownerSlot], [replayId+killerSlot]',
-  commands:
-    '[replayId+seq], replayId, [replayId+playerSlot], [replayId+playerSlot+gameloop], [replayId+gameloop]',
-  events:
-    '[replayId+seq], replayId, [replayId+kind], [replayId+kind+gameloop], [replayId+playerSlot], [replayId+gameloop]',
-  chat: '[replayId+seq], replayId, [replayId+gameloop]',
+  players: '[replayId+slot], toon.handle',
+  scoreResults: '[replayId+slot]',
+  statEvents: '[replayId+seq]',
+  units: '[replayId+tag]',
+  commands: '[replayId+seq]',
+  events: '[replayId+seq]',
+  chat: '[replayId+seq]',
   analyserRuns:
     '[replayId+analyserId+paramsHash], replayId, [replayId+analyserId], analyserId, computedAt',
   replayFiles: 'replayId',

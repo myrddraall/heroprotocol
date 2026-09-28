@@ -110,6 +110,14 @@ key range: `writeReplay()` replaces a replay with one range delete per table plu
 chunked `bulkAdd`s in a single transaction (a failure leaves the database untouched),
 and `deleteReplay()` / `pruneReplays({ keep })` are the same range deletes.
 
+The per-replay tables have no secondary indexes (only `players.toon.handle`, for finding
+a player across replays). Every read is per replay, so `readRows()` is one range scan
+with the filter applied in memory, and `where('replayId')` still works because Dexie
+serves it from the primary key. Each index would be one more write per row; in a
+Chromium benchmark the indexes of 0.4 made writing a replay several times slower. The
+database uses relaxed durability: commits do not wait for the OS to flush them, which
+is a little faster and can only lose the last writes on an OS crash or power loss.
+
 ```ts
 import { openHeroDb, writeReplay, readRows, pruneReplays } from '@myrddraall/heroprotocol-db/db';
 
@@ -128,9 +136,9 @@ at ingest and lazily without change.
 model — no raw file needed — and `staleReplays(db)` lists replays normalized by an
 older `NORMALIZE_VERSION`.
 
-Measured with fake-indexeddb in Node (a browser's IndexedDB is faster): 22–30k rows
-per replay, 6–9 MB as JSON, written in 1.2–1.9 s; `normalizeReplay` itself takes
-10–70 ms.
+A replay is 22–30k rows, 6–9 MB as JSON; `normalizeReplay` itself takes 10–70 ms.
+Writing one took 5–9 s in headless Chromium in a devcontainer (28 s with the 0.4
+indexes) and 1.2–1.9 s in fake-indexeddb in Node; real browsers on a local disk vary.
 
 ## Ingest
 
