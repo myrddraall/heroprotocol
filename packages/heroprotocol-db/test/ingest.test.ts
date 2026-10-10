@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createRegistry } from '../src/analysers/registry.js';
 import type { Analyser, AnalyserRows, RunClock } from '../src/analysers/types.js';
 import { HeroDb } from '../src/db/HeroDb.js';
+import { WRITE_CHUNK } from '../src/db/schema.js';
 import { saveAnalyserOutput } from '../src/db/runs.js';
 import { analyse } from '../src/ingest/lazy.js';
 import { ingestInline } from '../src/ingest/pipeline.js';
@@ -170,14 +171,50 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
     expect(last.replayId).toBe(done.replayId);
   });
 
+  it('reports waiting while another transaction holds the tables, then rows written per chunk', async () => {
+    const db = await fresh();
+    // Another job's write: a read-write transaction over the replay tables, kept alive
+    // with tiny requests until released.
+    let released = false;
+    const holding = db.transaction('rw', db.replayTables, async () => {
+      while (!released) await db.replays.get('keep-alive');
+    });
+    const statuses: IngestStatus[] = [];
+    const job = ingestInline(db, bytes(), {
+      fileName: file,
+      clock,
+      onStatus: (s) => {
+        statuses.push(s);
+        if (s.phase === 'writing' && s.store?.state === 'waiting') released = true;
+      },
+    });
+    await holding;
+    await job.complete;
+
+    const writes = statuses.filter((s) => s.phase === 'writing' && s.store !== undefined);
+    expect(writes[0]!.store).toMatchObject({ state: 'waiting', current: 0 });
+    const total = writes[0]!.store!.total;
+    expect(total).toBeGreaterThan(WRITE_CHUNK); // a real replay spans several chunks
+    const counts = writes.filter((s) => s.store!.state === 'writing').map((s) => s.store!.current);
+    expect(counts[0]).toBe(0); // the transaction started
+    expect(counts.at(-1)).toBe(total);
+    for (let i = 1; i < counts.length; i++)
+      expect(counts[i]!).toBeGreaterThanOrEqual(counts[i - 1]!);
+    // at most one snapshot per chunk (plus start), not one per row
+    expect(counts.length).toBeLessThanOrEqual(Math.ceil(total / WRITE_CHUNK) + 10);
+    // once written, the write is no longer reported
+    const afterWrite = statuses.find((s) => s.phase === 'analysing-ready');
+    expect(afterWrite?.store).toBeUndefined();
+    expect(statuses.at(-1)).toMatchObject({ phase: 'complete' });
+    expect(statuses.at(-1)!.store).toBeUndefined();
+  });
+
   it('re-ingesting the same replay replaces it and keeps one replay row', async () => {
     const db = await fresh();
     const a = await ingestInline(db, bytes(), { fileName: file, clock }).complete;
-    const b = await ingestInline(db, bytes(), { fileName: file, keepFile: true, clock }).complete;
+    const b = await ingestInline(db, bytes(), { fileName: file, clock }).complete;
     expect(b.replayId).toBe(a.replayId);
     expect(await db.replays.count()).toBe(1);
-    expect((await db.replays.get(a.replayId))?.hasFile).toBe(true);
-    expect(await db.replayFiles.count()).toBe(1);
     expect(await db.ingestJobs.count()).toBe(2);
   });
 
@@ -202,6 +239,62 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
 
 describe.skipIf(replays.length === 0)('lazy analyse', () => {
   const file = replays[0]!;
+
+  it('runs a lazy dependency of an eager analyser automatically, first, at ingest', async () => {
+    const calls: string[] = [];
+    const heroes: Analyser<AnalyserRows, void> = {
+      id: 'heroes',
+      version: 1,
+      tables: { heroList: '[replayId+slot]' },
+      inputs: ['players'],
+      mode: 'lazy',
+      run: async (ctx) => {
+        calls.push('heroes');
+        const players = await ctx.read('players');
+        return { heroList: players.map((p) => ({ slot: p.slot, hero: p.hero })) };
+      },
+    };
+    const summary: Analyser<AnalyserRows, void> = {
+      id: 'summary',
+      version: 1,
+      tables: { heroSummary: 'replayId' },
+      inputs: [],
+      mode: 'ready',
+      dependsOn: ['heroes'],
+      run: async (ctx) => {
+        calls.push('summary');
+        const list = await ctx.readTable<{ hero: string }>('heroList');
+        return { heroSummary: [{ count: list.length }] };
+      },
+    };
+    const registry = createRegistry([summary, heroes]);
+    const db = await fresh(registry.tables());
+    const statuses: [string, string, string][] = [];
+    const { replayId } = await ingestInline(db, new Uint8Array(readFileSync(join(LOCAL, file))), {
+      fileName: file,
+      registry,
+      clock,
+      onStatus: (s) => {
+        for (const [id, a] of Object.entries(s.analysers)) statuses.push([s.phase, id, a.state]);
+      },
+    }).complete;
+
+    expect(calls).toEqual(['heroes', 'summary']); // dependency first, in the ready stage
+    const [row] = await db.table('heroSummary').toArray();
+    expect((row as { count: number }).count).toBe(10);
+    expect(await db.table('heroList').count()).toBe(10); // the dependency's rows were stored too
+    expect(
+      statuses.some(
+        ([phase, id, state]) => phase === 'analysing-ready' && id === 'heroes' && state === 'done',
+      ),
+    ).toBe(true);
+
+    // Asking for the lazy analyser later is served from what ingest stored.
+    calls.length = 0;
+    const out = await analyse(db, replayId, 'heroes', { registry, clock });
+    expect(out.run.error).toBeNull();
+    expect(calls).toEqual([]);
+  });
 
   it('computes from the store on first request, serves the cache after, recomputes on version bump, and bounds parameterized caches', async () => {
     const calls: unknown[] = [];

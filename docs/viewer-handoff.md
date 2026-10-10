@@ -9,7 +9,7 @@ Written for whoever starts the viewer's own modernization stage.
 | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `@myrddraall/heroprotocol`          | Parsing only. The viewer rarely needs it directly — the worker parses.                            |
 | `@myrddraall/heroprotocol-db`       | `createReplayDb()` (client), `HeroDb` (Dexie instance for reads and `liveQuery`), the model types |
-| `@myrddraall/heroprotocol-analysis` | `./worker` (the prebuilt ingest worker) and the result types of the twelve analysers              |
+| `@myrddraall/heroprotocol-analysis` | `./worker` (the prebuilt ingest worker) and the result types of the ten analysers                 |
 | `@myrddraall/hero-data`             | Names for hero, talent and award ids; injected, cached by the app                                 |
 
 All four are on GitHub Packages under `@myrddraall`; Dexie 4 is a peer dependency the
@@ -50,9 +50,9 @@ const client = createReplayDb({ workerUrl: '/assets/hero-worker/worker.js' });
 | `DraftAnalyser.draft`                   | `@myrddraall/draft` (`steps`, real order)                   |
 | `TalentAnalyser.talents`                | `@myrddraall/talents` + `heroData.talentName()`             |
 | `XPAnalyser.periodicXP`                 | `@myrddraall/xp-curve`                                      |
-| `TimelineAnalyser.getTimlineEvents`     | `@myrddraall/timeline` (level and talent events fixed)      |
+| `TimelineAnalyser.getTimlineEvents`     | `@myrddraall/timeline`, in heroes-replay-stats              |
 | `UnitAnalyser.get*KilledCountByPlayer`  | `@myrddraall/unit-kills`                                    |
-| `ReplayMapAnalyser.getPointsOfInterest` | `@myrddraall/points-of-interest`                            |
+| `ReplayMapAnalyser.getPointsOfInterest` | `@myrddraall/points-of-interest`, in heroes-replay-stats    |
 | `ChatAnalyser.chatMessages` / `pings`   | `@myrddraall/chat` (names attached this time)               |
 | `ReplayMapAnalyser` heatmaps            | `@myrddraall/death-heatmap` (parameterized, lazy)           |
 | `replay.fingerPrint`                    | `replays.id` — the same SHA-1, so stored ids carry over     |
@@ -62,7 +62,8 @@ const client = createReplayDb({ workerUrl: '/assets/hero-worker/worker.js' });
 - Ability names for `commands[].abilLink` are not available from any free source
   (numeric ids into the game's per-build catalog). Show casts as counts, not names.
 - Map-specific objectives (Blackheart's chests, Haunted Mines ladders, …) are not
-  modelled; `timeline` exposes their raw stat events under `kind: 'objective'`.
+  modelled; the app's `timeline` analyser exposes their raw stat events under
+  `kind: 'objective'`.
 - heroes-data begins at build 76003; 2018 replays get nearest-build names (`exact: false`).
 - The 2018 viewer is Angular 6 / webpack 4 and cannot consume ESM packages with
   `exports` maps. Its stage starts with the framework upgrade; until then the

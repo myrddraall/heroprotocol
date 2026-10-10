@@ -1,13 +1,9 @@
-import type {
-  AbilityInfo,
-  AwardInfo,
-  HeroData,
-  HeroDataSet,
-  HeroInfo,
-  TalentInfo,
-} from './types.js';
+import type { AbilityInfo, AwardInfo, HeroData, HeroInfo, TalentInfo } from './types.js';
+import { levelOf, nul, portraits, ungender, type RawPortraits } from './shared.js';
 
-/** The shape of `herodata_<build>_localized.json` we depend on (heroes-data `hdp` 4.x). */
+export type HeroDataTables = Pick<HeroData, 'heroes' | 'talents' | 'abilities' | 'awards'>;
+
+/** The shape of heroes-data's `herodata_<build>_localized.json` we depend on (`hdp` 4.x). */
 export interface RawHeroData {
   readonly [heroId: string]: {
     readonly unitId?: string;
@@ -15,6 +11,7 @@ export interface RawHeroData {
     readonly attributeId?: string;
     readonly franchise?: string;
     readonly releaseDate?: string;
+    readonly portraits?: RawPortraits;
     readonly abilities?: Readonly<Record<string, readonly RawAbility[]>>;
     /** A list of `{ "<parent>|<button>|<type>": { <kind>: RawAbility[] } }` groups. */
     readonly subAbilities?: readonly Readonly<
@@ -33,11 +30,18 @@ export interface RawTalent extends RawAbility {
   readonly sort?: number;
   readonly abilityTalentLinkIds?: readonly string[];
 }
-/** `matchawarddata_<build>_localized.json`. */
-export interface RawAwards {
-  readonly [awardId: string]: { readonly gameLink: string; readonly tag: string };
+/** Match-award data; hdp 4 publishes the items bare, hdp 5 under `items`. */
+export interface RawAwardItems {
+  readonly [awardId: string]: {
+    readonly gameLink: string;
+    readonly tag: string;
+    readonly mvpScreenIcon?: string;
+    readonly scoreScreenIcon?: string;
+  };
 }
-/** `gamestrings_<build>_<locale>.json`. */
+/** heroes-data's `matchawarddata_<build>_localized.json` (hdp 4). */
+export type RawAwards = RawAwardItems;
+/** heroes-data's `gamestrings_<build>_<locale>.json` (hdp 4). */
 export interface RawGameStrings {
   readonly meta?: { readonly version?: string; readonly locale?: string };
   readonly gamestrings: {
@@ -57,20 +61,13 @@ function byNameId(table: Readonly<Record<string, string>> | undefined): Map<stri
   return out;
 }
 
-const nul = (v: string | undefined): string | null => (v === undefined || v === '' ? null : v);
-
-/**
- * Compile heroes-data's raw files into one `HeroData`. Pure; use it to prebuild
- * static data for bundling, or let `heroesToolChestProvider` call it at runtime.
- */
-export function compileHeroData(input: {
-  readonly build: number;
-  readonly locale: string;
-  readonly heroes: RawHeroData;
-  readonly awards?: RawAwards;
-  readonly strings: RawGameStrings;
-}): HeroData {
-  const g = input.strings.gamestrings;
+/** Read heroes-data's hdp 4 files (archived repository; builds up to 97039). */
+export function readHeroesData(
+  input: RawHeroData,
+  rawAwards: RawAwards | undefined,
+  strings: RawGameStrings,
+): HeroDataTables {
+  const g = strings.gamestrings;
   const unit = g.unit ?? {};
   const names = byNameId(g.abiltalent?.['name']);
   const shorts = byNameId(g.abiltalent?.['short']);
@@ -78,7 +75,7 @@ export function compileHeroData(input: {
   const talents: Record<string, TalentInfo> = {};
   const abilities: Record<string, AbilityInfo> = {};
 
-  for (const [id, raw] of Object.entries(input.heroes)) {
+  for (const [id, raw] of Object.entries(input)) {
     const heroAbilities: AbilityInfo[] = [];
     const add = (kind: string, list: readonly RawAbility[] | undefined): void => {
       for (const a of list ?? []) {
@@ -104,13 +101,12 @@ export function compileHeroData(input: {
 
     const heroTalents: TalentInfo[] = [];
     for (const [levelKey, list] of Object.entries(raw.talents ?? {})) {
-      const level = Number(levelKey.replace(/^level/, '')) || 0;
       for (const t of list) {
         const info: TalentInfo = {
           id: t.nameId,
           buttonId: t.buttonId,
           heroId: id,
-          level,
+          level: levelOf(levelKey),
           sort: t.sort ?? 0,
           abilityType: t.abilityType ?? '',
           name: names.get(t.nameId) ?? null,
@@ -137,53 +133,23 @@ export function compileHeroData(input: {
       type: nul(unit['type']?.[id]),
       franchise: nul(raw.franchise),
       releaseDate: nul(raw.releaseDate),
+      portraits: portraits(raw.portraits),
       abilities: heroAbilities,
       talents: heroTalents,
     };
   }
 
   const awards: Record<string, AwardInfo> = {};
-  for (const [id, raw] of Object.entries(input.awards ?? {})) {
+  for (const [id, raw] of Object.entries(rawAwards ?? {})) {
     awards[id] = {
       id,
       gameLink: raw.gameLink,
       tag: raw.tag,
-      name: g.award?.['name']?.[id] ?? null,
-      description: g.award?.['description']?.[id] ?? null,
+      name: ungender(g.award?.['name']?.[id]),
+      description: nul(g.award?.['description']?.[id]),
+      mvpScreenIcon: nul(raw.mvpScreenIcon),
+      scoreScreenIcon: nul(raw.scoreScreenIcon),
     };
   }
-  return { build: input.build, locale: input.locale, heroes, talents, abilities, awards };
-}
-
-/** Wrap compiled data with the tolerant lookups a replay needs. */
-export function createHeroDataSet(
-  data: HeroData,
-  requestedBuild: number = data.build,
-): HeroDataSet {
-  const heroIndex = new Map<string, HeroInfo>();
-  for (const h of Object.values(data.heroes)) {
-    for (const key of [h.id, h.attributeId, h.unitId, h.hyperlinkId, h.name]) {
-      if (key) heroIndex.set(key.toLowerCase(), h);
-    }
-  }
-  const awardIndex = new Map<string, AwardInfo>();
-  for (const a of Object.values(data.awards)) {
-    awardIndex.set(a.id.toLowerCase(), a);
-    awardIndex.set(a.gameLink.toLowerCase(), a);
-    // the stripped score-screen name: EndOfMatchAward<Name>Boolean → <Name>
-    const stripped = a.gameLink.replace(/^EndOfMatchAward/, '').replace(/Boolean$/, '');
-    awardIndex.set(stripped.toLowerCase(), a);
-  }
-  const set: HeroDataSet = {
-    ...data,
-    requestedBuild,
-    exact: requestedBuild === data.build,
-    hero: (idOrName) => heroIndex.get(idOrName.toLowerCase()),
-    talent: (id) => data.talents[id],
-    ability: (id) => data.abilities[id],
-    award: (idOrLink) => awardIndex.get(idOrLink.toLowerCase()),
-    heroName: (id) => heroIndex.get(id.toLowerCase())?.name ?? id,
-    talentName: (id) => data.talents[id]?.name ?? id,
-  };
-  return set;
+  return { heroes, talents, abilities, awards };
 }

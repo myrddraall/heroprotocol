@@ -1,13 +1,12 @@
 {
   "name": "@myrddraall/hero-data",
   "version": "0.0.0-MAIN",
-  "description": "Hero, talent, ability and award names for Heroes of the Storm replays — an injectable provider with an implementation over HeroesToolChest/heroes-data",
+  "description": "Hero, talent, ability and award names and images for Heroes of the Storm replays — an injectable provider that loads HeroesToolChest data at runtime",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
-    "builds:generate": "tsx tools/generate-builds.mts",
-    "format": "prettier --write \"{src,test,tools}/**/*.{ts,mts}\"",
+    "format": "prettier --write \"{src,test}/**/*.ts\"",
     "github.actions.build": "pnpm build",
     "github.actions.pack": "gitflow pack",
     "github.actions.test": "pnpm test",

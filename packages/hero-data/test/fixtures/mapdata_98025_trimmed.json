@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "heroesVersion": "2.55.17.98025",
+    "hdpVersion": "5.0.4",
+    "itemsType": "Data",
+    "dataType": "MapData",
+    "localizedText": "Extracted",
+    "totalItems": 4
+  },
+  "items": {
+    "Garden of Terror": {
+      "normalizedId": "garden_of_terror",
+      "mapId": "HauntedWoods",
+      "mapLink": "GardenOfTerror",
+      "mapSize": { "x": 256, "y": 216 },
+      "replayPreviewImage": "replayspreviewimage_gardenofterror.png",
+      "loadingScreenImage": "ui_ingame_mapmechanic_loadscreen_gardenofterror.png",
+      "mapObjectives": [
+        {
+          "icons": [
+            {
+              "image": "ui_ingame_mapmechanic_loadscreen_gardenofterror_icon1.png",
+              "height": 152,
+              "scaleWidth": true
+            }
+          ]
+        },
+        {
+          "icons": [
+            {
+              "image": "ui_ingame_mapmechanic_loadscreen_gardenofterror_icon2.png",
+              "height": 124,
+              "scaleWidth": true
+            }
+          ]
+        },
+        {
+          "icons": [
+            {
+              "image": "ui_ingame_mapmechanic_loadscreen_gardenofterror_icon3.png",
+              "height": 164,
+              "scaleWidth": true
+            }
+          ]
+        }
+      ]
+    },
+    "Towers of Doom": {
+      "normalizedId": "towers_of_doom",
+      "mapId": "TowersOfDoom",
+      "mapLink": "TowersOfDoom",
+      "mapSize": { "x": 256, "y": 216 },
+      "replayPreviewImage": "replayspreviewimage_towersofdoom.png",
+      "loadingScreenImage": "ui_ingame_mapmechanic_loadscreen_towersofdoom.png",
+      "mapObjectives": [
+        {
+          "icons": [
+            {
+              "image": "ui_ingame_mapmechanic_loadscreen_towersofdoom_icon1.png",
+              "scaleWidth": false
+            }
+          ]
+        },
+        {
+          "icons": [
+            {
+              "image": "ui_ingame_mapmechanic_loadscreen_towersofdoom_icon2.png",
+              "scaleWidth": false
+            }
+          ]
+        },
+        {
+          "icons": [
+            {
+              "image": "ui_ingame_mapmechanic_loadscreen_towersofdoom_icon3.png",
+              "scaleWidth": false
+            }
+          ]
+        }
+      ]
+    },
+    "Volskaya Foundry": {
+      "normalizedId": "volskaya_foundry",
+      "mapId": "Volskaya",
+      "mapLink": "Volskaya",
+      "mapSize": { "x": 248, "y": 208 },
+      "replayPreviewImage": "storm_ui_homescreenbackground_volskaya.png",
+      "loadingScreenImage": "storm_ui_homescreenbackground_volskaya.png",
+      "mapObjectives": [
+        {
+          "icons": [
+            { "image": "ui_ingame_mapmechanic_loadscreen_volskaya_icon1.png", "scaleWidth": false }
+          ]
+        },
+        {
+          "icons": [
+            { "image": "ui_ingame_mapmechanic_loadscreen_volskaya_icon2.png", "scaleWidth": false }
+          ]
+        },
+        {
+          "icons": [
+            { "image": "ui_ingame_mapmechanic_loadscreen_volskaya_icon3.png", "scaleWidth": false }
+          ]
+        }
+      ]
+    },
+    "Sandbox (Volskaya Foundry)": {
+      "normalizedId": "sandbox_volskaya_foundry",
+      "mapId": "Volskaya",
+      "mapLink": "VolskayaSandbox",
+      "mapSize": { "x": 248, "y": 208 },
+      "replayPreviewImage": "storm_ui_gamemode_mapselect_volskaya_sandbox_sandboxvolskayafoundry.png",
+      "loadingScreenImage": "storm_ui_homescreenbackground_volskaya.png",
+      "mapObjectives": [
+        {
+          "icons": [
+            { "image": "ui_ingame_mapmechanic_loadscreen_volskaya_icon1.png", "scaleWidth": false }
+          ]
+        },
+        {
+          "icons": [
+            { "image": "ui_ingame_mapmechanic_loadscreen_volskaya_icon2.png", "scaleWidth": false }
+          ]
+        },
+        {
+          "icons": [
+            { "image": "ui_ingame_mapmechanic_loadscreen_volskaya_icon3.png", "scaleWidth": false }
+          ]
+        }
+      ]
+    }
+  }
+}

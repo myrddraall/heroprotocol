@@ -18,7 +18,7 @@ import type { Diagnostics, SectionName, SectionStatus } from '@myrddraall/heropr
 export const LOOPS_PER_SECOND = 16;
 
 /** Bump when a change to the normalizer should make stored replays stale. */
-export const NORMALIZE_VERSION = 1;
+export const NORMALIZE_VERSION = 2;
 
 export type Team = 0 | 1;
 
@@ -65,6 +65,8 @@ export interface ReplayVersion {
 /** Denormalized onto the replay so lists render without touching `players`. */
 export interface PlayerSummary {
   readonly slot: number;
+  /** The account (`1-Hero-1-5750`): who the player is across replays; null for AI. */
+  readonly toonHandle: string | null;
   readonly name: string;
   /** Display name of the hero, from `details`. */
   readonly hero: string;
@@ -117,6 +119,14 @@ export interface ReplayRecord {
   /** Battle.net region of the players, when known (1 NA, 2 EU, 3 KR, 5 CN). */
   readonly region: number | null;
   readonly players: readonly PlayerSummary[];
+  /**
+   * Slot of the player whose client recorded the replay: the one whose leave event
+   * ends it (the last `SGameUserLeaveEvent`, at the final gameloop). Null when no leave
+   * lands on the final loop.
+   */
+  readonly recorderSlot: number | null;
+  /** Toon handle of the recorder's account (`1-Hero-1-5750`); indexed. */
+  readonly recorderToonHandle: string | null;
   readonly draft: ReplayDraft;
   /** Gameloop of the final score screen, when one was recorded. */
   readonly finalScoreLoop: number | null;
@@ -126,8 +136,6 @@ export interface ReplayRecord {
   /** How many rows each per-replay collection received. */
   readonly rowCounts: Readonly<Record<ReplayCollectionName, number>>;
   readonly normalizeVersion: number;
-  /** Set by ingest: whether the raw `.StormReplay` was kept in `replayFiles`. */
-  readonly hasFile: boolean;
   readonly status: ReplayStatus;
   /** ISO-8601, when the replay was normalized. */
   readonly ingestedAt: string;
@@ -344,12 +352,6 @@ export interface AnalyserRunRecord {
   readonly ms: number;
 }
 
-export interface ReplayFileRecord {
-  readonly replayId: string;
-  readonly name: string;
-  readonly bytes: Uint8Array;
-}
-
 export type IngestJobStatus = 'queued' | 'running' | 'ready' | 'complete' | 'failed' | 'cancelled';
 
 /** Status transitions only — never progress ticks. */
@@ -373,7 +375,7 @@ export type ReplayCollectionName =
   'players' | 'scoreResults' | 'statEvents' | 'units' | 'commands' | 'events' | 'chat';
 
 export type CollectionName =
-  'replays' | ReplayCollectionName | 'analyserRuns' | 'replayFiles' | 'ingestJobs' | 'meta';
+  'replays' | ReplayCollectionName | 'analyserRuns' | 'ingestJobs' | 'meta';
 
 export interface RecordTypes {
   replays: ReplayRecord;
@@ -385,7 +387,6 @@ export interface RecordTypes {
   events: EventRecord;
   chat: ChatRecord;
   analyserRuns: AnalyserRunRecord;
-  replayFiles: ReplayFileRecord;
   ingestJobs: IngestJobRecord;
   meta: MetaRecord;
 }

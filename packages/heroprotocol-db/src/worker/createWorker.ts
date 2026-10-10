@@ -79,7 +79,6 @@ export function createWorker(options: CreateWorkerOptions = {}, scope?: WorkerSc
       case 'ingest': {
         const handle = ingestInline(await database(), new Uint8Array(req.bytes), {
           fileName: req.fileName,
-          keepFile: req.keepFile,
           registry,
           ...(services ? { services } : {}),
           onStatus: (status) => post({ type: 'ingest-status', ref: req.ref, status }),

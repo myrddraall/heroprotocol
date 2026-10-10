@@ -123,6 +123,7 @@ export function normalizePlayers(
 export function summarize(players: readonly PlayerRecord[]): PlayerSummary[] {
   return players.map((p) => ({
     slot: p.slot,
+    toonHandle: p.toon?.handle ?? null,
     name: p.name,
     hero: p.hero,
     heroId: p.heroId,

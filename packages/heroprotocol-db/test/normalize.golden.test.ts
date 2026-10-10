@@ -28,6 +28,10 @@ describe.skipIf(replays.length === 0)('normalizeReplay on real replays', () => {
       expect(r.durationSeconds).toBe(r.durationLoops / 16);
       expect(r.mode).not.toBe('unknown');
       expect(r.winningTeam === 0 || r.winningTeam === 1).toBe(true);
+      expect(r.recorderSlot).not.toBeNull();
+      expect(r.recorderToonHandle).toBe(
+        n.players.find((p) => p.slot === r.recorderSlot)?.toon?.handle,
+      );
       expect(Object.values(r.sections).every((s) => s === 'ok')).toBe(true);
       for (const [name, count] of Object.entries(r.rowCounts)) {
         expect((n as unknown as Record<string, unknown[]>)[name]).toHaveLength(count);

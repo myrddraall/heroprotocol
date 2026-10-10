@@ -8,7 +8,7 @@ export {
   setReplayStatus,
   bulkAddChunked,
 } from './write.js';
-export type { WriteReplayOptions } from './write.js';
+export type { WriteReplayOptions, StoreWriteProgress, OnStoreWrite } from './write.js';
 export { readRows, readTableRows, createDbContext } from './read.js';
 export type { DbContextOptions } from './read.js';
 export { saveAnalyserOutput, deleteRun, loadRun, loadReplayRuns, loadRunRows } from './runs.js';

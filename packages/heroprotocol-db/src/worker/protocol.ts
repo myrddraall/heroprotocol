@@ -23,7 +23,6 @@ export type WorkerRequest =
       readonly ref: number;
       readonly bytes: ArrayBuffer;
       readonly fileName: string;
-      readonly keepFile: boolean;
     }
   | {
       readonly type: 'analyse';

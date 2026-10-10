@@ -36,8 +36,6 @@ export { talents } from './analysers/talents.js';
 export type { TalentPickRow, TalentsTables } from './analysers/talents.js';
 export { xpCurve } from './analysers/xpCurve.js';
 export type { XpPointRow, XpCurveTables } from './analysers/xpCurve.js';
-export { timeline } from './analysers/timeline.js';
-export type { TimelineEventRow, TimelineKind, TimelineTables } from './analysers/timeline.js';
 export { unitKills, MERC_TYPES } from './analysers/unitKills.js';
 export type {
   KillCounts,
@@ -45,13 +43,6 @@ export type {
   TeamKillsRow,
   UnitKillsTables,
 } from './analysers/unitKills.js';
-export { pointsOfInterest } from './analysers/pointsOfInterest.js';
-export type {
-  PointOfInterestRow,
-  MapInfoRow,
-  PoiType,
-  PointsOfInterestTables,
-} from './analysers/pointsOfInterest.js';
 export { chat } from './analysers/chat.js';
 export type { ChatLineRow, ChatTables } from './analysers/chat.js';
 export { commands } from './analysers/commands.js';

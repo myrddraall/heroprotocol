@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "heroesVersion": "2.55.17.98025",
+    "hdpVersion": "5.0.4",
+    "itemsType": "GameStrings",
+    "dataTypes": ["MapData"],
+    "gameStringText": {
+      "locale": "ENUS",
+      "textType": "RawText",
+      "constantVars": { "replaced": true, "preserved": true },
+      "styleVars": { "replaced": true, "preserved": true }
+    }
+  },
+  "items": {
+    "map": {
+      "name": {
+        "Garden of Terror": "Garden of Terror",
+        "Sandbox (Volskaya Foundry)": "Sandbox (Volskaya Foundry)",
+        "Towers of Doom": "Towers of Doom",
+        "Volskaya Foundry": "Volskaya Foundry"
+      },
+      "objectiveDescription": {
+        "Garden of Terror": [
+          "Queen Nightshade will periodically summon a Seed. Defeat its Shambler Defenders and gather it for your team!",
+          "Upon gathering three Seeds, Garden Terrors will immediately burrow to each lane.",
+          "Garden Terrors disable enemy Structures, so fight alongside them!"
+        ],
+        "Sandbox (Volskaya Foundry)": [
+          "Control points activate occasionally. Stand within them to capture them. Fully capturing a point grants you control of a giant mech.",
+          "The Triglav Protector mech is controlled by two players: one pilot and one gunner. Work together!",
+          "The Protector's Abilities deal incredible damage to Structures and Heroes alike. Use it to lay waste to your enemy."
+        ],
+        "Towers of Doom": [
+          "Both Cores are protected by a barrier that cannot be attacked by Heroes. To be victorious, you must activate Altars.",
+          "Periodically Altars will rise across the battlefield. Activate them to have your Bell Towers fire upon the enemy's Core. ",
+          "Destroy your enemy's Towers to bring them under your team's control. The more Towers you have, the more damage an altar will do."
+        ],
+        "Volskaya Foundry": [
+          "Control points activate occasionally. Stand within them to capture them. Fully capturing a point grants you control of a giant mech.",
+          "The Triglav Protector mech is controlled by two players: one pilot and one gunner. Work together!",
+          "The Protector's Abilities deal incredible damage to Structures and Heroes alike. Use it to lay waste to your enemy."
+        ]
+      },
+      "objectiveTitle": {
+        "Garden of Terror": ["Seeds Spawn", "Collect Seeds", "Garden Terrors"],
+        "Sandbox (Volskaya Foundry)": [
+          "Capture Points",
+          "Control the Protector",
+          "Destroy Everything"
+        ],
+        "Towers of Doom": ["Protected Cores", "Activate Altars", "Claim Bell Towers"],
+        "Volskaya Foundry": ["Capture Points", "Control the Protector", "Destroy Everything"]
+      }
+    }
+  }
+}

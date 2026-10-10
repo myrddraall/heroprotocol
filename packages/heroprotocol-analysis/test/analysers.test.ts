@@ -16,13 +16,11 @@ import type { DescriptionPlayerRow, DescriptionRow } from '../src/analysers/desc
 import type { ScoreScreenPlayerRow, ScoreScreenTeamRow } from '../src/analysers/scoreScreen.js';
 import type { PlayerStatsRow, PlayerStatsSupportRow } from '../src/analysers/playerStats.js';
 import type { DraftRow, DraftStepRow } from '../src/analysers/draft.js';
-import type { TimelineEventRow } from '../src/analysers/timeline.js';
 import type { XpPointRow } from '../src/analysers/xpCurve.js';
 import type { PlayerKillsRow, TeamKillsRow } from '../src/analysers/unitKills.js';
 import type { ChatLineRow } from '../src/analysers/chat.js';
 import type { CommandStatsRow } from '../src/analysers/commands.js';
 import type { DeathHeatmapCellRow, DeathHeatmapRow } from '../src/analysers/deathHeatmap.js';
-import type { PointOfInterestRow } from '../src/analysers/pointsOfInterest.js';
 import type { TalentPickRow } from '../src/analysers/talents.js';
 import { goldenFor, localReplays, normalizeLocal, readLocal, stable } from './util.js';
 import { runFromStore, runInMemory } from './run.js';
@@ -53,8 +51,6 @@ describe('registry', () => {
     expect(reg.list('background').map((r) => r.analyser.id)).toEqual([
       '@myrddraall/talents',
       '@myrddraall/xp-curve',
-      '@myrddraall/timeline',
-      '@myrddraall/points-of-interest',
       '@myrddraall/chat',
     ]);
     expect(reg.list('lazy').map((r) => r.analyser.id)).toEqual([
@@ -72,15 +68,12 @@ describe('registry', () => {
       'descriptionPlayers',
       'draft',
       'draftSteps',
-      'mapInfo',
       'playerStats',
       'playerStatsSupport',
-      'pointsOfInterest',
       'scoreScreenPlayers',
       'scoreScreenTeams',
       'talentPicks',
       'teamUnitKills',
-      'timelineEvents',
       'unitKills',
       'xpPoints',
     ]);
@@ -105,13 +98,6 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
           .equals([f.replay.id, 0])
           .count(),
       ).toBe(1);
-      expect(
-        await db
-          .table('timelineEvents')
-          .where('[replayId+kind]')
-          .equals([f.replay.id, 'death'])
-          .count(),
-      ).toBe(f.statEvents.filter((s) => s.eventName === 'PlayerDeath').length);
       expect(
         await db.table('scoreScreenPlayers').where('awards').equals('MVP').count(),
       ).toBeLessThanOrEqual(1);
@@ -141,7 +127,6 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       const [support] = t<PlayerStatsSupportRow>('@myrddraall/player-stats', 'playerStatsSupport');
       const [draft] = t<DraftRow>('@myrddraall/draft', 'draft');
       const steps = t<DraftStepRow>('@myrddraall/draft', 'draftSteps');
-      const tl = t<TimelineEventRow>('@myrddraall/timeline', 'timelineEvents');
       const xp = t<XpPointRow>('@myrddraall/xp-curve', 'xpPoints');
       const kills = t<PlayerKillsRow>('@myrddraall/unit-kills', 'unitKills');
       const teamKills = t<TeamKillsRow>('@myrddraall/unit-kills', 'teamUnitKills');
@@ -149,7 +134,6 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       const cmds = t<CommandStatsRow>('@myrddraall/commands', 'commandStats');
       const [heat] = t<DeathHeatmapRow>('@myrddraall/death-heatmap#-', 'deathHeatmaps');
       const cells = t<DeathHeatmapCellRow>('@myrddraall/death-heatmap#-', 'deathHeatmapCells');
-      const poi = t<PointOfInterestRow>('@myrddraall/points-of-interest', 'pointsOfInterest');
       const talents = t<TalentPickRow>('@myrddraall/talents', 'talentPicks');
 
       // description: one replay row, ten participants, the winner is consistent
@@ -193,28 +177,6 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
         steps.filter((s) => s.type === 'pick').every((p) => p.slot !== null && p.name !== null),
       ).toBe(true);
       if (draft!.picking === 'draft') expect(draft!.bans).toBeGreaterThan(0);
-
-      // timeline: level events once each with numeric levels, talents with names, spans tile the game
-      const levels = tl.filter((e) => e.kind === 'level');
-      expect(levels).toHaveLength(f.statEvents.filter((s) => s.eventName === 'LevelUp').length);
-      expect(levels.every((e) => (e.level ?? 0) > 0)).toBe(true);
-      const talentEvents = tl.filter((e) => e.kind === 'talent');
-      expect(talentEvents.length).toBe(f.players.reduce((a, p) => a + p.talents.length, 0));
-      expect(talentEvents.every((e) => (e.talent ?? '').length > 0 && (e.level ?? 0) > 0)).toBe(
-        true,
-      );
-      for (const p of descPlayers) {
-        const spans = tl.filter(
-          (e) => (e.kind === 'alive' || e.kind === 'dead') && e.slot === p.slot,
-        );
-        expect(spans[0]!.start).toBe(0);
-        expect(spans.at(-1)!.end).toBe(f.replay.durationLoops);
-        for (let i = 1; i < spans.length; i++) expect(spans[i]!.start).toBe(spans[i - 1]!.end);
-      }
-      expect(tl.filter((e) => e.kind === 'core-death')).toHaveLength(1);
-      for (let i = 1; i < tl.length; i++)
-        expect(tl[i]!.start).toBeGreaterThanOrEqual(tl[i - 1]!.start);
-      expect(tl.map((e) => e.seq)).toEqual(tl.map((_, i) => i));
 
       // xp curve: per team, monotonic time and cumulative, ends at the final score
       for (const team of [0, 1] as const) {
@@ -266,11 +228,10 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       }
       expect(cmds.reduce((a, p) => a + p.commands, 0)).toBe(f.commands.length);
 
-      // heatmap covers every death; POIs include the two cores; talents are tiered in order
+      // heatmap covers every death; talents are tiered in order
       expect(heat!.total).toBe(f.statEvents.filter((s) => s.eventName === 'PlayerDeath').length);
       expect(cells.reduce((a, c) => a + c.count, 0)).toBe(heat!.total);
       expect(heat!.mapWidth).not.toBeNull();
-      expect(poi.filter((p) => p.type === 'core')).toHaveLength(2);
       for (const p of descPlayers) {
         const mine = talents.filter((x) => x.slot === p.slot);
         expect(mine.map((x) => x.tier)).toEqual(mine.map((_, i) => i + 1));
