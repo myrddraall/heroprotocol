@@ -29,7 +29,7 @@ export type CommandsTables = {
 /** Command volume per player: totals, APM, the per-minute curve, and casts by ability. Lazy — it walks 20k+ rows. */
 export const commands: Analyser<CommandsTables> = {
   id: `${NS}commands`,
-  version: 2,
+  version: 4,
   tables: {
     commandStats: '[replayId+slot], replayId, heroId, apm',
     abilityUses: '[replayId+slot+abilLink], replayId, [replayId+slot], abilLink',
@@ -48,20 +48,25 @@ export const commands: Analyser<CommandsTables> = {
       const byAbility = new Map<number, number>();
       let casts = 0;
       for (const c of rows) {
-        perMinute[Math.min(minutes - 1, Math.floor(c.seconds / 60))]!++;
+        // minutes of the game's clock; orders before the gates open count in its first
+        perMinute[Math.min(minutes - 1, Math.max(0, Math.floor(c.seconds / 60)))]!++;
         if (c.abilLink !== null) {
           casts++;
           byAbility.set(c.abilLink, (byAbility.get(c.abilLink) ?? 0) + 1);
         }
       }
-      const gameMinutes = ctx.replay.durationSeconds / 60 || 1;
+      // rates over the game's clock: orders from before the gates open don't count, and a game
+      // shorter than a minute counts as one
+      const gameMinutes = Math.max(1, ctx.replay.durationSeconds / 60);
+      const inGame = rows.filter((c) => c.seconds >= 0);
+      const castsInGame = inGame.filter((c) => c.abilLink !== null).length;
       stats.push({
         ...ref(p),
         commands: rows.length,
         casts,
         moves: rows.length - casts,
-        apm: rows.length / gameMinutes,
-        castsPerMinute: casts / gameMinutes,
+        apm: inGame.length / gameMinutes,
+        castsPerMinute: castsInGame / gameMinutes,
         perMinute,
       });
       for (const [abilLink, count] of [...byAbility.entries()].sort((a, b) => a[0] - b[0]))

@@ -13,7 +13,7 @@ import type {
   EventRecord,
   Point,
 } from '../model/records.js';
-import { loopsToSeconds } from '../model/records.js';
+import { GAME_START_LOOP, gameSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 import { fixed } from './time.js';
 
@@ -49,6 +49,8 @@ export function normalizeGameEvents(
   game: readonly RawEvent[],
   lookup: PlayerLookup,
   durationLoops: number,
+  /** The loop the game's clock starts from (`gameStartLoop`). */
+  startLoop: number = GAME_START_LOOP,
 ): GameEvents {
   const commands: CommandRecord[] = [];
   const chat: ChatRecord[] = [];
@@ -63,7 +65,7 @@ export function normalizeGameEvents(
       replayId,
       seq: 0,
       gameloop: e._gameloop,
-      seconds: loopsToSeconds(e._gameloop),
+      seconds: gameSeconds(e._gameloop, startLoop),
       kind,
       playerSlot,
       team: lookup.teamOfSlot(playerSlot),
@@ -97,7 +99,7 @@ export function normalizeGameEvents(
           replayId,
           seq: 0,
           gameloop: c._gameloop,
-          seconds: loopsToSeconds(c._gameloop),
+          seconds: gameSeconds(c._gameloop, startLoop),
           playerSlot: slot,
           abilLink: c.m_abil?.m_abilLink ?? null,
           abilCmdIndex: c.m_abil?.m_abilCmdIndex ?? null,
@@ -148,7 +150,7 @@ export function normalizeGameEvents(
           replayId,
           seq: 0,
           gameloop: e._gameloop,
-          seconds: loopsToSeconds(e._gameloop),
+          seconds: gameSeconds(e._gameloop, startLoop),
           playerSlot: slotOf(e),
           kind: 'chat',
           text: (e as STriggerChatMessageEvent).m_chatMessage,

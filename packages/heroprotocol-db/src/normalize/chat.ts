@@ -1,6 +1,6 @@
 import type { RawEvent, SChatMessage, SPingMessage } from '@myrddraall/heroprotocol';
 import type { ChatRecord, EventRecord } from '../model/records.js';
-import { loopsToSeconds } from '../model/records.js';
+import { GAME_START_LOOP, gameSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 import { fixed } from './time.js';
 
@@ -20,6 +20,8 @@ export function normalizeMessageEvents(
   replayId: string,
   messages: readonly RawEvent[],
   lookup: PlayerLookup,
+  /** The loop the game's clock starts from (`gameStartLoop`). */
+  startLoop: number = GAME_START_LOOP,
 ): MessageEvents {
   const chat: ChatRecord[] = [];
   const pings: ChatRecord[] = [];
@@ -30,7 +32,7 @@ export function normalizeMessageEvents(
       replayId,
       seq: 0,
       gameloop: e._gameloop,
-      seconds: loopsToSeconds(e._gameloop),
+      seconds: gameSeconds(e._gameloop, startLoop),
       playerSlot,
     };
     switch (e._event) {

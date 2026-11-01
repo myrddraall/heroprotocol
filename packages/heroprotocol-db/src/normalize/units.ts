@@ -9,7 +9,7 @@ import type {
 } from '@myrddraall/heroprotocol';
 import { unitTag } from '@myrddraall/heroprotocol';
 import type { EventRecord, Team, UnitClass, UnitRecord } from '../model/records.js';
-import { loopsToSeconds } from '../model/records.js';
+import { GAME_START_LOOP, gameSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 
 const CORES = new Set(['KingsCore', 'VanndarStormpike', 'DrekThar']);
@@ -58,7 +58,10 @@ interface Draft {
 
 export interface Units {
   readonly units: readonly UnitRecord[];
-  /** `UnitOwnerChanged`, `UnitTypeChanged` and `UnitRevived` as events, for timelines. */
+  /**
+   * `UnitOwnerChanged`, `UnitTypeChanged` and `UnitRevived` as events, for timelines, and
+   * `HeroDied` for each death of a hero (whose unit is revived, so its row keeps only the last).
+   */
   readonly events: readonly EventRecord[];
 }
 
@@ -67,6 +70,8 @@ export function normalizeUnits(
   replayId: string,
   tracker: readonly RawEvent[],
   lookup: PlayerLookup,
+  /** The loop the game's clock starts from (`gameStartLoop`). */
+  startLoop: number = GAME_START_LOOP,
 ): Units {
   const drafts = new Map<number, Draft>();
   const events: EventRecord[] = [];
@@ -102,7 +107,7 @@ export function normalizeUnits(
       replayId,
       seq: 0,
       gameloop: e._gameloop,
-      seconds: loopsToSeconds(e._gameloop),
+      seconds: gameSeconds(e._gameloop, startLoop),
       kind,
       playerSlot,
       team: lookup.teamOfSlot(playerSlot),
@@ -127,6 +132,19 @@ export function normalizeUnits(
           d.m_killerUnitTagIndex === null || d.m_killerUnitTagRecycle === null
             ? null
             : unitTag(d.m_killerUnitTagIndex, d.m_killerUnitTagRecycle);
+        if (classifyUnit(u.type, u.ownerPlayerId) === 'hero') {
+          // The killing blow's unit and the player behind it, if any: a tower, minion, mercenary
+          // or map monster has none, a summon its owner. (PlayerDeath credits the nearby enemy
+          // heroes even then, so only this tells a death to an NPC.)
+          const killer = u.killerUnitTag === null ? undefined : drafts.get(u.killerUnitTag);
+          event(e, 'HeroDied', u.tag, lookup.slotOfPlayer(u.ownerPlayerId), {
+            type: u.type,
+            killerType: killer?.type ?? null,
+            killerSlot: lookup.slotOfPlayer(d.m_killerPlayerId),
+            x: d.m_x,
+            y: d.m_y,
+          });
+        }
         break;
       }
       case 'NNet.Replay.Tracker.SUnitTypeChangeEvent': {

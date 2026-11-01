@@ -1,6 +1,6 @@
 import type { SScoreResultEvent } from '@myrddraall/heroprotocol';
 import type { EventRecord, ScoreResultRecord } from '../model/records.js';
-import { loopsToSeconds } from '../model/records.js';
+import { GAME_START_LOOP, gameSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 
 // Awards are `EndOfMatchAward<Name>Boolean`; one (`MostAltarDamageDone`) lacks the
@@ -44,6 +44,8 @@ export function normalizeScores(
   replayId: string,
   events: readonly SScoreResultEvent[],
   lookup: PlayerLookup,
+  /** The loop the game's clock starts from (`gameStartLoop`). */
+  startLoop: number = GAME_START_LOOP,
 ): ScoreResults {
   if (events.length === 0) return { finalLoop: null, results: [], snapshots: [] };
   const ordered = [...events].sort((a, b) => a._gameloop - b._gameloop);
@@ -83,7 +85,7 @@ export function normalizeScores(
       replayId,
       seq: 0,
       gameloop: e._gameloop,
-      seconds: loopsToSeconds(e._gameloop),
+      seconds: gameSeconds(e._gameloop, startLoop),
       kind: 'ScoreSnapshot',
       playerSlot: null,
       team: null,

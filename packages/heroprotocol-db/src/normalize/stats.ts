@@ -1,6 +1,6 @@
 import type { SStatGameEvent, SStatGameEventData } from '@myrddraall/heroprotocol';
 import type { StatEventRecord, StatValue, Team } from '../model/records.js';
-import { loopsToSeconds } from '../model/records.js';
+import { GAME_START_LOOP, gameSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 import { fixed } from './time.js';
 
@@ -16,6 +16,8 @@ export function normalizeStatEvent(
   replayId: string,
   e: SStatGameEvent,
   lookup: PlayerLookup,
+  /** The loop the game's clock starts from (`gameStartLoop`). */
+  startLoop: number = GAME_START_LOOP,
 ): StatEventRecord {
   const values: Record<string, StatValue> = {};
   const lists: Record<string, StatValue[]> = {};
@@ -60,7 +62,7 @@ export function normalizeStatEvent(
     replayId,
     seq: 0,
     gameloop: e._gameloop,
-    seconds: loopsToSeconds(e._gameloop),
+    seconds: gameSeconds(e._gameloop, startLoop),
     eventName: e.m_eventName,
     playerSlot,
     team,

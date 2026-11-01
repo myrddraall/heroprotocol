@@ -22,6 +22,8 @@ import type { ChatLineRow } from '../src/analysers/chat.js';
 import type { CommandStatsRow } from '../src/analysers/commands.js';
 import type { DeathHeatmapCellRow, DeathHeatmapRow } from '../src/analysers/deathHeatmap.js';
 import type { TalentPickRow } from '../src/analysers/talents.js';
+import type { TeamStatsRow } from '../src/analysers/teamStats.js';
+import type { ActivityRow } from '../src/analysers/activity.js';
 import { goldenFor, localReplays, normalizeLocal, readLocal, stable } from './util.js';
 import { runFromStore, runInMemory } from './run.js';
 
@@ -46,6 +48,7 @@ describe('registry', () => {
       '@myrddraall/score-screen',
       '@myrddraall/unit-kills',
       '@myrddraall/player-stats',
+      '@myrddraall/team-stats',
       '@myrddraall/draft',
     ]);
     expect(reg.list('background').map((r) => r.analyser.id)).toEqual([
@@ -55,11 +58,13 @@ describe('registry', () => {
     ]);
     expect(reg.list('lazy').map((r) => r.analyser.id)).toEqual([
       '@myrddraall/commands',
+      '@myrddraall/activity',
       '@myrddraall/death-heatmap',
     ]);
     const tables = builtinTables();
     expect(Object.keys(tables).sort()).toEqual([
       'abilityUses',
+      'activity',
       'chatLines',
       'commandStats',
       'deathHeatmapCells',
@@ -73,11 +78,18 @@ describe('registry', () => {
       'scoreScreenPlayers',
       'scoreScreenTeams',
       'talentPicks',
+      'teamStats',
       'teamUnitKills',
       'unitKills',
       'xpPoints',
     ]);
-    expect(builtins.every((a) => a.id.startsWith('@myrddraall/') && a.version >= 2)).toBe(true);
+    // the analysers that predate owning their tables were bumped past 1; newer ones start at 1
+    const NEW = ['@myrddraall/team-stats', '@myrddraall/activity'];
+    expect(
+      builtins.every(
+        (a) => a.id.startsWith('@myrddraall/') && a.version >= (NEW.includes(a.id) ? 1 : 2),
+      ),
+    ).toBe(true);
   });
 });
 
@@ -135,6 +147,8 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       const [heat] = t<DeathHeatmapRow>('@myrddraall/death-heatmap#-', 'deathHeatmaps');
       const cells = t<DeathHeatmapCellRow>('@myrddraall/death-heatmap#-', 'deathHeatmapCells');
       const talents = t<TalentPickRow>('@myrddraall/talents', 'talentPicks');
+      const teams = t<TeamStatsRow>('@myrddraall/team-stats', 'teamStats');
+      const active = t<ActivityRow>('@myrddraall/activity', 'activity');
 
       // description: one replay row, ten participants, the winner is consistent
       expect(description!.playerCount).toBe(10);
@@ -160,6 +174,10 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
         expect(p['KillParticipation']).toBeLessThanOrEqual(1);
         expect(p['SoloKill'] as number).toBeLessThanOrEqual(p['Takedowns'] as number);
         expect(p['MinionsKilled']).toBe(kills.find((k) => k.slot === p.slot)!.minions);
+        // one key per stat: the game's duplicates of ours are dropped
+        expect(p).not.toHaveProperty('MinionKills');
+        expect(p).not.toHaveProperty('RegenGlobes');
+        expect(p['PercentTeamfightHeroDamage'] as number).toBeLessThanOrEqual(1);
         expect(p['RegenGlobesCollected']).toBeGreaterThanOrEqual(0);
         expect(p['TimeDisconnected']).toBeGreaterThanOrEqual(0);
         expect(p['Reconnects']).toBeGreaterThanOrEqual(0);
@@ -168,6 +186,63 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       const leaver = descPlayers.find((p) => p.leftAtSeconds !== null);
       if (leaver)
         expect(stats.find((p) => p.slot === leaver.slot)!['TimeDisconnected']).toBeGreaterThan(0);
+
+      // player stats rates: per minute over the game's clock; hard + soft CC = total CC
+      const minutes = f.replay.durationSeconds / 60;
+      for (const p of stats) {
+        const n = (k: string) => p[k] as number;
+        expect(n('HeroDamagePerMinute')).toBeCloseTo(n('HeroDamage') / minutes, 6);
+        expect(n('TakedownsPer10Minutes')).toBeCloseTo((n('Takedowns') / minutes) * 10, 6);
+        expect(n('CCSecondsPerMinute')).toBeCloseTo(
+          n('HardCCSecondsPerMinute') + n('SoftCCSecondsPerMinute'),
+          6,
+        );
+        if (n('DamageTaken') > 0)
+          expect(n('DamageRatio')).toBeCloseTo(n('HeroDamage') / n('DamageTaken'), 6);
+      }
+
+      // team stats: one row per team; kills match the score screen, KDA and averages from the sums,
+      // XP sources add up to the curve's end, forts/keeps destroyed mirror the other team's lost,
+      // a team's camps are at least any one player's credited captures
+      expect(teams.map((x) => x.team)).toEqual([0, 1]);
+      for (const x of teams) {
+        const other = teams.find((o) => o.team !== x.team)!;
+        const mine = stats.filter((p) => p.team === x.team);
+        expect(x.kills).toBe(scoreTeams.find((s) => s.team === x.team)!.kills);
+        expect(x.deaths).toBe(other.kills);
+        expect(x.teamKDA).toBeCloseTo(x.kills / Math.max(x.deaths, 1), 9);
+        expect(x.heroDamage).toBe(mine.reduce((a, p) => a + (p['HeroDamage'] as number), 0));
+        expect(x.averageTimeDead).toBeCloseTo(x.timeDead! / mine.length, 9);
+        expect(x.peoplePerKill).toBeGreaterThanOrEqual(1);
+        expect(x.peoplePerKill).toBeLessThanOrEqual(5);
+        expect(x.totalXP).toBeCloseTo(xp.filter((p) => p.team === x.team).at(-1)!.total, 6);
+        expect(x.fortsDestroyed).toBe(other.fortsLost);
+        expect(x.keepsDestroyed).toBe(other.keepsLost);
+        expect(x.firstFortSeconds === null).toBe(x.fortsDestroyed === 0);
+        expect(x.firstKeepSeconds === null).toBe(x.keepsDestroyed === 0);
+        expect(x.campCaptures).toBe(x.campsSiege + x.campsBruiser + x.campsBoss + x.campsOther);
+        expect(x.campCaptures).toBeGreaterThanOrEqual(
+          Math.max(...mine.map((p) => p['MercCampCaptures'] as number)),
+        );
+        expect(x.firstCampSeconds === null).toBe(x.campCaptures === 0);
+      }
+      // the losing team's core died near the end; the winner's did not
+      const loser = teams.find((x) => !x.won)!;
+      if (loser.coreSeconds !== null)
+        expect(loser.coreSeconds).toBeLessThanOrEqual(f.replay.durationSeconds);
+      expect(teams.find((x) => x.won)!.coreSeconds).toBeNull();
+
+      // activity: APM from commands; communication counts are within the replay's totals
+      expect(active).toHaveLength(10);
+      for (const a of active) {
+        expect(a.apm).toBe(cmds.find((c) => c.slot === a.slot)!.apm);
+        expect(a.minimapPings).toBeLessThanOrEqual(a.pings);
+        expect(a.upvotesGiven).toBeLessThanOrEqual(1);
+      }
+      expect(active.reduce((a, x) => a + x.chatMessages, 0)).toBe(
+        f.chat.filter((c) => c.kind === 'chat' && c.playerSlot !== null).length,
+      );
+      expect(active.reduce((a, x) => a + x.pings, 0)).toBeGreaterThan(0);
 
       // draft: steps in real order, picks name real players
       expect(steps.map((s) => s.order)).toEqual(steps.map((_, i) => i + 1));
@@ -178,17 +253,20 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       ).toBe(true);
       if (draft!.picking === 'draft') expect(draft!.bans).toBeGreaterThan(0);
 
-      // xp curve: per team, monotonic time and cumulative, ends at the final score
+      // xp curve: per team, running totals over the game's clock, what was gained between
+      // points adding up to the total, ending at the final score
       for (const team of [0, 1] as const) {
         const points = xp.filter((p) => p.team === team);
         expect(points.length).toBeGreaterThan(2);
         for (let i = 1; i < points.length; i++) {
           expect(points[i]!.seq).toBe(i);
           expect(points[i]!.seconds).toBeGreaterThanOrEqual(points[i - 1]!.seconds);
-          expect(points[i]!.cumulative).toBeGreaterThanOrEqual(points[i - 1]!.cumulative);
+          expect(points[i]!.total).toBeGreaterThanOrEqual(points[i - 1]!.total);
         }
+        const gained = points.reduce((a, p) => a + p.gained, 0);
+        expect(gained).toBeCloseTo(points.at(-1)!.total, 6);
         expect(points.at(-1)!.seconds).toBe(
-          (f.replay.finalScoreLoop ?? f.replay.durationLoops) / 16,
+          ((f.replay.finalScoreLoop ?? f.replay.durationLoops) - f.replay.gameStartLoop) / 16,
         );
       }
 
