@@ -15,9 +15,11 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "verbatimModuleSyntax": true,
-    "isolatedDeclarations": true
+    "isolatedDeclarations": true,
+    // the generated emote table (src/emoticons/emoticons.json)
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.mts"],
   // Restated on purpose: an inherited `exclude` resolves against the ROOT config, whose
   // `packages` entry would exclude this whole project (TS18003).
   "exclude": ["node_modules", "dist"]

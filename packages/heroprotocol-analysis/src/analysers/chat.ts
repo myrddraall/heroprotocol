@@ -1,4 +1,4 @@
-import type { Analyser, ChatRecipient, Point, Team } from '@myrddraall/heroprotocol-db';
+import type { Analyser, Point, Team } from '@myrddraall/heroprotocol-db';
 import { bySlot, NS, participants } from './shared.js';
 
 export interface ChatLineRow {
@@ -9,8 +9,11 @@ export interface ChatLineRow {
   readonly slot: number | null;
   readonly name: string | null;
   readonly hero: string | null;
+  /** The hero's id (`DVaPilot`), for the hero's own emotes. */
+  readonly heroId: string | null;
+  /** Heroes has only team chat: the sender's team read it. */
   readonly team: Team | null;
-  readonly recipient: ChatRecipient;
+  /** As typed (emote codes such as `:)` unconverted); null for a ping. */
   readonly text: string | null;
   readonly point: Point | null;
 }
@@ -19,10 +22,13 @@ export type ChatTables = {
   readonly chatLines: ChatLineRow[];
 };
 
-/** Chat and pings joined with the players. */
+/**
+ * Chat and pings joined with the players: both teams' chat, the recording player's team's pings
+ * (the only ones a replay keeps).
+ */
 export const chat: Analyser<ChatTables> = {
   id: `${NS}chat`,
-  version: 2,
+  version: 3,
   tables: { chatLines: '[replayId+seq], replayId, [replayId+kind], slot' },
   inputs: ['players', 'chat'],
   mode: 'background',
@@ -42,8 +48,8 @@ export const chat: Analyser<ChatTables> = {
             slot: l.playerSlot,
             name: p?.name ?? null,
             hero: p?.hero ?? null,
+            heroId: p?.heroId ?? null,
             team: p?.team ?? null,
-            recipient: l.recipient,
             text: l.text,
             point: l.point,
           };

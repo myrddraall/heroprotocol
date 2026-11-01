@@ -18,7 +18,7 @@ import type { Diagnostics, SectionName, SectionStatus } from '@myrddraall/heropr
 export const LOOPS_PER_SECOND = 16;
 
 /** Bump when a change to the normalizer should make stored replays stale. */
-export const NORMALIZE_VERSION = 2;
+export const NORMALIZE_VERSION = 3;
 
 export type Team = 0 | 1;
 
@@ -322,8 +322,6 @@ export interface EventRecord {
   readonly data: Readonly<Record<string, unknown>>;
 }
 
-export type ChatRecipient = 'all' | 'allies' | 'observers' | 'unknown';
-
 export interface ChatRecord {
   readonly replayId: string;
   readonly seq: number;
@@ -331,7 +329,7 @@ export interface ChatRecord {
   readonly seconds: number;
   readonly playerSlot: number | null;
   readonly kind: 'chat' | 'ping';
-  readonly recipient: ChatRecipient;
+  /** A chat line as typed (emote codes such as `:)` unconverted); null for a ping. */
   readonly text: string | null;
   readonly point: Point | null;
 }

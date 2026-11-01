@@ -65,6 +65,22 @@ change, so they are read from the cache before the network; a build that needs p
 its full root plus one small patch per version in between, once. Loaded builds are memoized
 in the provider per build and locale.
 
+## Chat emotes
+
+Replays keep chat as typed, so `:)` or `:aplausos:` is still a code. `loadEmoticons()` loads
+the emote table (bundled, in its own chunk, loaded on first call) and its `parse(text, heroId)`
+turns a line into text and emotes the way the game does: codes in any of the game's languages,
+colon codes even when they run together, and a generic one (`:)`, `:love:`) as the sender's
+hero's own version of that expression. `heroesImages().emoticon(e)` is the picture: a PNG, or
+an animated PNG for an animated emote.
+
+The table comes from the latest live build of heroes-data2 (its emote data and every
+language's aliases). Regenerate it when a patch adds emotes:
+
+```sh
+pnpm run generate.emoticons
+```
+
 ## Licence
 
 MIT. Data and images from HeroesToolChest are MIT; Heroes of the Storm is a trademark of
