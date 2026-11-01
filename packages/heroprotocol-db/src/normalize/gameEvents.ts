@@ -3,20 +3,23 @@ import type {
   SCmdEvent,
   SGameUserJoinEvent,
   SGameUserLeaveEvent,
+  STriggerChatMessageEvent,
 } from '@myrddraall/heroprotocol';
 import { UserLeaveReason } from '@myrddraall/heroprotocol';
-import type { CommandRecord, CommandTargetKind, EventRecord, Point } from '../model/records.js';
+import type {
+  ChatRecord,
+  CommandRecord,
+  CommandTargetKind,
+  EventRecord,
+  Point,
+} from '../model/records.js';
 import { loopsToSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 import { fixed } from './time.js';
 
-/**
- * Game events the model drops even when the parser kept them: loading sync is
- * noise, and the chat trigger duplicates `SChatMessage` in the message stream.
- */
+/** Game events the model drops even when the parser kept them: loading sync is noise. */
 export const MODEL_DROPPED_GAME_EVENTS: ReadonlySet<string> = new Set([
   'NNet.Game.SUserFinishedLoadingSyncEvent',
-  'NNet.Game.STriggerChatMessageEvent',
 ]);
 
 interface TargetUnit {
@@ -26,6 +29,11 @@ interface TargetUnit {
 
 export interface GameEvents {
   readonly commands: readonly CommandRecord[];
+  /**
+   * Every player's chat, both teams', as typed (`STriggerChatMessageEvent`). Heroes has only team
+   * chat, so a line's team says who read it.
+   */
+  readonly chat: readonly ChatRecord[];
   readonly events: readonly EventRecord[];
   /** Slot → loop at which the player left for good before the end, if any. */
   readonly leftAt: ReadonlyMap<number, number>;
@@ -43,6 +51,7 @@ export function normalizeGameEvents(
   durationLoops: number,
 ): GameEvents {
   const commands: CommandRecord[] = [];
+  const chat: ChatRecord[] = [];
   const events: EventRecord[] = [];
   const presence = new Map<number, { loop: number; left: boolean }>();
   let recorderSlot: number | null = null;
@@ -134,6 +143,18 @@ export function normalizeGameEvents(
           option: e['m_option'],
         });
         break;
+      case 'NNet.Game.STriggerChatMessageEvent':
+        chat.push({
+          replayId,
+          seq: 0,
+          gameloop: e._gameloop,
+          seconds: loopsToSeconds(e._gameloop),
+          playerSlot: slotOf(e),
+          kind: 'chat',
+          text: (e as STriggerChatMessageEvent).m_chatMessage,
+          point: null,
+        });
+        break;
       case 'NNet.Game.SUnitClickEvent':
         push(e, 'UnitClick', { unitTag: e['m_unitTag'] });
         break;
@@ -146,5 +167,5 @@ export function normalizeGameEvents(
   for (const [slot, p] of presence) {
     if (p.left && p.loop > 0 && p.loop < durationLoops) leftAt.set(slot, p.loop);
   }
-  return { commands, events, leftAt, recorderSlot };
+  return { commands, chat, events, leftAt, recorderSlot };
 }

@@ -175,6 +175,15 @@ export interface SCmdEvent extends RawEvent {
   readonly m_otherUnit: number | null;
   readonly m_unitGroup: number | null;
 }
+/**
+ * A chat line as the game's trigger system saw it: every player's, both teams', as typed (emote
+ * codes unconverted). The message stream's `SChatMessage` holds only what the recording player
+ * could read.
+ */
+export interface STriggerChatMessageEvent extends RawEvent {
+  readonly _event: 'NNet.Game.STriggerChatMessageEvent';
+  readonly m_chatMessage: string;
+}
 
 // ---- message events ----
 

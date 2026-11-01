@@ -1,3 +1,4 @@
+import type { ShownEmoticon } from './emoticons/emoticons.js';
 import type {
   AbilityInfo,
   AwardInfo,
@@ -26,6 +27,8 @@ export interface HeroesImages {
   ): string | null;
   /** A map's replay preview (`replaypreviews/`) or loading screen (`loadingscreens/`). */
   map(map: MapInfo, kind: 'replayPreview' | 'loadingScreen'): string | null;
+  /** A chat emote (`emoticons/`): a PNG, or an animated PNG for an animated one. */
+  emoticon(emoticon: Pick<ShownEmoticon, 'image'>): string;
   /** A map objective icon (`mapobjectives/`), one of `MapObjective.icons`. */
   mapObjective(icon: string): string;
   /** Any file in a heroes-images folder. */
@@ -56,6 +59,7 @@ export function heroesImages(options: { readonly baseUrl?: string } = {}): Heroe
       kind === 'replayPreview'
         ? maybe('replaypreviews', map.replayPreviewImage)
         : maybe('loadingscreens', map.loadingScreenImage),
+    emoticon: (emoticon) => url('emoticons', emoticon.image),
     mapObjective: (icon) => url('mapobjectives', icon),
     url,
   };

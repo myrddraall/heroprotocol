@@ -75,7 +75,7 @@ interface VersionIndex {
   readonly versions: readonly string[];
 }
 /** heroes-data2's per-version `.hdp.json`. */
-interface VersionMeta {
+export interface VersionMeta {
   readonly json: 'full' | 'patch';
   readonly 'depends-on': string;
   readonly extracted: boolean;
@@ -93,7 +93,27 @@ interface VersionMeta {
  * new patch is picked up without a redeploy. Raw files go through `cache`; loaded sets
  * are memoized per build and locale.
  */
-export function heroesToolChestProvider(options: HeroesToolChestOptions = {}): HeroDataProvider {
+/** HeroesToolChest's raw files: see {@link toolChestFiles}. */
+export interface ToolChestFiles {
+  /** Raw content roots of the two repositories' `heroesdata/` folders. */
+  readonly base: Readonly<Record<HeroDataSource, string>>;
+  get(url: string): Promise<string>;
+  /** A file that never changes once published: cache first, then network. */
+  immutable(source: HeroDataSource, path: string): Promise<string>;
+  /** A file that changes as new builds ship: network first, cache as the offline fallback. */
+  fresh(key: string, url: string): Promise<string>;
+  /** A heroes-data2 version's `.hdp.json`. */
+  meta(dir: string): Promise<VersionMeta>;
+  /** One heroes-data2 file of a version, rebuilt in full form from its patch chain. */
+  rebuild(dir: string, folder: 'data' | 'gamestrings', fileKey: string): Promise<unknown>;
+}
+
+/**
+ * HeroesToolChest's raw files, as the provider reads them: fetched with `options.fetch` through
+ * `options.cache`, and heroes-data2's rebuilt in full form from their patch chains. For tools that
+ * need a file the provider doesn't load (the emoticon generator); not part of the package's API.
+ */
+export function toolChestFiles(options: HeroesToolChestOptions = {}): ToolChestFiles {
   const fetchImpl: FetchLike =
     options.fetch ?? (globalThis as unknown as { fetch: FetchLike }).fetch;
   if (!fetchImpl) throw new Error('heroesToolChestProvider: no fetch available — pass one');
@@ -101,10 +121,7 @@ export function heroesToolChestProvider(options: HeroesToolChestOptions = {}): H
     'heroes-data': (options.baseUrls?.['heroes-data'] ?? HEROES_DATA_RAW).replace(/\/$/, ''),
     'heroes-data2': (options.baseUrls?.['heroes-data2'] ?? HEROES_DATA2_RAW).replace(/\/$/, ''),
   };
-  const treeApi = options.heroesDataTreeApi ?? HEROES_DATA_TREE_API;
-  const memo = new Map<string, Promise<HeroData>>();
   const metas = new Map<string, Promise<VersionMeta>>();
-  let buildList: Promise<readonly HeroDataBuild[]> | undefined;
 
   const get = async (url: string): Promise<string> => {
     const controller = typeof AbortController === 'undefined' ? undefined : new AbortController();
@@ -143,6 +160,57 @@ export function heroesToolChestProvider(options: HeroesToolChestOptions = {}): H
       throw err;
     }
   };
+
+  const meta = (dir: string): Promise<VersionMeta> => {
+    let p = metas.get(dir);
+    if (!p) {
+      p = immutable('heroes-data2', `${dir}/.hdp.json`).then((t) => JSON.parse(t) as VersionMeta);
+      metas.set(dir, p);
+      p.catch(() => metas.delete(dir));
+    }
+    return p;
+  };
+
+  /**
+   * Rebuild one heroes-data2 file in full form. A version is either "full" or a JSON
+   * patch against the version it `depends-on`, so walk back to the nearest full
+   * version and apply the patches forward. Skipped versions (`extracted: false`)
+   * carry no files and are passed over.
+   */
+  const rebuild = async (
+    dir: string,
+    folder: 'data' | 'gamestrings',
+    fileKey: string,
+  ): Promise<unknown> => {
+    const chain: { dir: string; meta: VersionMeta }[] = [];
+    for (let cur = dir; ;) {
+      const m = await meta(cur);
+      chain.unshift({ dir: cur, meta: m });
+      if (m.extracted && m.json === 'full') break;
+      if (!m['depends-on'] || chain.length > 500)
+        throw new Error(`hero-data: no full version behind ${dir}`);
+      cur = m['depends-on'];
+    }
+    let doc: unknown;
+    for (const { dir: d, meta: m } of chain) {
+      if (!m.extracted) continue;
+      const name = m.files[folder === 'data' ? '[data]' : '[gamestrings]']?.[fileKey];
+      if (typeof name !== 'string') throw new Error(`hero-data: ${d} has no ${fileKey} file`);
+      const body = JSON.parse(await immutable('heroes-data2', `${d}/${folder}/${name}`)) as unknown;
+      doc = m.json === 'full' ? body : applyJsonPatch(doc, body as JsonPatchOperation[]);
+    }
+    return doc;
+  };
+
+  return { base, get, immutable, fresh, meta, rebuild };
+}
+
+export function heroesToolChestProvider(options: HeroesToolChestOptions = {}): HeroDataProvider {
+  const files = toolChestFiles(options);
+  const { base, get, immutable, fresh, rebuild } = files;
+  const treeApi = options.heroesDataTreeApi ?? HEROES_DATA_TREE_API;
+  const memo = new Map<string, Promise<HeroData>>();
+  let buildList: Promise<readonly HeroDataBuild[]> | undefined;
 
   const listHeroesData = async (): Promise<HeroDataBuild[]> => {
     const key = 'heroes-data/.builds.json';
@@ -201,47 +269,6 @@ export function heroesToolChestProvider(options: HeroesToolChestOptions = {}): H
       ),
     ]);
     return readHeroesData(heroes, awards, strings);
-  };
-
-  const meta = (dir: string): Promise<VersionMeta> => {
-    let p = metas.get(dir);
-    if (!p) {
-      p = immutable('heroes-data2', `${dir}/.hdp.json`).then((t) => JSON.parse(t) as VersionMeta);
-      metas.set(dir, p);
-      p.catch(() => metas.delete(dir));
-    }
-    return p;
-  };
-
-  /**
-   * Rebuild one heroes-data2 file in full form. A version is either "full" or a JSON
-   * patch against the version it `depends-on`, so walk back to the nearest full
-   * version and apply the patches forward. Skipped versions (`extracted: false`)
-   * carry no files and are passed over.
-   */
-  const rebuild = async (
-    dir: string,
-    folder: 'data' | 'gamestrings',
-    fileKey: string,
-  ): Promise<unknown> => {
-    const chain: { dir: string; meta: VersionMeta }[] = [];
-    for (let cur = dir; ;) {
-      const m = await meta(cur);
-      chain.unshift({ dir: cur, meta: m });
-      if (m.extracted && m.json === 'full') break;
-      if (!m['depends-on'] || chain.length > 500)
-        throw new Error(`hero-data: no full version behind ${dir}`);
-      cur = m['depends-on'];
-    }
-    let doc: unknown;
-    for (const { dir: d, meta: m } of chain) {
-      if (!m.extracted) continue;
-      const name = m.files[folder === 'data' ? '[data]' : '[gamestrings]']?.[fileKey];
-      if (typeof name !== 'string') throw new Error(`hero-data: ${d} has no ${fileKey} file`);
-      const body = JSON.parse(await immutable('heroes-data2', `${d}/${folder}/${name}`)) as unknown;
-      doc = m.json === 'full' ? body : applyJsonPatch(doc, body as JsonPatchOperation[]);
-    }
-    return doc;
   };
 
   const loadHeroesData2 = async (entry: HeroDataBuild, locale: string): Promise<HeroDataTables> => {

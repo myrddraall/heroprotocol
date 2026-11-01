@@ -12,6 +12,7 @@
     "format": "wireit",
     "generate.goldens": "pnpm --filter @myrddraall/heroprotocol-db goldens:generate",
     "generate.analysis-goldens": "pnpm --filter @myrddraall/heroprotocol-analysis goldens:generate",
+    "generate.emoticons": "pnpm --filter @myrddraall/hero-data emoticons:generate",
     "generate.protocols": "pnpm --filter @myrddraall/heroprotocol protocols:generate",
     "gitflow": "gitflow",
     "lint": "devutil run lint",

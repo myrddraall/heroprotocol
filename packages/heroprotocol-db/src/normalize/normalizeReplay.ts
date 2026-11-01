@@ -78,7 +78,13 @@ export function normalizeReplay(
     ].sort((a, b) => a.gameloop - b.gameloop),
   );
   const commands = withSeq(game.commands);
-  const chat = withSeq(messages.chat);
+  // Chat from the game events (both teams); from the message stream (the recorder's team) only if
+  // the game events have none, as when they failed to decode. Pings are only in the stream.
+  const chat = withSeq(
+    [...(game.chat.length > 0 ? game.chat : messages.chat), ...messages.pings].sort(
+      (a, b) => a.gameloop - b.gameloop,
+    ),
+  );
 
   const winner = players.find((p) => p.won === true && p.team !== null);
   const winningTeam: Team | null = winner ? winner.team : null;

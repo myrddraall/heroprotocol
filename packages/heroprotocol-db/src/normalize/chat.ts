@@ -1,13 +1,17 @@
 import type { RawEvent, SChatMessage, SPingMessage } from '@myrddraall/heroprotocol';
-import type { ChatRecipient, ChatRecord, EventRecord } from '../model/records.js';
+import type { ChatRecord, EventRecord } from '../model/records.js';
 import { loopsToSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 import { fixed } from './time.js';
 
-const RECIPIENTS: readonly ChatRecipient[] = ['all', 'allies', 'observers'];
-
 export interface MessageEvents {
+  /**
+   * The chat the recording player could read (their team's), with emote codes converted. Only a
+   * fallback: the game events' trigger chat has both teams'.
+   */
   readonly chat: readonly ChatRecord[];
+  /** Map pings, which the game events don't carry: the recording player's team's. */
+  readonly pings: readonly ChatRecord[];
   /** `Reconnect` events; loading-progress messages are dropped. */
   readonly events: readonly EventRecord[];
 }
@@ -18,6 +22,7 @@ export function normalizeMessageEvents(
   lookup: PlayerLookup,
 ): MessageEvents {
   const chat: ChatRecord[] = [];
+  const pings: ChatRecord[] = [];
   const events: EventRecord[] = [];
   for (const e of messages) {
     const playerSlot = lookup.slotOfUser(e._userid?.m_userId);
@@ -34,7 +39,6 @@ export function normalizeMessageEvents(
         chat.push({
           ...base,
           kind: 'chat',
-          recipient: RECIPIENTS[m.m_recipient] ?? 'unknown',
           text: m.m_string,
           point: null,
         });
@@ -42,10 +46,9 @@ export function normalizeMessageEvents(
       }
       case 'NNet.Game.SPingMessage': {
         const m = e as SPingMessage;
-        chat.push({
+        pings.push({
           ...base,
           kind: 'ping',
-          recipient: RECIPIENTS[m.m_recipient] ?? 'unknown',
           text: null,
           point: { x: fixed(m.m_point.x), y: fixed(m.m_point.y) },
         });
@@ -63,5 +66,5 @@ export function normalizeMessageEvents(
         break;
     }
   }
-  return { chat, events };
+  return { chat, pings, events };
 }

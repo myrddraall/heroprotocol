@@ -6,6 +6,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
+    "emoticons:generate": "tsx tools/generate-emoticons.mts",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "github.actions.build": "pnpm build",
     "github.actions.pack": "gitflow pack",

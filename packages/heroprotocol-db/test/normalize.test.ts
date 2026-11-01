@@ -382,10 +382,24 @@ describe('game and message events', () => {
     expect(r.recorderSlot).toBe(3);
   });
 
-  it('turns chat and pings into chat rows and reconnects into events', () => {
+  it("keeps every player's chat from the game events, both teams', as typed", () => {
+    const game: RawEvent[] = [
+      ev('NNet.Game.STriggerChatMessageEvent', 217, { m_chatMessage: 'hello' }, 2),
+      ev('NNet.Game.STriggerChatMessageEvent', 449, { m_chatMessage: 'gl :)' }, 9),
+      ev('NNet.Game.SUserFinishedLoadingSyncEvent', 0, {}, 2),
+    ];
+    const r = normalizeGameEvents('r', game, twoTeams, 1000);
+    expect(r.chat.map((c) => [c.gameloop, c.playerSlot, c.kind, c.text, c.point])).toEqual([
+      [217, 2, 'chat', 'hello', null],
+      [449, 9, 'chat', 'gl :)', null],
+    ]);
+    expect(r.events).toEqual([]);
+  });
+
+  it('turns pings into chat rows, keeps the readable chat as a fallback, and reconnects into events', () => {
     const messages: RawEvent[] = [
       ev('NNet.Game.SLoadingProgressMessage', 0, { m_progress: 1 }, 1),
-      ev('NNet.Game.SChatMessage', 9035, { m_recipient: 0, m_string: 'gg' }, 5),
+      ev('NNet.Game.SChatMessage', 9035, { m_recipient: 1, m_string: 'gg' }, 5),
       ev('NNet.Game.SPingMessage', 2628, { m_recipient: 1, m_point: { x: 4096, y: 4096 } }, 5),
       ev('NNet.Game.SReconnectNotifyMessage', 3000, { m_status: 1 }, 9),
     ];
@@ -398,10 +412,11 @@ describe('game and message events', () => {
         seconds: 564.6875,
         playerSlot: 5,
         kind: 'chat',
-        recipient: 'all',
         text: 'gg',
         point: null,
       },
+    ]);
+    expect(r.pings).toEqual([
       {
         replayId: 'r',
         seq: 0,
@@ -409,7 +424,6 @@ describe('game and message events', () => {
         seconds: 164.25,
         playerSlot: 5,
         kind: 'ping',
-        recipient: 'allies',
         text: null,
         point: { x: 1, y: 1 },
       },
