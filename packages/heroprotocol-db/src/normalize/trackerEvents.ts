@@ -6,7 +6,7 @@ import type {
   SUpgradeEvent,
 } from '@myrddraall/heroprotocol';
 import type { DraftBan, DraftPick, EventRecord, Team } from '../model/records.js';
-import { loopsToSeconds } from '../model/records.js';
+import { GAME_START_LOOP, gameSeconds } from '../model/records.js';
 import type { PlayerLookup } from './lookup.js';
 
 export interface DraftEvents {
@@ -20,6 +20,8 @@ export function normalizeTrackerEvents(
   replayId: string,
   tracker: readonly RawEvent[],
   lookup: PlayerLookup,
+  /** The loop the game's clock starts from (`gameStartLoop`). */
+  startLoop: number = GAME_START_LOOP,
 ): DraftEvents {
   const bans: DraftBan[] = [];
   const picks: DraftPick[] = [];
@@ -35,7 +37,7 @@ export function normalizeTrackerEvents(
       replayId,
       seq: 0,
       gameloop: e._gameloop,
-      seconds: loopsToSeconds(e._gameloop),
+      seconds: gameSeconds(e._gameloop, startLoop),
       kind,
       playerSlot,
       team,

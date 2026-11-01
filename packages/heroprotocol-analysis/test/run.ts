@@ -13,6 +13,7 @@ import {
   type NormalizedReplay,
 } from '@myrddraall/heroprotocol-db';
 import { builtins } from '../src/builtins.js';
+import { activity } from '../src/analysers/activity.js';
 import { commands } from '../src/analysers/commands.js';
 import { deathHeatmap, type DeathHeatmapParams } from '../src/analysers/deathHeatmap.js';
 
@@ -48,6 +49,8 @@ export async function runInMemory(n: NormalizedReplay): Promise<Results> {
     out[o.run.analyserId] = o.rows;
   }
   out[commands.id] = (await runAnalyser(commands as never, ctx, undefined)).rows;
+  for (const [table, rows] of Object.entries(out[commands.id]!)) sink.add(table, rows);
+  out[activity.id] = (await runAnalyser(activity as never, ctx, undefined)).rows;
   for (const params of HEATMAP_PARAMS) {
     const o = await runAnalyser(deathHeatmap as never, ctx, params);
     out[`${deathHeatmap.id}#${paramsHash(params)}`] = o.rows;
@@ -79,6 +82,7 @@ export async function runFromStore(
     out[o.run.analyserId] = o.rows;
   }
   out[commands.id] = (await analyse(db, n.replay.id, commands.id, { registry: reg })).rows;
+  out[activity.id] = (await analyse(db, n.replay.id, activity.id, { registry: reg })).rows;
   for (const params of HEATMAP_PARAMS) {
     const o = await analyse(db, n.replay.id, deathHeatmap.id, { registry: reg, params });
     out[`${deathHeatmap.id}#${o.run.paramsHash}`] = o.rows;

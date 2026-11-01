@@ -30,6 +30,8 @@ export type {
   PlayerStatsSupportRow,
   PlayerStatsTables,
 } from './analysers/playerStats.js';
+export { teamStats } from './analysers/teamStats.js';
+export type { TeamStatsRow, TeamStatsTables } from './analysers/teamStats.js';
 export { draft } from './analysers/draft.js';
 export type { DraftRow, DraftStepRow, DraftTables } from './analysers/draft.js';
 export { talents } from './analysers/talents.js';
@@ -47,6 +49,8 @@ export { chat } from './analysers/chat.js';
 export type { ChatLineRow, ChatTables } from './analysers/chat.js';
 export { commands } from './analysers/commands.js';
 export type { CommandStatsRow, AbilityUseRow, CommandsTables } from './analysers/commands.js';
+export { activity } from './analysers/activity.js';
+export type { ActivityRow, ActivityTables } from './analysers/activity.js';
 export { deathHeatmap } from './analysers/deathHeatmap.js';
 export type {
   DeathHeatmapRow,

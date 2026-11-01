@@ -11,7 +11,7 @@ import type {
   ReplayRecord,
   Team,
 } from '../model/records.js';
-import { NORMALIZE_VERSION, loopsToSeconds } from '../model/records.js';
+import { NORMALIZE_VERSION, gameSeconds } from '../model/records.js';
 import { attribute, LOBBY_SCOPE } from './attributes.js';
 import { normalizeMessageEvents } from './chat.js';
 import { fingerprint } from './fingerprint.js';
@@ -21,7 +21,7 @@ import { PlayerLookup } from './lookup.js';
 import { normalizePlayers, summarize } from './players.js';
 import { normalizeScores } from './score.js';
 import { normalizeStatEvent } from './stats.js';
-import { filetimeToIso, ticksToHours } from './time.js';
+import { filetimeToIso, gameStartLoop, ticksToHours } from './time.js';
 import { normalizeTrackerEvents } from './trackerEvents.js';
 import { normalizeUnits } from './units.js';
 
@@ -52,6 +52,8 @@ export function normalizeReplay(
   const lookup = new PlayerLookup(parsed);
   const tracker = parsed.trackerEvents ?? [];
   const durationLoops = parsed.header.m_elapsedGameLoops;
+  // where the game's clock starts: every `seconds` below is counted from it
+  const startLoop = gameStartLoop(tracker);
 
   const statSource = tracker.filter(
     (e): e is SStatGameEvent => e._event === 'NNet.Replay.Tracker.SStatGameEvent',
@@ -60,12 +62,14 @@ export function normalizeReplay(
     (e): e is SScoreResultEvent => e._event === 'NNet.Replay.Tracker.SScoreResultEvent',
   );
 
-  const scores = normalizeScores(id, scoreSource, lookup);
-  const units = normalizeUnits(id, tracker, lookup);
-  const draft = normalizeTrackerEvents(id, tracker, lookup);
-  const game = normalizeGameEvents(id, parsed.gameEvents ?? [], lookup, durationLoops);
-  const messages = normalizeMessageEvents(id, parsed.messageEvents ?? [], lookup);
-  const statEvents = withSeq(statSource.map((e) => normalizeStatEvent(id, e, lookup)));
+  const scores = normalizeScores(id, scoreSource, lookup, startLoop);
+  const units = normalizeUnits(id, tracker, lookup, startLoop);
+  const draft = normalizeTrackerEvents(id, tracker, lookup, startLoop);
+  const game = normalizeGameEvents(id, parsed.gameEvents ?? [], lookup, durationLoops, startLoop);
+  const messages = normalizeMessageEvents(id, parsed.messageEvents ?? [], lookup, startLoop);
+  const statEvents = withSeq(
+    statSource.map((e) => normalizeStatEvent(id, e, lookup, startLoop)),
+  );
   const players = normalizePlayers(id, parsed, lookup, statSource, scores.results, game.leftAt);
 
   const events = withSeq(
@@ -117,7 +121,9 @@ export function normalizeReplay(
     playedAt: details ? filetimeToIso(details.m_timeUTC) : new Date(0).toISOString(),
     timeZoneOffsetHours: details ? ticksToHours(details.m_timeLocalOffset) : 0,
     durationLoops,
-    durationSeconds: loopsToSeconds(durationLoops),
+    gameStartLoop: startLoop,
+    // the game's length on its own clock, from the gates opening (none for a game left before)
+    durationSeconds: Math.max(0, gameSeconds(durationLoops, startLoop)),
     version: {
       baseBuild: parsed.header.m_version.m_baseBuild,
       build: parsed.header.m_version.m_build,

@@ -11,4 +11,4 @@ export { normalizeScores, snapshotOf } from './score.js';
 export { normalizeGameEvents, MODEL_DROPPED_GAME_EVENTS } from './gameEvents.js';
 export { normalizeMessageEvents } from './chat.js';
 export { attribute, heroRoleOf, LOBBY_SCOPE } from './attributes.js';
-export { filetimeToIso, ticksToHours, fixed } from './time.js';
+export { filetimeToIso, ticksToHours, fixed, gameStartLoop } from './time.js';

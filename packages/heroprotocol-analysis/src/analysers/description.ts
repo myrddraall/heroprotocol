@@ -1,4 +1,5 @@
 import type { Analyser, GameMode, ReplayVersion, Team } from '@myrddraall/heroprotocol-db';
+import { gameSeconds } from '@myrddraall/heroprotocol-db';
 import type { PlayerRef } from './shared.js';
 import { NS, participants, ref } from './shared.js';
 
@@ -36,7 +37,7 @@ export type DescriptionTables = {
 
 export const description: Analyser<DescriptionTables> = {
   id: `${NS}description`,
-  version: 2,
+  version: 3,
   tables: {
     description: 'replayId, map, mode, playedAt, winningTeam',
     descriptionPlayers: '[replayId+slot], replayId, heroId, name, team',
@@ -51,7 +52,8 @@ export const description: Analyser<DescriptionTables> = {
       role: p.role,
       level: p.level,
       talents: p.talents.length,
-      leftAtSeconds: p.leftAtLoop === null ? null : p.leftAtLoop / 16,
+      leftAtSeconds:
+        p.leftAtLoop === null ? null : gameSeconds(p.leftAtLoop, ctx.replay.gameStartLoop),
     }));
     return {
       description: [

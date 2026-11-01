@@ -1,4 +1,5 @@
 import type { Analyser } from '@myrddraall/heroprotocol-db';
+import { gameSeconds } from '@myrddraall/heroprotocol-db';
 import type { PlayerRef } from './shared.js';
 import { NS, participants, ref } from './shared.js';
 
@@ -18,7 +19,7 @@ export type TalentsTables = {
 
 export const talents: Analyser<TalentsTables> = {
   id: `${NS}talents`,
-  version: 2,
+  version: 3,
   tables: { talentPicks: '[replayId+slot+tier], replayId, [replayId+slot], heroId, talent, level' },
   inputs: ['players'],
   mode: 'background',
@@ -31,7 +32,7 @@ export const talents: Analyser<TalentsTables> = {
           tier: i + 1,
           level: t.level,
           talent: t.name,
-          seconds: t.gameloop / 16,
+          seconds: gameSeconds(t.gameloop, ctx.replay.gameStartLoop),
           gameloop: t.gameloop,
         }),
       );

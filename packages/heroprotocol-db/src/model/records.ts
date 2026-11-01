@@ -18,7 +18,7 @@ import type { Diagnostics, SectionName, SectionStatus } from '@myrddraall/heropr
 export const LOOPS_PER_SECOND = 16;
 
 /** Bump when a change to the normalizer should make stored replays stale. */
-export const NORMALIZE_VERSION = 3;
+export const NORMALIZE_VERSION = 4;
 
 export type Team = 0 | 1;
 
@@ -113,6 +113,12 @@ export interface ReplayRecord {
   /** The recording client's UTC offset in hours. */
   readonly timeZoneOffsetHours: number;
   readonly durationLoops: number;
+  /**
+   * The loop the game's clock starts from (its gates opening), from the replay's own `GameTime`
+   * values; every `seconds` in the model is counted from it.
+   */
+  readonly gameStartLoop: number;
+  /** The game's length on its clock: from `gameStartLoop` to the end. */
   readonly durationSeconds: number;
   readonly version: ReplayVersion;
   readonly winningTeam: Team | null;
@@ -302,6 +308,7 @@ export type EventKind =
   | 'UnitOwnerChanged'
   | 'UnitTypeChanged'
   | 'UnitRevived'
+  | 'HeroDied'
   | 'PlayerLeft'
   | 'PlayerJoined'
   | 'TalentTreeSelected'
@@ -413,6 +420,22 @@ export interface NormalizedReplay {
   readonly chat: readonly ChatRecord[];
 }
 
+/** A span of game loops in seconds. */
 export function loopsToSeconds(loops: number): number {
   return loops / LOOPS_PER_SECOND;
+}
+
+/**
+ * The loop the game's clock starts from on a standard battleground: 610 in every build from 2020
+ * to 2026. Other maps differ (Silver City and Lost Cavern start at 1206), so a replay's own start
+ * is read from its `GameTime` values (`ReplayRecord.gameStartLoop`); this is the fallback.
+ */
+export const GAME_START_LOOP = 610;
+
+/**
+ * A game loop as the game's clock shows it: seconds since the clock started at `startLoop`
+ * (negative before).
+ */
+export function gameSeconds(loop: number, startLoop: number = GAME_START_LOOP): number {
+  return loopsToSeconds(loop - startLoop);
 }

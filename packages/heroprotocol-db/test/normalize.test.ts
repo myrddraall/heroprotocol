@@ -87,7 +87,7 @@ describe('normalizeStatEvent', () => {
       replayId: 'r',
       seq: 0,
       gameloop: 1615,
-      seconds: 100.9375,
+      seconds: 62.8125,
       eventName: 'PlayerDeath',
       playerSlot: 5,
       team: 1,
@@ -213,13 +213,14 @@ describe('units', () => {
         m_unitTagRecycle: 1,
         m_unitTypeName: 'MercDefenderSiegeGiant',
       }),
+      // the hero, killed by the (now team 1) mercenary: a death to an NPC
       ev('NNet.Replay.Tracker.SUnitDiedEvent', 100, {
         m_unitTagIndex: 5,
         m_unitTagRecycle: 1,
-        m_killerPlayerId: 7,
+        m_killerPlayerId: 12,
         m_x: 11,
         m_y: 21,
-        m_killerUnitTagIndex: 9,
+        m_killerUnitTagIndex: 6,
         m_killerUnitTagRecycle: 1,
       }),
       ev('NNet.Replay.Tracker.SUnitRevivedEvent', 200, {
@@ -269,8 +270,15 @@ describe('units', () => {
     expect(events.map((e) => e.kind)).toEqual([
       'UnitOwnerChanged',
       'UnitTypeChanged',
+      'HeroDied',
       'UnitRevived',
     ]);
+    // each hero death keeps its killing blow: here a unit no player controls
+    expect(events.find((e) => e.kind === 'HeroDied')).toMatchObject({
+      gameloop: 100,
+      playerSlot: 0,
+      data: { type: 'HeroGenji', killerType: 'MercDefenderSiegeGiant', killerSlot: null },
+    });
   });
 });
 
@@ -342,7 +350,7 @@ describe('game and message events', () => {
       replayId: 'r',
       seq: 0,
       gameloop: 76,
-      seconds: 4.75,
+      seconds: -33.375,
       playerSlot: 7,
       abilLink: 27,
       abilCmdIndex: 0,
@@ -409,7 +417,7 @@ describe('game and message events', () => {
         replayId: 'r',
         seq: 0,
         gameloop: 9035,
-        seconds: 564.6875,
+        seconds: 526.5625,
         playerSlot: 5,
         kind: 'chat',
         text: 'gg',
@@ -421,7 +429,7 @@ describe('game and message events', () => {
         replayId: 'r',
         seq: 0,
         gameloop: 2628,
-        seconds: 164.25,
+        seconds: 126.125,
         playerSlot: 5,
         kind: 'ping',
         text: null,
@@ -433,7 +441,7 @@ describe('game and message events', () => {
         replayId: 'r',
         seq: 0,
         gameloop: 3000,
-        seconds: 187.5,
+        seconds: 149.375,
         playerSlot: 9,
         team: 1,
         kind: 'Reconnect',

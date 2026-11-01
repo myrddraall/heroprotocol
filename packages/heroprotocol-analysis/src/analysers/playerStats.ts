@@ -62,15 +62,66 @@ const TEAM_SUMS = [
   'TeamfightHealingDone',
 ] as const;
 
+/** Per-minute rates: the column and the stat it divides by the game's length in minutes. */
+const PER_MINUTE = [
+  ['HeroDamagePerMinute', 'HeroDamage'],
+  ['TeamfightHeroDamagePerMinute', 'TeamfightHeroDamage'],
+  ['SiegeDamagePerMinute', 'SiegeDamage'],
+  ['StructureDamagePerMinute', 'StructureDamage'],
+  ['MinionDamagePerMinute', 'MinionDamage'],
+  ['HealingPerMinute', 'Healing'],
+  ['SelfHealingPerMinute', 'SelfHealing'],
+  ['ShieldingPerMinute', 'ProtectionGivenToAllies'],
+  ['DamageTakenPerMinute', 'DamageTaken'],
+  ['DamageSoakedPerMinute', 'DamageSoaked'],
+  ['XPPerMinute', 'ExperienceContribution'],
+  ['CCSecondsPerMinute', 'TimeCCdEnemyHeroes'],
+  ['SoftCCSecondsPerMinute', 'TimeSlowedEnemyHeroes'],
+] as const;
+
+/** Counts per 10 minutes of game. */
+const PER_10_MINUTES = [
+  ['TakedownsPer10Minutes', 'Takedowns'],
+  ['KillsPer10Minutes', 'SoloKill'],
+  ['DeathsPer10Minutes', 'Deaths'],
+  ['MercCampCapturesPer10Minutes', 'MercCampCaptures'],
+] as const;
+
+/**
+ * Rates over the game's length (`null` for a game under a minute, or where the stat is
+ * `null` or missing). CC seconds are summed per enemy affected, so they can exceed the game's
+ * length: they are seconds per minute, never a share of the game.
+ */
+function rates(s: Record<string, number | null>, gameSeconds: number): void {
+  const minutes = gameSeconds >= 60 ? gameSeconds / 60 : null;
+  const v = (name: string): number | null => s[name] ?? null;
+  const per = (name: string, span: number): number | null => {
+    const x = v(name);
+    return x === null || minutes === null ? null : x / (minutes / span);
+  };
+  for (const [col, name] of PER_MINUTE) s[col] = per(name, 1);
+  for (const [col, name] of PER_10_MINUTES) s[col] = per(name, 10);
+  const stun = v('TimeStunningEnemyHeroes');
+  const root = v('TimeRootingEnemyHeroes');
+  // silences count as hard CC, as they do in TimeCCdEnemyHeroes (0 where the build has none)
+  const hard =
+    stun === null || root === null ? null : stun + root + (v('TimeSilencingEnemyHeroes') ?? 0);
+  s['HardCCSecondsPerMinute'] = hard === null || minutes === null ? null : hard / minutes;
+  const taken = v('DamageTaken');
+  const dealt = v('HeroDamage');
+  s['DamageRatio'] = taken === null || taken === 0 || dealt === null ? null : dealt / taken;
+}
+
 /**
  * The full per-player table: every score-screen stat the build recorded, the
  * tracker-derived counts (minions, mercs, globes, solo kills, disconnects) and the
  * ratios and percentages the 2018 viewer computed, with the build's stat-support
- * table applied (unsupported stats are `null`, not zero).
+ * table applied (unsupported stats are `null`, not zero), and rates over the game's length
+ * (`…PerMinute`, `…Per10Minutes`, `DamageRatio`).
  */
 export const playerStats: Analyser<PlayerStatsTables> = {
   id: `${NS}player-stats`,
-  version: 2,
+  version: 5,
   tables: {
     playerStats:
       '[replayId+slot], replayId, heroId, name, team, Takedowns, Deaths, HeroDamage, SiegeDamage, Healing, ExperienceContribution, KillParticipation',
@@ -80,16 +131,18 @@ export const playerStats: Analyser<PlayerStatsTables> = {
   mode: 'ready',
   dependsOn: [`${NS}unit-kills`],
   async run(ctx) {
-    const [players, scores, deaths, globes, votes, leaves, joins, kills] = await Promise.all([
-      participants(ctx),
-      ctx.read('scoreResults'),
-      statEvents(ctx, 'PlayerDeath'),
-      statEvents(ctx, 'RegenGlobePickedUp'),
-      statEvents(ctx, 'EndOfGameUpVotesCollected'),
-      ctx.read('events', { kind: 'PlayerLeft' }),
-      ctx.read('events', { kind: 'PlayerJoined' }),
-      ctx.readTable<PlayerKillsRow>('unitKills'),
-    ]);
+    const [players, scores, deaths, globes, votes, leaves, joins, kills, heroDeaths] =
+      await Promise.all([
+        participants(ctx),
+        ctx.read('scoreResults'),
+        statEvents(ctx, 'PlayerDeath'),
+        statEvents(ctx, 'RegenGlobePickedUp'),
+        statEvents(ctx, 'EndOfGameUpVotesCollected'),
+        ctx.read('events', { kind: 'PlayerLeft' }),
+        ctx.read('events', { kind: 'PlayerJoined' }),
+        ctx.readTable<PlayerKillsRow>('unitKills'),
+        ctx.read('events', { kind: 'HeroDied' }),
+      ]);
     const gameSeconds = ctx.replay.durationSeconds;
     const unsupported = (name: string): boolean =>
       ctx.statSupport[name]?.support === 'none' || ctx.statSupport['*']?.support === 'none';
@@ -111,21 +164,38 @@ export const playerStats: Analyser<PlayerStatsTables> = {
       stats['Reconnects'] = myJoins.length;
       stats['VotesReceived'] = votes.filter((v) => int(v, 'Player') === playerId).length;
       const k = kills.find((r) => r.slot === p.slot);
+      // Ours from the unit deaths and globe pick-ups: they match the game's own MinionKills and
+      // RegenGlobes wherever it records them, and older builds leave those at 0. One key each.
       stats['MinionsKilled'] = k?.minions ?? null;
+      delete stats['MinionKills'];
       stats['MercsKilledCamp'] = k?.mercsCamp ?? null;
       stats['MercsKilledLane'] = k?.mercsLane ?? null;
       stats['BossKilledCamp'] = k?.bossCamp ?? null;
       stats['BossKilledLane'] = k?.bossLane ?? null;
       stats['RegenGlobesCollected'] = globes.filter((g) => g.playerSlot === p.slot).length;
+      delete stats['RegenGlobes'];
       stats['Kills'] = stats['SoloKill'] ?? null;
       stats['SoloKill'] = deaths.filter((d) => {
         const killers = all(d, 'KillingPlayer').map(Number);
         return killers.includes(playerId) && !killers.some((id) => id <= 10 && id !== playerId);
       }).length;
-      stats['DeathsToNPCs'] = deaths.filter((d) => {
-        const killers = all(d, 'KillingPlayer').map(Number);
-        return d.playerSlot === p.slot && killers.length === 1 && killers[0]! > 10;
-      }).length;
+      // The player's deaths (their PlayerDeath events) whose killing blow came from a unit no
+      // player controls: a tower, minion, mercenary or map monster. PlayerDeath can't tell (it
+      // credits the nearby enemy heroes even then), so each is matched with the hero unit's death
+      // at the same moment. Units that die without the player dying (D.Va's mech, Abathur's
+      // clones) have no PlayerDeath and don't count; the score's Deaths is the most it can be.
+      const npcDeaths = deaths.filter(
+        (d) =>
+          d.playerSlot === p.slot &&
+          heroDeaths.some(
+            (h) =>
+              h.playerSlot === p.slot &&
+              Math.abs(h.gameloop - d.gameloop) <= 2 &&
+              h.data['killerType'] !== null &&
+              h.data['killerSlot'] === null,
+          ),
+      ).length;
+      stats['DeathsToNPCs'] = Math.min(npcDeaths, stats['Deaths'] ?? npcDeaths);
 
       const presence = [
         ...myLeaves.map((e) => ({ loop: e.gameloop, left: true })),
@@ -185,7 +255,7 @@ export const playerStats: Analyser<PlayerStatsTables> = {
       s['KDRatio'] = n('SoloKill') / lives;
       s['ADRatio'] = n('Assists') / lives;
       s['PercentHeroDamage'] = pct('HeroDamage', 'HeroDamage');
-      s['PercentTeamfightHeroDamage'] = pct('HeroDamage', 'TeamfightHeroDamage');
+      s['PercentTeamfightHeroDamage'] = pct('TeamfightHeroDamage', 'TeamfightHeroDamage');
       s['PercentSiegeDamage'] = pct('SiegeDamage', 'SiegeDamage');
       s['PercentStructureDamage'] = pct('StructureDamage', 'StructureDamage');
       s['PercentMinionDamage'] = pct('MinionDamage', 'MinionDamage');
@@ -207,6 +277,7 @@ export const playerStats: Analyser<PlayerStatsTables> = {
         if (unsupported(name)) s[name] = null;
         else if (warriorsOnly(name) && p.role !== 'warrior') s[name] = null;
       }
+      rates(s, gameSeconds);
     }
 
     return {

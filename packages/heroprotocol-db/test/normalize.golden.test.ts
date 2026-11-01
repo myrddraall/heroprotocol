@@ -25,7 +25,7 @@ describe.skipIf(replays.length === 0)('normalizeReplay on real replays', () => {
       expect(r.id).toMatch(/^[0-9a-f]{40}$/);
       expect(r.fingerprintSource).toBe('lobby');
       expect(r.normalizeVersion).toBe(NORMALIZE_VERSION);
-      expect(r.durationSeconds).toBe(r.durationLoops / 16);
+      expect(r.durationSeconds).toBe(Math.max(0, (r.durationLoops - r.gameStartLoop) / 16));
       expect(r.mode).not.toBe('unknown');
       expect(r.winningTeam === 0 || r.winningTeam === 1).toBe(true);
       expect(r.recorderSlot).not.toBeNull();
@@ -73,7 +73,14 @@ describe.skipIf(replays.length === 0)('normalizeReplay on real replays', () => {
       for (const s of n.statEvents) {
         if (typeof s.values['PlayerID'] === 'number')
           expect(s.playerSlot).toBe((s.values['PlayerID'] as number) - 1);
-        expect(s.seconds).toBe(s.gameloop / 16);
+        expect(s.seconds).toBe((s.gameloop - r.gameStartLoop) / 16);
+        // the game's own clock, where an event carries it, agrees to within a loop
+        const gameTime = s.values['GameTime'];
+        if (
+          typeof gameTime === 'number' &&
+          (s.eventName === 'JungleCampCapture' || s.eventName === 'TownStructureDeath')
+        )
+          expect(Math.abs(s.seconds - gameTime)).toBeLessThanOrEqual(1 / 16);
       }
       const death = n.statEvents.find(
         (s) => s.eventName === 'PlayerDeath' && s.lists?.['KillingPlayer'],
