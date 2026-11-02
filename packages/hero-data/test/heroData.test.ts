@@ -354,7 +354,8 @@ describe('heroesImages', () => {
     const set = await heroesToolChestProvider({ fetch: network().fetch }).latest();
     const img = heroesImages();
     const sonya = set.hero('Sonya')!;
-    const base = 'https://cdn.jsdelivr.net/gh/HeroesToolChest/heroes-images@main/heroesimages';
+    const base =
+      'https://raw.githubusercontent.com/HeroesToolChest/heroes-images/main/heroesimages';
     expect(img.portrait(sonya, 'minimap')).toEqual({
       src: `${base}/heroportraits/${sonya.portraits.minimap}`,
     });

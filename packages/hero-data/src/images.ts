@@ -10,9 +10,12 @@ import type {
   TalentInfo,
 } from './types.js';
 
-/** heroes-images through jsDelivr (CORS-enabled); follows the repository's `main` branch. */
+/**
+ * heroes-images, from GitHub itself; follows the repository's `main` branch. (jsDelivr's copy now
+ * and then refuses a file it hasn't cached, 403, GitHub limiting it.)
+ */
 export const HEROES_IMAGES_BASE =
-  'https://cdn.jsdelivr.net/gh/HeroesToolChest/heroes-images@main/heroesimages';
+  'https://raw.githubusercontent.com/HeroesToolChest/heroes-images/main/heroesimages';
 
 export type PortraitKind = Exclude<keyof HeroPortraits, 'partyFrames'> | 'partyFrame';
 

@@ -32,7 +32,7 @@ images.icon(current.talent('KerriganRavageSiphoningImpact')!); // …/abilitytal
 | ------------------ | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | 97039 and later    | [heroes-data2](https://github.com/HeroesToolChest/heroes-data2)   | Current. Versions are stored as JSON patches on earlier ones; the provider rebuilds them. |
 | 76003 – 97039      | [heroes-data](https://github.com/HeroesToolChest/heroes-data)     | Archived in 2026, still served. heroes-data2 wins for 97039, which is in both.            |
-| images, all builds | [heroes-images](https://github.com/HeroesToolChest/heroes-images) | Served through jsDelivr. The data names files; `heroesImages` adds the folder.            |
+| images, all builds | [heroes-images](https://github.com/HeroesToolChest/heroes-images) | Served from GitHub. The data names files; `heroesImages` adds the folder.                 |
 
 All three are MIT. The list of builds is discovered on first use: heroes-data2's
 `.version.json` is read fresh each session (the cached copy is the offline fallback), and
