@@ -213,7 +213,7 @@ describe("heroesImages with a build's pictures", () => {
     });
     const sonya = set.hero('Sonya')!;
     expect(img.portrait(sonya, 'minimap')).toEqual({
-      src: `https://cdn.jsdelivr.net/gh/HeroesToolChest/heroes-images@main/heroesimages/heroportraits/${sonya.portraits.minimap}`,
+      src: `https://raw.githubusercontent.com/HeroesToolChest/heroes-images/main/heroesimages/heroportraits/${sonya.portraits.minimap}`,
     });
   });
 });
