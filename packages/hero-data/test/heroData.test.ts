@@ -190,6 +190,34 @@ describe('heroesToolChestProvider', () => {
     expect(Object.keys(set.awards)).toHaveLength(38);
   });
 
+  it('serves a heroes-data build stored as a duplicate from the build its .hdp.json names', async () => {
+    const net = network();
+    // 2.50.1.85300 has no data of its own: its .hdp.json names 85267's (strings it has), written
+    // as heroes-data wrote 2.49.1.77692's, without the comma after "hdp"
+    net.files.set(
+      HEROES_DATA_TREE_API.replace(/master$/, 'abc'),
+      JSON.stringify({
+        tree: [{ path: '2.50.0.85267' }, { path: '2.50.1.85300' }, { path: '2.55.16.97039' }],
+      }),
+    );
+    const dup = `${HEROES_DATA_RAW}/2.50.1.85300`;
+    net.files.set(
+      `${dup}/.hdp.json`,
+      '{\n  "hdp": "4.9.0"\n  "duplicate": {\n    "data": "2.50.0.85267"\n  }\n}\n',
+    );
+    net.files.set(
+      `${dup}/gamestrings/gamestrings_85300_enus.json`,
+      fixture('gamestrings_96370_enus_trimmed.json'),
+    );
+    const set = await heroesToolChestProvider({ fetch: net.fetch }).forBuild(85300);
+    expect(set).toMatchObject({ build: 85300, source: 'heroes-data', exact: true });
+    expectReplayIdsResolve(set);
+    expect(net.urls).toContain(
+      `${HEROES_DATA_RAW}/2.50.0.85267/data/herodata_85267_localized.json`,
+    );
+    expect(net.urls).toContain(`${dup}/gamestrings/gamestrings_85300_enus.json`);
+  });
+
   it('serves builds from 97039 from heroes-data2, rebuilding patched versions', async () => {
     const net = network();
     const provider = heroesToolChestProvider({ fetch: net.fetch });

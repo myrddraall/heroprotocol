@@ -77,6 +77,33 @@ export const HEROES_DATA_TREE_API =
 interface VersionIndex {
   readonly versions: readonly string[];
 }
+/** heroes-data's per-build `.hdp.json`: what matters here is whether its files are another build's. */
+interface HeroesDataMeta {
+  readonly duplicate?: {
+    readonly data?: string;
+    readonly gamestrings?: string;
+    readonly gamestring?: string;
+  };
+}
+
+/**
+ * Reads a heroes-data `.hdp.json`. One (2.49.1.77692's) lacks the comma between two members, so
+ * a file that doesn't parse is read again with a comma after each line that ends a value and is
+ * followed by a key.
+ */
+const parseHeroesDataMeta = (text: string): HeroesDataMeta => {
+  try {
+    return JSON.parse(text) as HeroesDataMeta;
+  } catch {
+    return JSON.parse(
+      text.replace(/(["}\]\d]|true|false|null)(\s*\n\s*")/g, '$1,$2'),
+    ) as HeroesDataMeta;
+  }
+};
+
+/** A build's number from its directory name (`2.49.1.77662`, `2.51.0.86000_ptr`). */
+const buildOfDirectory = (dir: string): number => Number(dir.replace(/_ptr$/, '').split('.').pop());
+
 /** heroes-data2's per-version `.hdp.json`. */
 export interface VersionMeta {
   readonly json: 'full' | 'patch';
@@ -258,18 +285,43 @@ export function heroesToolChestProvider(options: HeroesToolChestOptions = {}): H
     return served.length > 0 ? [...served] : [...all];
   };
 
+  /**
+   * Where a heroes-data build's files are. A build identical to an earlier one has no data (or
+   * strings) of its own: its `.hdp.json` names the build that has them
+   * (`"duplicate": { "data": "2.49.1.77662" }`; strings as `gamestrings`, once `gamestring`).
+   */
+  const heroesDataFolders = async (dir: string): Promise<{ data: string; strings: string }> => {
+    const meta = await immutable('heroes-data', `${dir}/.hdp.json`)
+      .then(parseHeroesDataMeta)
+      .catch(async (err: unknown) => {
+        // a build without one has its own files; remember that as a published file is
+        if (err instanceof Error && err.message.startsWith('hero-data: 404 ')) {
+          await options.cache?.set(`heroes-data/${dir}/.hdp.json`, '{}');
+        }
+        return {} as HeroesDataMeta;
+      });
+    const duplicate = meta.duplicate ?? {};
+    return {
+      data: duplicate.data ?? dir,
+      strings: duplicate.gamestrings ?? duplicate.gamestring ?? dir,
+    };
+  };
+
   const loadHeroesData = async (entry: HeroDataBuild, locale: string): Promise<HeroDataTables> => {
-    const dir = entry.directory;
+    const { data, strings: stringsDir } = await heroesDataFolders(entry.directory);
+    const dataBuild = buildOfDirectory(data);
+    const stringsBuild = buildOfDirectory(stringsDir);
     const [heroes, awards, strings] = await Promise.all([
-      immutable('heroes-data', `${dir}/data/herodata_${entry.build}_localized.json`).then(
+      immutable('heroes-data', `${data}/data/herodata_${dataBuild}_localized.json`).then(
         (t) => JSON.parse(t) as RawHeroData,
       ),
-      immutable('heroes-data', `${dir}/data/matchawarddata_${entry.build}_localized.json`)
+      immutable('heroes-data', `${data}/data/matchawarddata_${dataBuild}_localized.json`)
         .then((t) => JSON.parse(t) as RawAwards)
         .catch(() => undefined),
-      immutable('heroes-data', `${dir}/gamestrings/gamestrings_${entry.build}_${locale}.json`).then(
-        (t) => JSON.parse(t) as RawGameStrings,
-      ),
+      immutable(
+        'heroes-data',
+        `${stringsDir}/gamestrings/gamestrings_${stringsBuild}_${locale}.json`,
+      ).then((t) => JSON.parse(t) as RawGameStrings),
     ]);
     return readHeroesData(heroes, awards, strings);
   };
