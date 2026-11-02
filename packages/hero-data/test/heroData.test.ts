@@ -322,34 +322,36 @@ describe('maps', () => {
 });
 
 describe('heroesImages', () => {
-  it('builds heroes-images URLs from the data file names', async () => {
+  it('gives heroes-images files for the data file names when a build has no pictures of its own', async () => {
     const set = await heroesToolChestProvider({ fetch: network().fetch }).latest();
     const img = heroesImages();
     const sonya = set.hero('Sonya')!;
     const base = 'https://cdn.jsdelivr.net/gh/HeroesToolChest/heroes-images@main/heroesimages';
-    expect(img.portrait(sonya, 'minimap')).toBe(`${base}/heroportraits/${sonya.portraits.minimap}`);
-    expect(img.portrait(sonya, 'partyFrame')).toBe(
-      `${base}/heroportraits/${sonya.portraits.partyFrames[0]}`,
-    );
-    expect(img.icon(set.ability('BarbarianAncientSpear')!)).toBe(
-      `${base}/abilitytalents/storm_ui_icon_sonya_ancientspear.png`,
-    );
-    expect(img.award(set.award('MVP')!, 'mvp', 'gold')).toBe(
-      `${base}/matchawards/storm_ui_mvp_mvp_gold.png`,
-    );
-    expect(img.award(set.award('MVP')!, 'scoreScreen', 'red')).toBe(
-      `${base}/matchawards/storm_ui_scorescreen_mvp_mvp_red.png`,
-    );
+    expect(img.portrait(sonya, 'minimap')).toEqual({
+      src: `${base}/heroportraits/${sonya.portraits.minimap}`,
+    });
+    expect(img.portrait(sonya, 'partyFrame')).toEqual({
+      src: `${base}/heroportraits/${sonya.portraits.partyFrames[0]}`,
+    });
+    expect(img.icon(set.ability('BarbarianAncientSpear')!)).toEqual({
+      src: `${base}/abilitytalents/storm_ui_icon_sonya_ancientspear.png`,
+    });
+    expect(img.award(set.award('MVP')!, 'mvp', 'gold')).toEqual({
+      src: `${base}/matchawards/storm_ui_mvp_mvp_gold.png`,
+    });
+    expect(img.award(set.award('MVP')!, 'scoreScreen', 'red')).toEqual({
+      src: `${base}/matchawards/storm_ui_scorescreen_mvp_mvp_red.png`,
+    });
     const garden = set.map('Garden of Terror')!;
-    expect(img.map(garden, 'replayPreview')).toBe(
-      `${base}/replaypreviews/replayspreviewimage_gardenofterror.png`,
-    );
-    expect(img.map(garden, 'loadingScreen')).toBe(
-      `${base}/loadingscreens/ui_ingame_mapmechanic_loadscreen_gardenofterror.png`,
-    );
-    expect(img.mapObjective(garden.objectives[0]!.icons[0]!)).toBe(
-      `${base}/mapobjectives/ui_ingame_mapmechanic_loadscreen_gardenofterror_icon1.png`,
-    );
+    expect(img.map(garden, 'replayPreview')).toEqual({
+      src: `${base}/replaypreviews/replayspreviewimage_gardenofterror.png`,
+    });
+    expect(img.map(garden, 'loadingScreen')).toEqual({
+      src: `${base}/loadingscreens/ui_ingame_mapmechanic_loadscreen_gardenofterror.png`,
+    });
+    expect(img.mapObjective(garden.objectives[0]!.icons[0]!)).toEqual({
+      src: `${base}/mapobjectives/ui_ingame_mapmechanic_loadscreen_gardenofterror_icon1.png`,
+    });
     expect(heroesImages({ baseUrl: 'https://example.test/img/' }).url('x', 'y.png')).toBe(
       'https://example.test/img/x/y.png',
     );

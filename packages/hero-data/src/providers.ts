@@ -57,11 +57,14 @@ export interface HeroesToolChestOptions {
   /** Serve PTR builds too (default false). */
   readonly includePtr?: boolean;
   /** Raw content roots of the two repositories' `heroesdata/` folders (defaults: GitHub raw). */
-  readonly baseUrls?: Partial<Record<HeroDataSource, string>>;
+  readonly baseUrls?: Partial<Record<ToolChestSource, string>>;
   /** Tree API URL for heroes-data's `heroesdata/` listing (default: GitHub). */
   readonly heroesDataTreeApi?: string;
   readonly timeoutMs?: number;
 }
+
+/** HeroesToolChest's two repositories of hero data. */
+export type ToolChestSource = Exclude<HeroDataSource, 'heroes-assets'>;
 
 export const HEROES_DATA_RAW =
   'https://raw.githubusercontent.com/HeroesToolChest/heroes-data/master/heroesdata';
@@ -96,10 +99,10 @@ export interface VersionMeta {
 /** HeroesToolChest's raw files: see {@link toolChestFiles}. */
 export interface ToolChestFiles {
   /** Raw content roots of the two repositories' `heroesdata/` folders. */
-  readonly base: Readonly<Record<HeroDataSource, string>>;
+  readonly base: Readonly<Record<ToolChestSource, string>>;
   get(url: string): Promise<string>;
   /** A file that never changes once published: cache first, then network. */
-  immutable(source: HeroDataSource, path: string): Promise<string>;
+  immutable(source: ToolChestSource, path: string): Promise<string>;
   /** A file that changes as new builds ship: network first, cache as the offline fallback. */
   fresh(key: string, url: string): Promise<string>;
   /** A heroes-data2 version's `.hdp.json`. */
@@ -117,7 +120,7 @@ export function toolChestFiles(options: HeroesToolChestOptions = {}): ToolChestF
   const fetchImpl: FetchLike =
     options.fetch ?? (globalThis as unknown as { fetch: FetchLike }).fetch;
   if (!fetchImpl) throw new Error('heroesToolChestProvider: no fetch available — pass one');
-  const base: Record<HeroDataSource, string> = {
+  const base: Record<ToolChestSource, string> = {
     'heroes-data': (options.baseUrls?.['heroes-data'] ?? HEROES_DATA_RAW).replace(/\/$/, ''),
     'heroes-data2': (options.baseUrls?.['heroes-data2'] ?? HEROES_DATA2_RAW).replace(/\/$/, ''),
   };
@@ -139,7 +142,7 @@ export function toolChestFiles(options: HeroesToolChestOptions = {}): ToolChestF
   };
 
   /** A file that never changes once published: cache first, then network. */
-  const immutable = async (source: HeroDataSource, path: string): Promise<string> => {
+  const immutable = async (source: ToolChestSource, path: string): Promise<string> => {
     const key = `${source}/${path}`;
     const cached = await options.cache?.get(key);
     if (cached !== undefined) return cached;
