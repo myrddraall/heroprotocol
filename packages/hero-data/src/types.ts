@@ -1,5 +1,40 @@
 /** The HeroesToolChest repository a build is published in. */
-export type HeroDataSource = 'heroes-data' | 'heroes-data2';
+export type HeroDataSource = 'heroes-data' | 'heroes-data2' | 'heroes-assets';
+
+/** Where a picture is, inside a sheet: `[x, y, width, height]` in pixels. */
+export type PictureRect = readonly [number, number, number, number];
+
+/**
+ * A picture to show: a file (`src` alone), or one picture in a sheet of many (`src` is the sheet;
+ * `rect` its place in it and `size` the sheet's own size, to scale it).
+ */
+export interface Picture {
+  readonly src: string;
+  readonly rect?: PictureRect;
+  readonly size?: readonly [number, number];
+}
+
+/** One build's pictures as heroes-assets publishes them (its `pictures.json`). */
+export interface PictureIndex {
+  /** The URL the paths below are relative to (the channel's folder, ending in `/`). */
+  readonly base: string;
+  /** By the file name the data names (lower case): its sheet, place and sheet size, or its file. */
+  readonly files: Readonly<
+    Record<
+      string,
+      | {
+          readonly sheet: string;
+          readonly rect: PictureRect;
+          readonly size: readonly [number, number];
+        }
+      | { readonly file: string }
+    >
+  >;
+  /** By map normalized id: its replay preview and loading screen (a made preview when the game has none). */
+  readonly maps: Readonly<
+    Record<string, { readonly replayPreview?: string; readonly loadingScreen?: string }>
+  >;
+}
 
 /** One build directory published by heroes-data or heroes-data2. */
 export interface HeroDataBuild {
@@ -9,7 +44,10 @@ export interface HeroDataBuild {
   readonly ptr: boolean;
   /** Directory name under `heroesdata/`. */
   readonly directory: string;
-  /** `heroes-data` (archived; builds up to 97039) or `heroes-data2` (97039 on). */
+  /**
+   * `heroes-data` (archived; builds up to 97039), `heroes-data2` (97039 on), or `heroes-assets`
+   * (97039 on, with pictures in sheets; `directory` is `<channel>/<game version>`).
+   */
   readonly source: HeroDataSource;
 }
 
@@ -139,8 +177,10 @@ export interface HeroData {
   readonly abilities: Readonly<Record<string, AbilityInfo>>;
   /** Awards by id. */
   readonly awards: Readonly<Record<string, AwardInfo>>;
-  /** Maps by id. Only heroes-data2 publishes maps; builds before 97039 get 97039's. */
+  /** Maps by id. Builds before 97039 (heroes-data, which has none) get the oldest newer build's. */
   readonly maps: Readonly<Record<string, MapInfo>>;
+  /** heroes-assets builds: where each picture the data names is (see `heroesImages`). */
+  readonly pictures?: PictureIndex;
 }
 
 /** `HeroData` plus lookups that tolerate the ids a replay actually carries. */
