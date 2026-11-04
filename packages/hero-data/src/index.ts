@@ -33,7 +33,7 @@ export {
   HEROES_DATA_TREE_API,
 } from './providers.js';
 export type { FetchLike, HeroesToolChestOptions, TextCache } from './providers.js';
-export { heroesImages, HEROES_IMAGES_BASE } from './images.js';
+export { heroesImages, HEROES_IMAGES_BASE, type HeroesImagesOptions } from './images.js';
 export { heroesAssetsProvider, HEROES_ASSETS_BASE } from './heroesAssets.js';
 export type { HeroesAssetsOptions } from './heroesAssets.js';
 export type { HeroesImages, PortraitKind } from './images.js';

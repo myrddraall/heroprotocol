@@ -30,7 +30,7 @@ export interface HeroesImages {
     screen: 'mvp' | 'scoreScreen',
     color: 'blue' | 'red' | 'gold',
   ): Picture | null;
-  /** A map's replay preview or loading screen. */
+  /** A map's replay preview (in the sheet of every map's, where a build has one) or loading screen. */
   map(map: MapInfo, kind: 'replayPreview' | 'loadingScreen'): Picture | null;
   /** A chat emote: a still picture, or an animated file for an animated one. */
   emoticon(emoticon: Pick<ShownEmoticon, 'image'>): Picture;
@@ -40,25 +40,42 @@ export interface HeroesImages {
   url(folder: string, file: string): string;
 }
 
+export interface HeroesImagesOptions {
+  /** heroes-images' base, the last resort (default: GitHub's copy). */
+  readonly baseUrl?: string;
+  /** The build's own data: a heroes-assets build has `pictures`. */
+  readonly data?: Pick<HeroData, 'pictures'>;
+  /**
+   * Another build's pictures, for a name the build's own don't list or a build with none (one
+   * before heroes-assets): the newest heroes-assets build's, so old replays show our pictures too.
+   */
+  readonly fallback?: Pick<HeroData, 'pictures'>;
+}
+
 /**
  * The pictures for the file names in the hero data. A heroes-assets build (`data.pictures`) has
- * each in a sheet or a file of its own; anything else, and a name a build's pictures don't list
- * (a hero unit's own portrait), comes from HeroesToolChest/heroes-images, where each kind lives
- * in one folder.
+ * each in a sheet or a file of its own; a name it doesn't list, or a build without pictures, is
+ * looked up in `fallback`'s (the newest heroes-assets build); only a name neither lists (a hero
+ * unit's own portrait in a build stored before those) comes from HeroesToolChest/heroes-images,
+ * where each kind lives in one folder.
  */
-export function heroesImages(
-  options: { readonly baseUrl?: string; readonly data?: Pick<HeroData, 'pictures'> } = {},
-): HeroesImages {
+export function heroesImages(options: HeroesImagesOptions = {}): HeroesImages {
   const base = (options.baseUrl ?? HEROES_IMAGES_BASE).replace(/\/$/, '');
-  const pictures = options.data?.pictures;
+  const indexes = [options.data?.pictures, options.fallback?.pictures].filter(
+    (p): p is NonNullable<typeof p> => p !== undefined,
+  );
   const url = (folder: string, file: string): string => `${base}/${folder}/${file}`;
-  const at = (path: string): string => new URL(path, pictures!.base).href;
   const picture = (folder: string, file: string): Picture => {
-    const place = pictures?.files[file.toLowerCase()];
-    if (!place) return { src: url(folder, file) };
-    return 'file' in place
-      ? { src: at(place.file) }
-      : { src: at(place.sheet), rect: place.rect, size: place.size };
+    const name = file.toLowerCase();
+    for (const index of indexes) {
+      const place = index.files[name];
+      if (!place) continue;
+      const at = (path: string): string => new URL(path, index.base).href;
+      return 'file' in place
+        ? { src: at(place.file) }
+        : { src: at(place.sheet), rect: place.rect, size: place.size };
+    }
+    return { src: url(folder, file) };
   };
   const maybe = (folder: string, file: string | null | undefined): Picture | null =>
     file ? picture(folder, file) : null;
@@ -75,8 +92,15 @@ export function heroesImages(
     },
     map: (map, kind) => {
       // a made preview (Deadman's Stand has none in the game) is the map's, not a data file
-      const own = pictures?.maps[map.normalizedId]?.[kind];
-      if (own) return { src: at(own) };
+      for (const index of indexes) {
+        const sheet =
+          kind === 'replayPreview' ? index.maps[map.normalizedId]?.replayPreviewSheet : undefined;
+        if (sheet) {
+          return { src: new URL(sheet.sheet, index.base).href, rect: sheet.rect, size: sheet.size };
+        }
+        const own = index.maps[map.normalizedId]?.[kind];
+        if (own) return { src: new URL(own, index.base).href };
+      }
       return kind === 'replayPreview'
         ? maybe('replaypreviews', map.replayPreviewImage)
         : maybe('loadingscreens', map.loadingScreenImage);

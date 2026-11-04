@@ -30,9 +30,23 @@ export interface PictureIndex {
       | { readonly file: string }
     >
   >;
-  /** By map normalized id: its replay preview and loading screen (a made preview when the game has none). */
+  /**
+   * By map normalized id: its replay preview and loading screen (a made preview when the game has
+   * none), and the preview's place in the sheet of every map's (builds that have it).
+   */
   readonly maps: Readonly<
-    Record<string, { readonly replayPreview?: string; readonly loadingScreen?: string }>
+    Record<
+      string,
+      {
+        readonly replayPreview?: string;
+        readonly loadingScreen?: string;
+        readonly replayPreviewSheet?: {
+          readonly sheet: string;
+          readonly rect: PictureRect;
+          readonly size: readonly [number, number];
+        };
+      }
+    >
   >;
 }
 
