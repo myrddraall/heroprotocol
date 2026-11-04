@@ -46,4 +46,22 @@ consumes these packages and which old analyser maps to which result.
 Through [git-flow](https://github.com/cpdevtools/git-flow): versions live in `.publish/versions.yml`,
 every manifest carries `0.0.0-MAIN`. `pnpm gitflow version`, push, review the draft release PR, merge.
 
-MIT — see [LICENSE](./LICENSE).
+## Legal
+
+heroprotocol is a free, non-commercial fan project. It is not affiliated with, endorsed,
+sponsored or approved by Blizzard Entertainment.
+
+Heroes of the Storm is a trademark of Blizzard Entertainment, Inc., in the U.S. and/or other
+countries. Blizzard Entertainment is a trademark or registered trademark of Blizzard
+Entertainment, Inc., in the U.S. and/or other countries. All other trademarks are the property
+of their respective owners. Blizzard's own notices are on its
+[copyright notices page](https://www.blizzard.com/en-us/legal/9c9cb70b-d1ed-4e17-998a-16c6df46be7b/copyright-notices).
+
+The bundled protocol definitions are generated from Blizzard's
+[heroprotocol](https://github.com/Blizzard/heroprotocol) (MIT licence, Copyright 2015-2021
+Blizzard Entertainment), and the decoders are a port of it. Replays, and the game data and
+pictures `hero-data` points to, belong to Blizzard Entertainment, Inc. No replays are committed:
+the tests fetch public ones.
+
+The code is MIT licensed: see [LICENSE](./LICENSE). The licence covers this project's own code,
+not Blizzard's game content.

@@ -83,5 +83,8 @@ pnpm run generate.emoticons
 
 ## Licence
 
-MIT. Data and images from HeroesToolChest are MIT; Heroes of the Storm is a trademark of
-Blizzard Entertainment.
+MIT. The game data and pictures it loads, from [heroes-assets](https://github.com/myrddraall/heroes-assets)
+and HeroesToolChest's repositories, come from Heroes of the Storm and belong to Blizzard
+Entertainment, Inc.; HeroesToolChest's repositories are MIT. Heroes of the Storm is a trademark
+of Blizzard Entertainment, Inc., in the U.S. and/or other countries. This package is not
+affiliated with, endorsed, sponsored or approved by Blizzard Entertainment.

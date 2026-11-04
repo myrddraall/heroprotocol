@@ -84,6 +84,14 @@ function network() {
     },
     maps: {
       garden_of_terror: { replayPreview: 'maps/images/replayspreviewimage_gardenofterror.webp' },
+      towers_of_doom: {
+        replayPreview: 'maps/images/replayspreviewimage_towersofdoom.webp',
+        replayPreviewSheet: {
+          sheet: 'maps/previews.webp',
+          rect: [419, 0, 417, 234],
+          size: [2560, 2856],
+        },
+      },
     },
   });
   put(`${site}/live/history/index.json`, [
@@ -215,5 +223,59 @@ describe("heroesImages with a build's pictures", () => {
     expect(img.portrait(sonya, 'minimap')).toEqual({
       src: `https://raw.githubusercontent.com/HeroesToolChest/heroes-images/main/heroesimages/heroportraits/${sonya.portraits.minimap}`,
     });
+  });
+});
+
+describe('heroesImages with a fallback build', () => {
+  it("takes what a build without pictures needs from the newest build's, heroes-images only for a name neither lists", async () => {
+    const latest = await heroesAssetsProvider({ fetch: network().fetch }).latest();
+    // a build before heroes-assets: no pictures of its own
+    const img = heroesImages({ data: {}, fallback: latest });
+    expect(img.icon(latest.ability('BarbarianAncientSpear')!)).toEqual({
+      src: `${site}/live/heroes/sheets/Barbarian/hero.webp`,
+      rect: [0, 128, 128, 128],
+      size: [512, 640],
+    });
+    expect(img.map(latest.map('Garden of Terror')!, 'replayPreview')).toEqual({
+      src: `${site}/live/maps/images/replayspreviewimage_gardenofterror.webp`,
+    });
+    const sonya = latest.hero('Sonya')!;
+    expect(img.portrait(sonya, 'minimap')!.src).toMatch(
+      /^https:\/\/raw\.githubusercontent\.com\/HeroesToolChest\//,
+    );
+  });
+
+  it("prefers the build's own pictures to the fallback's", async () => {
+    const latest = await heroesAssetsProvider({ fetch: network().fetch }).latest();
+    const own = {
+      pictures: {
+        base: 'https://example.test/old/',
+        files: { 'storm_ui_icon_sonya_ancientspear.png': { file: 'old/spear.webp' } },
+        maps: {},
+      },
+    };
+    const spear = latest.ability('BarbarianAncientSpear')!;
+    expect(
+      heroesImages({ data: own, fallback: latest }).icon({
+        ...spear,
+        icon: 'storm_ui_icon_sonya_ancientspear.png',
+      }),
+    ).toEqual({
+      src: 'https://example.test/old/old/spear.webp',
+    });
+  });
+});
+
+describe('heroesImages map previews', () => {
+  it("gives a map's preview from the sheet of every map's, where the build has it", async () => {
+    const set = await heroesAssetsProvider({ fetch: network().fetch }).latest();
+    const img = heroesImages({ data: set });
+    expect(img.map(set.map('Towers of Doom')!, 'replayPreview')).toEqual({
+      src: `${site}/live/maps/previews.webp`,
+      rect: [419, 0, 417, 234],
+      size: [2560, 2856],
+    });
+    // a map without a place in the sheet keeps its file
+    expect(img.map(set.map('Garden of Terror')!, 'replayPreview')?.rect).toBeUndefined();
   });
 });
