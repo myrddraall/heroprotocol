@@ -183,18 +183,19 @@ async function runPipeline(
     clock,
     onStatus: (s) => tracker.analyser(s),
   });
+  // the outputs together, off `replays` (see writeReplay); then the short status write
   await trackedWrite(
     db,
-    db.replayTables,
+    db.replayRowTables,
     readyRun.computed.reduce((sum, o) => sum + rowCount(o), 0),
     (p) => tracker.store(p),
-    () => db.replays.get(normalized.replay.id),
+    () => db.analyserRuns.limit(1).first(),
     async (added) => {
       for (const output of readyRun.computed)
         await writeAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output, added);
-      await setReplayStatus(db, normalized.replay.id, 'ready');
     },
   );
+  await setReplayStatus(db, normalized.replay.id, 'ready');
   tracker.store(undefined);
   tracker.timing('ready', clock.ms() - t);
   await db.ingestJobs.update(jobId, { status: 'ready' });

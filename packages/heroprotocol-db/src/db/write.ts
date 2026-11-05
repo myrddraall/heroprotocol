@@ -86,10 +86,17 @@ export async function deleteReplayRows(db: HeroDb, replayId: string): Promise<vo
 }
 
 /**
- * Write a normalized replay atomically: one read-write transaction that removes any
- * previous rows for the same id (core and analyser tables alike) and inserts the new
- * ones. Re-ingesting a replay therefore always replaces it. A failure anywhere leaves
- * the database as it was.
+ * Write a normalized replay, replacing any previous rows for the same id (core and analyser
+ * tables alike), so re-ingesting a replay always replaces it. Three steps, so the long one
+ * never holds `replays`, the table every replay list reads: IndexedDB queues a read behind
+ * the read-write transactions over its tables, and one replay's rows take a while to write.
+ *
+ * 1. A short write records the replay as `ingesting`, which no list shows.
+ * 2. One transaction over the row tables replaces its rows.
+ * 3. A short write records it with its status.
+ *
+ * A failure in step 2 rolls the rows back and puts the previous `replays` record back (or
+ * removes the new one), so the database is as it was.
  */
 export async function writeReplay(
   db: HeroDb,
@@ -99,20 +106,31 @@ export async function writeReplay(
   const id = n.replay.id;
   const collections = REPLAY_COLLECTIONS as readonly ReplayCollectionName[];
   const total = collections.reduce((sum, name) => sum + n[name].length, 0);
-  await trackedWrite(
-    db,
-    db.replayTables,
-    total,
-    options.onProgress,
-    () => db.replays.get(id),
-    async (added) => {
-      await deleteReplayRows(db, id);
-      await db.replays.put({ ...n.replay, status: options.status ?? n.replay.status });
-      for (const name of collections) {
-        await bulkAddChunked(db.table(name) as Table<unknown, unknown>, n[name], added);
-      }
-    },
-  );
+  const rowTables = db.replayRowTables;
+  const previous = await db.transaction('rw', db.replays, async () => {
+    const old = await db.replays.get(id);
+    await db.replays.put({ ...n.replay, status: 'ingesting' });
+    return old;
+  });
+  try {
+    await trackedWrite(
+      db,
+      rowTables,
+      total,
+      options.onProgress,
+      () => db.players.limit(1).first(),
+      async (added) => {
+        await deleteReplayRows(db, id);
+        for (const name of collections) {
+          await bulkAddChunked(db.table(name) as Table<unknown, unknown>, n[name], added);
+        }
+      },
+    );
+  } catch (err) {
+    await (previous ? db.replays.put(previous) : db.replays.delete(id));
+    throw err;
+  }
+  await db.replays.put({ ...n.replay, status: options.status ?? n.replay.status });
 }
 
 export async function setReplayStatus(

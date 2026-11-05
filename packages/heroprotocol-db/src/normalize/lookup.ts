@@ -9,6 +9,9 @@ export interface SlotInfo {
   readonly userId: number | null;
 }
 
+/** A slot's `m_control` for a computer player (2 is a human, 0 open, 1 closed). */
+const COMPUTER_CONTROL = 3;
+
 /** Tracker player ids 11 and 12 own each team's structures and minions. */
 const TEAM_OWNER_IDS: Readonly<Record<number, Team>> = { 11: 0, 12: 1 };
 
@@ -33,7 +36,9 @@ export class PlayerLookup {
         let kind: SlotKind;
         if (s.m_toonHandle && s.m_observe === 1) kind = 'observer';
         else if (s.m_toonHandle) kind = 'player';
-        else if (s.m_hero) kind = 'ai';
+        // a computer slot (control 3) is a bot even before its hero is picked: a game left
+        // during loading has bots with no lobby hero, named only in `details`
+        else if (s.m_hero || s.m_control === COMPUTER_CONTROL) kind = 'ai';
         else continue; // empty
         slots.push({
           slot: s.m_workingSetSlotId,

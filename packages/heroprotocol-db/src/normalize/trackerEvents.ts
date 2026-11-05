@@ -61,7 +61,8 @@ export function normalizeTrackerEvents(
       }
       case 'NNet.Replay.Tracker.SHeroPickedEvent': {
         const p = e as SHeroPickedEvent;
-        const slot = lookup.slotOfPlayer(p.m_controllingPlayer);
+        // m_controllingPlayer here is the game stream's user id, not the tracker's PlayerID
+        const slot = lookup.slotOfUser(p.m_controllingPlayer);
         if (slot !== null)
           picks.push({ slot, heroId: p.m_hero, order: picks.length + 1, gameloop: e._gameloop });
         push(e, 'HeroPicked', slot, lookup.teamOfSlot(slot), {
@@ -72,7 +73,7 @@ export function normalizeTrackerEvents(
       }
       case 'NNet.Replay.Tracker.SHeroSwappedEvent': {
         const s = e as SHeroSwappedEvent;
-        const slot = lookup.slotOfPlayer(s.m_newControllingPlayer);
+        const slot = lookup.slotOfUser(s.m_newControllingPlayer);
         push(e, 'HeroSwapped', slot, lookup.teamOfSlot(slot), { heroId: s.m_hero });
         break;
       }

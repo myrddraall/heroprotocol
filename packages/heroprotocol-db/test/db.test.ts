@@ -123,6 +123,29 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
     expect(await db.commands.count()).toBe(fixtures.reduce((a, f) => a + f.commands.length, 0));
   });
 
+  it('keeps the replay list readable while the rows are written', async () => {
+    const db = await fresh();
+    const f = fixtures[0]!;
+    const order: string[] = [];
+    let read: Promise<void> | undefined;
+    await writeReplay(db, f, {
+      onProgress: (p) => {
+        // a list's read, started while the rows are being written (outside the write's
+        // transaction, as a page's would be): it must not wait for them
+        read ??=
+          p.state === 'writing'
+            ? Dexie.ignoreTransaction(() => db.replays.toArray()).then((rows) => {
+                order.push(`read ${rows.map((r) => r.status).join()}`);
+              })
+            : undefined;
+      },
+    });
+    order.push('written');
+    await read;
+    expect(order).toEqual(['read ingesting', 'written']);
+    expect((await db.replays.get(f.replay.id))?.status).toBe(f.replay.status);
+  });
+
   it('records the status it is given', async () => {
     const db = await fresh();
     const f = fixtures[0]!;
