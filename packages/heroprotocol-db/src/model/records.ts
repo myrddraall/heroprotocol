@@ -18,7 +18,7 @@ import type { Diagnostics, SectionName, SectionStatus } from '@myrddraall/heropr
 export const LOOPS_PER_SECOND = 16;
 
 /** Bump when a change to the normalizer should make stored replays stale. */
-export const NORMALIZE_VERSION = 4;
+export const NORMALIZE_VERSION = 6;
 
 export type Team = 0 | 1;
 

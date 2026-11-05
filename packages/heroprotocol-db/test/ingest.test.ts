@@ -173,11 +173,11 @@ describe.skipIf(replays.length === 0)('ingestInline', () => {
 
   it('reports waiting while another transaction holds the tables, then rows written per chunk', async () => {
     const db = await fresh();
-    // Another job's write: a read-write transaction over the replay tables, kept alive
-    // with tiny requests until released.
+    // Another job's write: a read-write transaction over the row tables (a replay's rows, as
+    // writeReplay holds them), kept alive with tiny requests until released.
     let released = false;
-    const holding = db.transaction('rw', db.replayTables, async () => {
-      while (!released) await db.replays.get('keep-alive');
+    const holding = db.transaction('rw', db.replayRowTables, async () => {
+      while (!released) await db.players.limit(1).first();
     });
     const statuses: IngestStatus[] = [];
     const job = ingestInline(db, bytes(), {

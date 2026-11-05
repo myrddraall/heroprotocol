@@ -90,6 +90,14 @@ export class HeroDb extends Dexie {
     return this.tables.filter((t) => !NON_REPLAY_TABLES.has(t.name));
   }
 
+  /**
+   * {@link replayTables} without `replays`: where a replay's rows live. The long writes use
+   * these, so a reader of the replay list (`replays`) never queues behind them.
+   */
+  get replayRowTables(): Table[] {
+    return this.replayTables.filter((t) => t.name !== 'replays');
+  }
+
   /** The analyser-declared tables of this instance. */
   get analyserTables(): Table[] {
     return this.tables.filter((t) => !(t.name in STORES));

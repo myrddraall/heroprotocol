@@ -13,6 +13,7 @@ import { normalizeStatEvent } from '../src/normalize/stats.js';
 import { classifyUnit, normalizeUnits } from '../src/normalize/units.js';
 import { normalizeGameEvents } from '../src/normalize/gameEvents.js';
 import { normalizeMessageEvents } from '../src/normalize/chat.js';
+import { normalizeTrackerEvents } from '../src/normalize/trackerEvents.js';
 import { filetimeToIso, ticksToHours } from '../src/normalize/time.js';
 
 const twoTeams = new PlayerLookup({
@@ -447,6 +448,44 @@ describe('game and message events', () => {
         kind: 'Reconnect',
         data: { status: 1 },
       },
+    ]);
+  });
+});
+
+describe('draft', () => {
+  it('gives each pick and swap to the player whose user id the event names', () => {
+    // user ids in reverse slot order, so a user id, a slot and a PlayerID never coincide
+    const lookup = new PlayerLookup({
+      header: { m_elapsedGameLoops: 1000 },
+      initData: {
+        m_syncLobbyState: {
+          m_lobbyState: {
+            m_slots: Array.from({ length: 10 }, (_, i) => ({
+              m_workingSetSlotId: i,
+              m_userId: 9 - i,
+              m_teamId: i < 5 ? 0 : 1,
+              m_toonHandle: `1-Hero-1-${i}`,
+              m_hero: '',
+              m_observe: 0,
+              m_control: 2,
+            })),
+          },
+        },
+      },
+      trackerEvents: [],
+    } as unknown as ParsedReplay);
+    const { picks, events } = normalizeTrackerEvents(
+      'r',
+      [
+        ev('NNet.Replay.Tracker.SHeroPickedEvent', 10, { m_hero: 'Mei', m_controllingPlayer: 2 }),
+        ev('NNet.Replay.Tracker.SHeroSwappedEvent', 20, { m_hero: 'Mei', m_newControllingPlayer: 9 }),
+      ],
+      lookup,
+    );
+    expect(picks.map((p) => [p.heroId, p.slot])).toEqual([['Mei', 7]]);
+    expect(events.map((e) => [e.kind, e.playerSlot, e.team])).toEqual([
+      ['HeroPicked', 7, 1],
+      ['HeroSwapped', 0, 0],
     ]);
   });
 });

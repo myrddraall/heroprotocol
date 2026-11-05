@@ -41,6 +41,40 @@ describe('PlayerLookup', () => {
     expect(lookup.teamOfPlayer(0)).toBeNull();
   });
 
+  it('counts computer slots as bots before their heroes are picked', () => {
+    // a custom game against bots, left during loading: the lobby has no hero for the bots
+    const slot = (ws: number, control: number, team: number, toon = '', hero = '') => ({
+      m_workingSetSlotId: ws,
+      m_control: control,
+      m_teamId: team,
+      m_toonHandle: toon,
+      m_hero: hero,
+      m_observe: 0,
+      m_userId: toon ? 0 : null,
+    });
+    const parsed = {
+      header: { m_elapsedGameLoops: 72 },
+      initData: {
+        m_syncLobbyState: {
+          m_lobbyState: {
+            m_slots: [
+              slot(0, 2, 0, '1-Hero-1-5750', 'Deckard'),
+              slot(1, 3, 0),
+              slot(5, 3, 1),
+              { ...slot(15, 0, 0), m_observe: 1 }, // an open observer slot
+            ],
+          },
+        },
+      },
+      trackerEvents: [],
+    } as unknown as ParsedReplay;
+    expect(new PlayerLookup(parsed).slots.map((s) => [s.slot, s.kind, s.team])).toEqual([
+      [0, 'player', 0],
+      [1, 'ai', 0],
+      [5, 'ai', 1],
+    ]);
+  });
+
   it('prefers SPlayerSetupEvent over the slot arithmetic', () => {
     const parsed = {
       header: { m_elapsedGameLoops: 1 },
