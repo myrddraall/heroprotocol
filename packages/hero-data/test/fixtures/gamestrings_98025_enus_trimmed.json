@@ -54,9 +54,15 @@
         "Zagara": "Zagara"
       },
       "roles": {
-        "Barbarian": ["Warrior"],
-        "Malthael": ["Assassin"],
-        "Zagara": ["Specialist"]
+        "Barbarian": [
+          "Warrior"
+        ],
+        "Malthael": [
+          "Assassin"
+        ],
+        "Zagara": [
+          "Specialist"
+        ]
       },
       "title": {
         "Barbarian": "Wandering Barbarian",
@@ -271,6 +277,9 @@
         "ZagaraMasteryVolatileAcid|ZagaraBanelingBarrageVolatileAcidTalent|Q|Level1": "Increase Baneling range",
         "ZagaraPackInstinct|ZagaraPackInstinct|W|Level20": "Increase damage against Hunter Killer target",
         "ZagaraViscousAcid|ZagaraViscousAcid|Q|Level7": "Banelings also Slow enemies"
+      },
+      "fullText": {
+        "BarbarianWarPaint|BarbarianFuryWarPaintTalent|Passive|Level1": "Sonya's Basic Attacks heal for <c val=\"bfd4fd\" hlt-name=\"#TooltipNumbers\">30%</c> of the damage dealt."
       }
     },
     "matchAward": {

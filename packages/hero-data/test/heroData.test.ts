@@ -155,6 +155,10 @@ function expectReplayIdsResolve(set: HeroDataSet): void {
   }
   expect(set.talentName('UnknownTalent')).toBe('UnknownTalent');
   expect(set.talent('BarbarianWarPaint')?.description).toContain('Basic Attack');
+  // the full tooltip text, in the game's markup
+  expect(set.talent('BarbarianWarPaint')?.fullText).toBe(
+    'Sonya\'s Basic Attacks heal for <c val="bfd4fd" hlt-name="#TooltipNumbers">30%</c> of the damage dealt.',
+  );
   const levels = set.hero('Barbarian')!.talents.map((t) => t.level);
   expect(levels).toEqual([...levels].sort((a, b) => a - b));
   expect(
@@ -384,6 +388,50 @@ describe('heroesImages', () => {
     expect(heroesImages({ baseUrl: 'https://example.test/img/' }).url('x', 'y.png')).toBe(
       'https://example.test/img/x/y.png',
     );
+  });
+  it("gives a picture kept smaller its smaller copies, from heroes-assets' pictures", async () => {
+    const set = await heroesToolChestProvider({ fetch: network().fetch }).latest();
+    const sonya = set.hero('Sonya')!;
+    const target = sonya.portraits.target!.toLowerCase();
+    const minimap = sonya.portraits.minimap!.toLowerCase();
+    const base = 'https://example.test/live/';
+    const img = heroesImages({
+      data: {
+        pictures: {
+          base,
+          files: {
+            [target]: {
+              sheet: 'portraits/target.webp',
+              rect: [94, 95, 92, 93],
+              size: [844, 1041],
+              variants: [
+                { sheet: 'portraits/targetSmall.webp', rect: [66, 0, 64, 64], size: [592, 724] },
+              ],
+            },
+            [minimap]: {
+              sheet: 'portraits/minimap.webp',
+              rect: [68, 34, 32, 32],
+              size: [304, 366],
+            },
+          },
+          maps: {},
+        },
+      },
+    });
+    expect(img.portrait(sonya, 'target')).toEqual({
+      src: `${base}portraits/target.webp`,
+      rect: [94, 95, 92, 93],
+      size: [844, 1041],
+      variants: [
+        { src: `${base}portraits/targetSmall.webp`, rect: [66, 0, 64, 64], size: [592, 724] },
+      ],
+    });
+    // one kept at a single size has none
+    expect(img.portrait(sonya, 'minimap')).toEqual({
+      src: `${base}portraits/minimap.webp`,
+      rect: [68, 34, 32, 32],
+      size: [304, 366],
+    });
   });
 });
 
