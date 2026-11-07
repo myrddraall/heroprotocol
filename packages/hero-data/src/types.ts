@@ -6,28 +6,36 @@ export type PictureRect = readonly [number, number, number, number];
 
 /**
  * A picture to show: a file (`src` alone), or one picture in a sheet of many (`src` is the sheet;
- * `rect` its place in it and `size` the sheet's own size, to scale it).
+ * `rect` its place in it and `size` the sheet's own size, to scale it). One kept smaller too (a
+ * heroes-assets target portrait) lists its smaller copies (`variants`, smallest first), each in a
+ * sheet: to show it small, the smallest one at least that big saves the full size's download.
  */
 export interface Picture {
   readonly src: string;
   readonly rect?: PictureRect;
   readonly size?: readonly [number, number];
+  readonly variants?: readonly Picture[];
+}
+
+/** A picture's place in one of heroes-assets' sheets, as its `pictures.json` gives it. */
+export interface SheetPlace {
+  readonly sheet: string;
+  readonly rect: PictureRect;
+  readonly size: readonly [number, number];
 }
 
 /** One build's pictures as heroes-assets publishes them (its `pictures.json`). */
 export interface PictureIndex {
   /** The URL the paths below are relative to (the channel's folder, ending in `/`). */
   readonly base: string;
-  /** By the file name the data names (lower case): its sheet, place and sheet size, or its file. */
+  /**
+   * By the file name the data names (lower case): its sheet, place and sheet size (and its smaller
+   * copies' places, smallest first, where it is kept smaller too), or its file.
+   */
   readonly files: Readonly<
     Record<
       string,
-      | {
-          readonly sheet: string;
-          readonly rect: PictureRect;
-          readonly size: readonly [number, number];
-        }
-      | { readonly file: string }
+      (SheetPlace & { readonly variants?: readonly SheetPlace[] }) | { readonly file: string }
     >
   >;
   /**
@@ -91,7 +99,13 @@ export interface TalentInfo {
   readonly sort: number;
   readonly abilityType: string;
   readonly name: string | null;
+  /** The game's short text (the talent picker's line), in its markup. */
   readonly description: string | null;
+  /**
+   * The game's full tooltip text, in its markup: colour (`<c val hlt-name>`) and style
+   * (`<s val hlt-name>`) runs, inline icons (`<img path>`) and line breaks (`<n/>`).
+   */
+  readonly fullText: string | null;
   /** File name in heroes-images' `abilitytalents/` folder. */
   readonly icon: string | null;
   /** Abilities this talent modifies. */

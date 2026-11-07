@@ -71,9 +71,18 @@ export function heroesImages(options: HeroesImagesOptions = {}): HeroesImages {
       const place = index.files[name];
       if (!place) continue;
       const at = (path: string): string => new URL(path, index.base).href;
-      return 'file' in place
-        ? { src: at(place.file) }
-        : { src: at(place.sheet), rect: place.rect, size: place.size };
+      if ('file' in place) return { src: at(place.file) };
+      const variants = place.variants?.map((v) => ({
+        src: at(v.sheet),
+        rect: v.rect,
+        size: v.size,
+      }));
+      return {
+        src: at(place.sheet),
+        rect: place.rect,
+        size: place.size,
+        ...(variants?.length ? { variants } : {}),
+      };
     }
     return { src: url(folder, file) };
   };
