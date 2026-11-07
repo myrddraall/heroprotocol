@@ -21,6 +21,7 @@ export type {
   Picture,
   PictureIndex,
   PictureRect,
+  SheetPlace,
   TalentInfo,
 } from './types.js';
 export {
