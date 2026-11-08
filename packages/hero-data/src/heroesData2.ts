@@ -75,6 +75,7 @@ export function readHeroesData2(
   const abilityNames = g.ability?.['name'] ?? {};
   const talentNames = g.talent?.['name'] ?? {};
   const talentShorts = g.talent?.['shortText'] ?? {};
+  const talentFulls = g.talent?.['fullText'] ?? {};
   const heroes: Record<string, HeroInfo> = {};
   const talents: Record<string, TalentInfo> = {};
   const abilities: Record<string, AbilityInfo> = {};
@@ -114,6 +115,7 @@ export function readHeroesData2(
           abilityType: t.abilityType ?? '',
           name: nul(talentNames[t.linkId]),
           description: nul(talentShorts[t.linkId]),
+          fullText: nul(talentFulls[t.linkId]),
           icon: nul(t.icon),
           modifies: (t.tooltipAbilityLinkIds ?? []).map((link) => link.split('|')[0]!),
         };

@@ -71,6 +71,7 @@ export function readHeroesData(
   const unit = g.unit ?? {};
   const names = byNameId(g.abiltalent?.['name']);
   const shorts = byNameId(g.abiltalent?.['short']);
+  const fulls = byNameId(g.abiltalent?.['full']);
   const heroes: Record<string, HeroInfo> = {};
   const talents: Record<string, TalentInfo> = {};
   const abilities: Record<string, AbilityInfo> = {};
@@ -111,6 +112,7 @@ export function readHeroesData(
           abilityType: t.abilityType ?? '',
           name: names.get(t.nameId) ?? null,
           description: shorts.get(t.nameId) ?? null,
+          fullText: fulls.get(t.nameId) ?? null,
           icon: nul(t.icon),
           modifies: t.abilityTalentLinkIds ?? [],
         };
