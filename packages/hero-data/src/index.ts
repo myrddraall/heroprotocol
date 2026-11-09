@@ -18,6 +18,7 @@ export type {
   HeroPortraits,
   MapInfo,
   MapObjective,
+  MapUnitsOptions,
   Picture,
   PictureIndex,
   PictureRect,
@@ -36,6 +37,20 @@ export {
 export type { FetchLike, HeroesToolChestOptions, TextCache } from './providers.js';
 export { heroesImages, HEROES_IMAGES_BASE, type HeroesImagesOptions } from './images.js';
 export { heroesAssetsProvider, HEROES_ASSETS_BASE } from './heroesAssets.js';
+export { ASSETS_LOCALES, readMapUnits, scalingRank, scalingTotals } from './mapUnits.js';
+export type {
+  CampTypeInfo,
+  MapSheetEntry,
+  MapUnitInfo,
+  MapUnitsInfo,
+  RawMapUnits,
+  RawMapUnitStrings,
+  ScalingLevel,
+  ScalingTicks,
+  UnitCount,
+  Vital,
+  WeaponInfo,
+} from './mapUnits.js';
 export type { HeroesAssetsOptions } from './heroesAssets.js';
 export type { HeroesImages, PortraitKind } from './images.js';
 export { createEmoticonSet, loadEmoticons } from './emoticons/emoticons.js';
