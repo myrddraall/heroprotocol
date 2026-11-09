@@ -1,3 +1,5 @@
+import type { MapUnitsInfo } from './mapUnits.js';
+
 /** The HeroesToolChest repository a build is published in. */
 export type HeroDataSource = 'heroes-data' | 'heroes-data2' | 'heroes-assets';
 
@@ -242,4 +244,14 @@ export interface HeroDataProvider {
   latest(options?: HeroDataOptions): Promise<HeroDataSet>;
   /** The builds available, ascending, discovered at runtime. */
   builds(): Promise<readonly HeroDataBuild[]>;
+  /**
+   * A map's camps and unit cards (by id, display name or normalized id), from the newest build of
+   * a channel; null when the map has none. Providers without them leave it out.
+   */
+  mapUnits?(map: string, options?: MapUnitsOptions): Promise<MapUnitsInfo | null>;
+}
+
+export interface MapUnitsOptions extends HeroDataOptions {
+  /** The PTR's newest build instead of live's. */
+  readonly ptr?: boolean;
 }
