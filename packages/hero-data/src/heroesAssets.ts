@@ -7,12 +7,21 @@ import {
   toolChestFiles,
   type HeroesToolChestOptions,
 } from './providers.js';
+import {
+  ASSETS_LOCALES,
+  readMapUnits,
+  type MapSheetEntry,
+  type MapUnitsInfo,
+  type RawMapUnits,
+  type RawMapUnitStrings,
+} from './mapUnits.js';
 import type {
   HeroData,
   HeroDataBuild,
   HeroDataOptions,
   HeroDataProvider,
   HeroDataSet,
+  MapUnitsOptions,
   PictureIndex,
 } from './types.js';
 import type {
@@ -220,10 +229,42 @@ export function heroesAssetsProvider(options: HeroesAssetsOptions = {}): HeroDat
     return createHeroDataSet(await load(entry, opts.locale ?? 'enus'), build ?? chosen);
   };
 
+  /**
+   * A map's camps and unit cards from a channel's newest release: its entry in `maps/index.json`
+   * (its sheet, and its unit cards' file), the file, and its strings in the locale.
+   */
+  const mapUnits = async (
+    map: string,
+    opts: MapUnitsOptions = {},
+  ): Promise<MapUnitsInfo | null> => {
+    const channel: Channel = opts.ptr ? 'ptr' : 'live';
+    const folder = ASSETS_LOCALES[opts.locale ?? 'enus'] ?? 'en-US';
+    try {
+      const index = await json<
+        Record<string, MapSheetEntry & { key: string; normalizedId: string }>
+      >(channel, 'maps/index.json');
+      const wanted = map.toLowerCase();
+      const entry = Object.values(index).find(
+        (m) => m.normalizedId === wanted || m.key.toLowerCase() === wanted,
+      );
+      if (!entry?.units) return null;
+      const [raw, strings] = await Promise.all([
+        json<RawMapUnits>(channel, `maps/${entry.units}`),
+        json<Record<string, RawMapUnitStrings>>(channel, `strings/${folder}/maps.json`).catch(
+          () => ({}) as Record<string, RawMapUnitStrings>,
+        ),
+      ]);
+      return readMapUnits(raw, strings[entry.normalizedId], entry, `${site}/${channel}/`);
+    } catch {
+      return null;
+    }
+  };
+
   return {
     forBuild: (build, opts = {}) => serve(build, opts),
     latest: (opts = {}) => serve(undefined, opts),
     builds,
+    mapUnits,
   };
 }
 

@@ -7,6 +7,8 @@ import {
   HEROES_DATA_TREE_API,
   heroesAssetsProvider,
   heroesImages,
+  scalingRank,
+  scalingTotals,
   type TextCache,
 } from '../src/index.js';
 
@@ -103,6 +105,80 @@ function network() {
       'pictures.json': [
         { op: 'replace', path: `/files/${ICON}/sheet`, value: '../files/abc.webp' },
       ],
+    },
+  });
+
+  // live's camps and unit cards for Infernal Shrines (heroes-assets' built maps/ and strings)
+  put(`${site}/live/maps/index.json`, {
+    infernal_shrines: {
+      key: 'Infernal Shrines',
+      normalizedId: 'infernal_shrines',
+      sheet: 'sheets/infernal_shrines.webp',
+      icons: {
+        storm_ui_ingame_targetinfopanel_unit_boe_building_fort_heaven: [0, 0, 64, 64],
+        storm_ui_ingame_targetinfopanel_unit_boe_building_fort_hell: [64, 0, 64, 64],
+      },
+      units: 'units/infernal_shrines.json',
+    },
+    garden_of_terror: {
+      key: 'Garden of Terror',
+      normalizedId: 'garden_of_terror',
+      sheet: null,
+      icons: {},
+      units: null,
+    },
+  });
+  put(`${site}/live/maps/units/infernal_shrines.json`, {
+    scalingTicks: { tickSeconds: 60, maxTicks: 60 },
+    camps: [
+      {
+        id: 'SiegeCamp1',
+        category: 'siege',
+        defenders: [{ unit: 'MercSiegeTrooperDefender', count: 3 }],
+        mercs: [{ unit: 'MercSiegeTrooperLaner', count: 3 }],
+        respawnSeconds: 180,
+        firstSpawnSeconds: 30,
+        elite: false,
+        soloable: true,
+        captureXp: 0,
+        defenderScaling: 'MercSiegeTrooperDefenderScaling',
+        mercScaling: 'MercSiegeTrooperLanerScaling',
+        levels: [],
+      },
+    ],
+    units: {
+      TownTownHallL2: {
+        damageType: 'Structure',
+        life: { amount: 17380, scale: 0, regenRate: 0, regenScale: 0 },
+        weapons: [
+          {
+            nameId: 'TownHallL2Weapon',
+            range: 8,
+            minimumRange: 0,
+            period: 1,
+            damage: 375,
+            damageScale: 0,
+          },
+        ],
+        attributes: ['Structure'],
+        portraits: [
+          'storm_ui_ingame_targetinfopanel_unit_boe_building_fort_heaven',
+          'storm_ui_ingame_targetinfopanel_unit_boe_building_fort_hell',
+        ],
+      },
+    },
+    scaling: {
+      MercSiegeTrooperLanerScaling: [
+        {},
+        { 'VitalMaxArray.Life': 40, 'DamageDealtScaled.Basic': 1 },
+      ],
+    },
+  });
+  put(`${site}/live/strings/en-US/maps.json`, {
+    infernal_shrines: {
+      name: 'Infernal Shrines',
+      camps: { SiegeCamp1: 'Impaler' },
+      units: { TownTownHallL2: { name: 'Fort', description: null } },
     },
   });
 
@@ -277,5 +353,53 @@ describe('heroesImages map previews', () => {
     });
     // a map without a place in the sheet keeps its file
     expect(img.map(set.map('Garden of Terror')!, 'replayPreview')?.rect).toBeUndefined();
+  });
+});
+
+describe('map units', () => {
+  it("reads a map's camps and unit cards from live's newest release, with its strings and portraits", async () => {
+    const units = await heroesAssetsProvider({ fetch: network().fetch }).mapUnits!(
+      'Infernal Shrines',
+    );
+    expect(units?.camps[0]).toMatchObject({
+      id: 'SiegeCamp1',
+      label: 'Impaler',
+      respawnSeconds: 180,
+    });
+    const fort = units?.units['TownTownHallL2'];
+    expect(fort?.name).toBe('Fort');
+    expect(fort?.life?.amount).toBe(17380);
+    expect(fort?.weapons[0]?.damage).toBe(375);
+    // one per team, from the map's sheet; its size the icons' extent while the index has none
+    expect(fort?.portraits).toEqual([
+      {
+        src: `${site}/live/maps/sheets/infernal_shrines.webp`,
+        rect: [0, 0, 64, 64],
+        size: [128, 64],
+      },
+      {
+        src: `${site}/live/maps/sheets/infernal_shrines.webp`,
+        rect: [64, 0, 64, 64],
+        size: [128, 64],
+      },
+    ]);
+  });
+
+  it('finds a map by its normalized id, and has none for a map without unit cards', async () => {
+    const provider = heroesAssetsProvider({ fetch: network().fetch });
+    expect(await provider.mapUnits!('infernal_shrines')).not.toBeNull();
+    expect(await provider.mapUnits!('garden_of_terror')).toBeNull();
+    expect(await provider.mapUnits!('Nowhere')).toBeNull();
+  });
+
+  it('scales: a rank a tick a minute from the gates, capped; each field summed up to it', () => {
+    const ticks = { tickSeconds: 60, maxTicks: 60 };
+    const levels = [{}, { 'VitalMaxArray.Life': 40 }, { 'VitalMaxArray.Life': 40, KillXPBonus: 2 }];
+    expect(scalingRank(-30, ticks, levels.length)).toBe(0);
+    expect(scalingRank(119, ticks, levels.length)).toBe(1);
+    // no further than the behaviour's last level
+    expect(scalingRank(600, ticks, levels.length)).toBe(2);
+    expect(scalingTotals(levels, 0)).toEqual({});
+    expect(scalingTotals(levels, 2)).toEqual({ 'VitalMaxArray.Life': 80, KillXPBonus: 2 });
   });
 });
