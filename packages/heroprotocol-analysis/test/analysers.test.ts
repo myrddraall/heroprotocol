@@ -280,6 +280,7 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
             k.bossLane +
             k.structures +
             k.heroes +
+            k.heroUnits +
             k.summons +
             k.other,
         );
@@ -287,6 +288,20 @@ describe.skipIf(replays.length === 0)('built-in analysers on real replays', () =
       expect(teamKills.reduce((a, x) => a + x.total, 0)).toBe(
         kills.reduce((a, k) => a + k.total, 0),
       );
+      // heroes are counted per recorded death (PlayerDeath), not per hero unit: each team's killing
+      // blows on heroes are the other team's recorded deaths, less the ones a tower, minion or camp
+      // dealt (a few at most); the score screen's Kills can be lower (Murky, The Lost Vikings)
+      for (const team of [0, 1] as const) {
+        const heroes = teamKills.find((x) => x.team === team)!.heroes;
+        const died = f.statEvents.filter(
+          (e) =>
+            e.eventName === 'PlayerDeath' &&
+            e.playerSlot !== null &&
+            f.players.find((p) => p.slot === e.playerSlot)?.team !== team,
+        ).length;
+        expect(heroes).toBeLessThanOrEqual(died);
+        expect(heroes).toBeGreaterThanOrEqual(died * 0.7);
+      }
 
       // chat is joined with players
       expect(chat.length).toBe(f.chat.length);
