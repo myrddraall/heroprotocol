@@ -1,7 +1,7 @@
 import { createRegistry } from '../analysers/registry.js';
 import type { AnalyserOutput } from '../analysers/runner.js';
 import type { AnalyserStatus, AnyAnalyser } from '../analysers/types.js';
-import { deleteReplay } from '../db/write.js';
+import { deleteReplay, withPriority } from '../db/write.js';
 import { DEFAULT_DB_NAME, HeroDb } from '../db/HeroDb.js';
 import { listReplays, pruneReplays, reanalyse as reanalyseInline } from '../db/maintenance.js';
 import { analyse as analyseInline } from '../ingest/lazy.js';
@@ -86,6 +86,12 @@ export interface ReplayDbClient {
   reanalyse(replayId?: string): Promise<AnalyserRunRecord[]>;
   listReplays(): Promise<ReplayRecord[]>;
   deleteReplay(replayId: string): Promise<void>;
+  /**
+   * Runs `work` as priority work (an open replay's reads and analysers, until they answer):
+   * while it runs, imports and reanalyses take no new write turn, so it waits for one of
+   * their writes at most. Any number run at once.
+   */
+  priority<T>(work: () => Promise<T>): Promise<T>;
   pruneReplays(keep: number): Promise<string[]>;
   close(): Promise<void>;
 }
@@ -293,6 +299,7 @@ function createWorkerClient(dbName: string, worker: WorkerLike): ReplayDbClient 
     },
     listReplays: () => ready.then(() => listReplays(database())),
     deleteReplay: (id) => ready.then(() => deleteReplay(database(), id)),
+    priority: (work) => withPriority(dbName, work),
     pruneReplays: (keep) => ready.then(() => pruneReplays(database(), { keep })),
     async close() {
       if (closed) return;
@@ -402,6 +409,7 @@ function createInlineClient(dbName: string, options: ReplayDbOptions): ReplayDbC
       ),
     listReplays: () => withDb((db) => listReplays(db)),
     deleteReplay: (id) => withDb((db) => deleteReplay(db, id)),
+    priority: (work) => withPriority(dbName, work),
     pruneReplays: (keep) => withDb((db) => pruneReplays(db, { keep })),
     async close() {
       db?.close();

@@ -7,6 +7,8 @@ export {
   replayRange,
   setReplayStatus,
   bulkAddChunked,
+  exclusiveWrite,
+  withPriority,
 } from './write.js';
 export type { WriteReplayOptions, StoreWriteProgress, OnStoreWrite } from './write.js';
 export { readRows, readTableRows, createDbContext } from './read.js';
