@@ -66,8 +66,15 @@ export async function reanalyse(db: HeroDb, options: ReanalyseOptions): Promise<
       ctx,
       modes: ['ready', 'background'],
       existing,
+      // a reanalysis gives way to an open replay's work, as an import does
       onComputed: (output) =>
-        saveAnalyserOutput(db, options.registry.get(output.run.analyserId)!.analyser, output),
+        saveAnalyserOutput(
+          db,
+          options.registry.get(output.run.analyserId)!.analyser,
+          output,
+          undefined,
+          true,
+        ),
       ...(options.onStatus
         ? { onStatus: (s: AnalyserStatus) => options.onStatus!(replay.id, s) }
         : {}),

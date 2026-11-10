@@ -146,9 +146,11 @@ async function runPipeline(
   tracker.setPhase('writing');
   t = clock.ms();
   try {
+    // an import's writes give way to an open replay's work (exclusiveWrite)
     await writeReplay(db, normalized, {
       status: 'analysing',
       onProgress: (p) => tracker.store(p),
+      background: true,
     });
   } catch (err) {
     tracker.store(undefined);
@@ -194,6 +196,7 @@ async function runPipeline(
       for (const output of readyRun.computed)
         await writeAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output, added);
     },
+    true,
   );
   await setReplayStatus(db, normalized.replay.id, 'ready');
   tracker.store(undefined);
@@ -222,8 +225,12 @@ async function runPipeline(
     clock,
     onStatus: (s) => tracker.analyser(s),
     onComputed: async (output) => {
-      await saveAnalyserOutput(db, registry.get(output.run.analyserId)!.analyser, output, (p) =>
-        tracker.store(p),
+      await saveAnalyserOutput(
+        db,
+        registry.get(output.run.analyserId)!.analyser,
+        output,
+        (p) => tracker.store(p),
+        true,
       );
       tracker.store(undefined);
     },
@@ -236,6 +243,7 @@ async function runPipeline(
     (p) => tracker.store(p),
     () => db.replays.get(normalized.replay.id),
     () => setReplayStatus(db, normalized.replay.id, 'complete'),
+    true,
   );
   tracker.store(undefined);
   await db.ingestJobs.update(jobId, { status: 'complete', finishedAt: clock.now() });

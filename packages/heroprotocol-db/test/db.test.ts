@@ -12,7 +12,7 @@ import type { Analyser, AnalyserRows } from '../src/analysers/types.js';
 import { HeroDb } from '../src/db/HeroDb.js';
 import { STORES } from '../src/db/schema.js';
 import { createDbContext, readRows, readTableRows } from '../src/db/read.js';
-import { deleteReplay, writeReplay } from '../src/db/write.js';
+import { deleteReplay, exclusiveWrite, withPriority, writeReplay } from '../src/db/write.js';
 import { saveAnalyserOutput } from '../src/db/runs.js';
 import { listReplays, pruneReplays, reanalyse, staleReplays } from '../src/db/maintenance.js';
 import { localReplays, normalizeLocal } from './util/node.js';
@@ -35,6 +35,60 @@ const fresh = async (tables: Record<string, string> = {}): Promise<HeroDb> => {
 };
 const sortRows = (rows: readonly unknown[]): unknown[] =>
   [...rows].sort((a, b) => (JSON.stringify(a) < JSON.stringify(b) ? -1 : 1));
+
+describe('exclusiveWrite', () => {
+  it("runs one database's writes one at a time, in the order they asked", async () => {
+    const db = await fresh();
+    const log: string[] = [];
+    const write = (name: string, ms: number) =>
+      exclusiveWrite(db, async () => {
+        log.push(`${name} start`);
+        await new Promise((r) => setTimeout(r, ms));
+        log.push(`${name} end`);
+        return name;
+      });
+    expect(await Promise.all([write('a', 30), write('b', 1), write('c', 1)])).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+    expect(log).toEqual(['a start', 'a end', 'b start', 'b end', 'c start', 'c end']);
+  });
+
+  it('holds a background write back while priority work runs, and lets priority writes past it', async () => {
+    const db = await fresh();
+    const log: string[] = [];
+    let finish!: () => void;
+    const priority = withPriority(db.name, async () => {
+      log.push('priority start');
+      await new Promise<void>((r) => (finish = r));
+      log.push('priority end');
+    });
+    await new Promise((r) => setTimeout(r, 5));
+    const background = exclusiveWrite(db, async () => log.push('background write'), true);
+    await new Promise((r) => setTimeout(r, 5));
+    await exclusiveWrite(db, async () => log.push('priority write'));
+    finish();
+    await Promise.all([priority, background]);
+    expect(log).toEqual(['priority start', 'priority write', 'priority end', 'background write']);
+  });
+
+  it("doesn't hold up another database's writes", async () => {
+    const [one, two] = [await fresh(), await fresh()];
+    const log: string[] = [];
+    await Promise.all([
+      exclusiveWrite(one, async () => {
+        log.push('one start');
+        await new Promise((r) => setTimeout(r, 30));
+        log.push('one end');
+      }),
+      exclusiveWrite(two, async () => {
+        log.push('two');
+      }),
+    ]);
+    expect(log).toEqual(['one start', 'two', 'one end']);
+  });
+});
 
 describe('HeroDb.open', () => {
   it('adds analyser tables, bumps the version only when the store set changes, and keeps data', async () => {
@@ -167,6 +221,57 @@ describe.skipIf(replays.length === 0)('HeroDb writeReplay', () => {
     await expect(writeReplay(empty, broken)).rejects.toThrow();
     expect(await empty.replays.count()).toBe(0);
     for (const name of REPLAY_COLLECTIONS) expect(await empty.table(name).count(), name).toBe(0);
+  });
+
+  it('writes the same rows in the background, a chunk at a time', async () => {
+    const db = await fresh();
+    const f = fixtures[0]!;
+    await writeReplay(db, f, { background: true, status: 'analysing' });
+    for (const name of REPLAY_COLLECTIONS as readonly ReplayCollectionName[]) {
+      expect(await db.table(name).where('replayId').equals(f.replay.id).count(), name).toBe(
+        f[name].length,
+      );
+    }
+    expect((await db.replays.get(f.replay.id))?.status).toBe('analysing');
+  });
+
+  it('holds a background write between chunks while priority work runs', async () => {
+    const db = await fresh();
+    const f = fixtures[0]!;
+    const total = Object.values(f.replay.rowCounts).reduce((a, b) => a + b, 0);
+    let written = 0;
+    let priority: Promise<[number, number]> | undefined;
+    await writeReplay(db, f, {
+      background: true,
+      onProgress: (p) => {
+        written = p.current;
+        // priority work begun once the rows have started, held a while: no chunk is written
+        // until it ends
+        priority ??=
+          p.state === 'writing' && p.current > 0
+            ? withPriority(db.name, async () => {
+                const before = written;
+                await new Promise((r) => setTimeout(r, 50));
+                return [before, written];
+              })
+            : undefined;
+      },
+    });
+    expect(total).toBeGreaterThan(2000);
+    const [before, after] = await priority!;
+    expect(before).toBeGreaterThan(0);
+    expect(before).toBeLessThan(total);
+    expect(after).toBe(before);
+  });
+
+  it('removes the replay when a background write fails part-way', async () => {
+    const db = await fresh();
+    const f = fixtures[0]!;
+    await writeReplay(db, f);
+    const broken: NormalizedReplay = { ...f, units: [...f.units, f.units[0]!] };
+    await expect(writeReplay(db, broken, { background: true })).rejects.toThrow();
+    expect(await db.replays.count()).toBe(0);
+    for (const name of REPLAY_COLLECTIONS) expect(await db.table(name).count(), name).toBe(0);
   });
 
   it('deletes a replay and everything under it, analyser tables included', async () => {

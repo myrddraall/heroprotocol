@@ -44,6 +44,7 @@ export async function saveAnalyserOutput(
   analyser: AnyAnalyser,
   output: AnalyserOutput,
   onProgress?: OnStoreWrite,
+  background = false,
 ): Promise<void> {
   const { run } = output;
   await trackedWrite(
@@ -53,6 +54,7 @@ export async function saveAnalyserOutput(
     onProgress,
     () => db.analyserRuns.get([run.replayId, run.analyserId, run.paramsHash]),
     (added) => writeAnalyserOutput(db, analyser, output, added),
+    background,
   );
 }
 
