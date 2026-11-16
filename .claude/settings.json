@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "cpdevtools": {
+      "source": {
+        "source": "github",
+        "repo": "cpdevtools/ai-skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "cpdevtools-gitflow@cpdevtools": true
+  }
+}
